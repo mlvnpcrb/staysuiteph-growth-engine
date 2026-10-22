@@ -11,6 +11,7 @@ export type GroupAssessment = {
   unknowns: string[];
 };
 export type SavedGroup = {
+  marketing_evidence?: MarketingEvidence | undefined;
   id: string;
   user_id: string;
   identity: string;
@@ -27,4 +28,15 @@ export type SavedGroup = {
   last_reviewed_at: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type MarketingEvidence = {
+  observed_at: string | null;
+  source_url: string | null;
+  posts_7d: number | null;
+  sample_posts: number | null;
+  sample_comments: number | null;
+  enquiries_30d: number | null;
+  bookings_30d: number | null;
+  promotion_allowed: boolean | null;
 };

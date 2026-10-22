@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { groupRepository } from "@staysuite/database";
 import {
   addGroupSchema,
+  marketingUpdateSchema,
   duplicateCheckSchema,
   updateGroupSchema,
   deleteGroupSchema,
@@ -88,6 +89,37 @@ async function handle(
       const input = parsed.data;
       const { identity } = normalizeGroupUrl(input.url);
       return reply(await repository.save({ ...input, identity }));
+    }
+    if (
+      method === "PATCH" &&
+      body &&
+      typeof body === "object" &&
+      "operation" in body &&
+      body.operation === "marketing_evidence"
+    ) {
+      const parsed = marketingUpdateSchema.safeParse(body);
+      if (!parsed.success)
+        return reply(
+          { error: parsed.error.issues[0]?.message ?? "Check the evidence." },
+          400,
+        );
+      const existing = await repository.find(parsed.data.id);
+      if (!existing) return reply({ error: "Group not found." }, 404);
+      const evidence = parsed.data.marketing_evidence;
+      if (evidence.observed_at && Date.parse(evidence.observed_at) > Date.now())
+        return reply(
+          { error: "Observation date cannot be in the future." },
+          400,
+        );
+      if (
+        evidence.source_url &&
+        normalizeGroupUrl(evidence.source_url).identity !== existing.identity
+      )
+        return reply({ error: "Source link must identify this group." }, 400);
+      const group = await repository.updateMarketing(parsed.data.id, evidence);
+      return group
+        ? reply({ group })
+        : reply({ error: "Group not found." }, 404);
     }
     if (method === "PATCH") {
       const parsed = updateGroupSchema.safeParse(body);

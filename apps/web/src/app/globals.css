@@ -1095,3 +1095,16 @@ h3 {
   font-size: 0.95rem;
   font-weight: 650;
 }
+
+.marketing-analysis {
+  margin: 1.25rem 0;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.8rem;
+}
+.marketing-analysis details {
+  margin: 0.8rem 0;
+}
+.marketing-analysis .finder-fields {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+}

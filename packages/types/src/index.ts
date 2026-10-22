@@ -1,4 +1,4 @@
-import type { SavedGroup } from "./groups";
+import type { MarketingEvidence, SavedGroup } from "./groups";
 export const navigation = [
   {
     slug: "overview",
@@ -73,10 +73,13 @@ export type Database = {
           | "audience"
           | "evidence"
         >;
-        Update: Pick<
-          SavedGroup,
-          "notes" | "review_status" | "rule_evidence" | "last_reviewed_at"
+        Update: Partial<
+          Pick<
+            SavedGroup,
+            "notes" | "review_status" | "rule_evidence" | "last_reviewed_at"
+          >
         > & {
+          marketing_evidence?: MarketingEvidence | undefined;
           destination?: string | undefined;
           accommodation?: string | undefined;
           audience?: string | undefined;
@@ -96,4 +99,9 @@ export type Database = {
     CompositeTypes: { [_ in never]: never };
   };
 };
-export type { SavedGroup, GroupSearch, GroupAssessment } from "./groups";
+export type {
+  SavedGroup,
+  GroupSearch,
+  GroupAssessment,
+  MarketingEvidence,
+} from "./groups";

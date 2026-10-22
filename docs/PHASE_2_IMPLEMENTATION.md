@@ -118,3 +118,11 @@ change or migration is included. See [CONNECTED_GROUP_IMPORT.md](CONNECTED_GROUP
 ## My Groups import UX
 
 All seven UX refinements are implemented locally: see [GROUP_IMPORT_UX.md](GROUP_IMPORT_UX.md), including the prepared optional-context migration.
+
+## Evidence-based marketing ranking
+
+My Groups now supports transparent marketing scores, observation entry, rule/
+permission gates, priority sorting and evidence coverage. Aggregate observations
+are user-reported; unknown/stale data adds no points and no Facebook analytics or
+posting integration is invented. See [GROUP_MARKETING_RANKING.md](GROUP_MARKETING_RANKING.md)
+for scoring, privacy, tests and the prepared (unapplied) JSONB evidence migration.

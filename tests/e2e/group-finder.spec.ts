@@ -104,7 +104,11 @@ test("manual discovery → assessment → save → notes/review → overview →
     page.getByRole("status").filter({ hasText: "Notes and review saved" }),
   ).toBeVisible();
   await page.reload();
-  await expect(page.locator("article.saved-group .subtle-badge")).toBeVisible();
+  await expect(
+    page
+      .locator("article.saved-group .subtle-badge")
+      .filter({ hasText: /^Personally reviewed$/ }),
+  ).toBeVisible();
   await page.getByText("Notes & rule review").click();
   await expect(page.getByLabel("Private notes")).toHaveValue(
     "Personally useful",

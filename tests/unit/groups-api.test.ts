@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   repo: vi.fn(),
   list: vi.fn(),
   duplicates: vi.fn(),
+  updateMarketing: vi.fn(),
   save: vi.fn(),
   find: vi.fn(),
   update: vi.fn(),
@@ -38,6 +39,7 @@ beforeEach(() => {
   mocks.repo.mockReturnValue({
     list: mocks.list,
     duplicates: mocks.duplicates,
+    updateMarketing: mocks.updateMarketing,
     save: mocks.save,
     find: mocks.find,
     update: mocks.update,
@@ -266,4 +268,70 @@ it("accepts a full 100-link duplicate preview without the smaller single-entry s
   ).toBe(200);
   expect(mocks.duplicates.mock.calls[0]?.[0]).toHaveLength(100);
   expect(mocks.save).not.toHaveBeenCalled();
+});
+
+it("saves only validated marketing evidence for an owned group without rewriting notes", async () => {
+  mocks.find.mockResolvedValue({ identity: "fixture" });
+  mocks.updateMarketing.mockResolvedValue({ id: owner });
+  const marketing_evidence = {
+    observed_at: "2026-10-20T00:00:00Z",
+    source_url: "https://facebook.com/groups/fixture/",
+    posts_7d: 7,
+  };
+  expect(
+    (
+      await PATCH(
+        request("PATCH", {
+          id: owner,
+          operation: "marketing_evidence",
+          marketing_evidence,
+        }),
+      )
+    ).status,
+  ).toBe(200);
+  expect(mocks.updateMarketing).toHaveBeenCalledWith(
+    owner,
+    expect.objectContaining({ posts_7d: 7 }),
+  );
+  expect(mocks.update).not.toHaveBeenCalled();
+  mocks.find.mockResolvedValue(null);
+  expect(
+    (
+      await PATCH(
+        request("PATCH", {
+          id: owner,
+          operation: "marketing_evidence",
+          marketing_evidence,
+        }),
+      )
+    ).status,
+  ).toBe(404);
+});
+it("rejects mismatched marketing sources, future dates and private fields", async () => {
+  mocks.find.mockResolvedValue({ identity: "fixture" });
+  for (const marketing_evidence of [
+    {
+      source_url: "https://facebook.com/groups/other/",
+      observed_at: "2026-10-20T00:00:00Z",
+      posts_7d: 7,
+    },
+    {
+      source_url: "https://facebook.com/groups/fixture/",
+      observed_at: "2099-01-01T00:00:00Z",
+      posts_7d: 7,
+    },
+    { member_names: ["private"] },
+  ])
+    expect(
+      (
+        await PATCH(
+          request("PATCH", {
+            id: owner,
+            operation: "marketing_evidence",
+            marketing_evidence,
+          }),
+        )
+      ).status,
+    ).toBe(400);
+  expect(mocks.updateMarketing).not.toHaveBeenCalled();
 });

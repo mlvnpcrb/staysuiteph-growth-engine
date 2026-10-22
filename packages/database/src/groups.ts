@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, SavedGroup } from "@staysuite/types";
+import type { Database, SavedGroup, MarketingEvidence } from "@staysuite/types";
 export function groupRepository(
   client: SupabaseClient<Database>,
   userId: string,
@@ -102,6 +102,17 @@ export function groupRepository(
       const result = await client
         .from("saved_groups")
         .update(input)
+        .eq("id", id)
+        .eq("user_id", userId)
+        .select("*")
+        .maybeSingle();
+      if (result.error) throw result.error;
+      return result.data;
+    },
+    async updateMarketing(id: string, evidence: MarketingEvidence) {
+      const result = await client
+        .from("saved_groups")
+        .update({ marketing_evidence: evidence })
         .eq("id", id)
         .eq("user_id", userId)
         .select("*")

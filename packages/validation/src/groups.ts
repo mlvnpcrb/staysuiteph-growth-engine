@@ -1,62 +1,9 @@
 import { z } from "zod";
-export function normalizeGroupUrl(input: string) {
-  const url = new URL(input.trim());
-  if (
-    !["https:", "http:"].includes(url.protocol) ||
-    url.username ||
-    url.password ||
-    url.port ||
-    !["facebook.com", "www.facebook.com", "m.facebook.com"].includes(
-      url.hostname,
-    )
-  )
-    throw new Error("Enter a Facebook Group link.");
-  const match =
-    /^\/groups\/([a-zA-Z0-9._-]{1,160})(?:\/(?:about|posts\/\d+|permalink\/\d+))?\/?$/.exec(
-      url.pathname,
-    );
-  const identity = match?.[1]?.toLowerCase();
-  if (
-    !identity ||
-    [
-      "feed",
-      "discover",
-      "create",
-      "search",
-      "joins",
-      "your_groups",
-      "notifications",
-    ].includes(identity)
-  )
-    throw new Error("Enter a specific Facebook Group link.");
-  return { identity, url: `https://www.facebook.com/groups/${identity}/` };
-}
-export const searchGroupsSchema = z.object({
-  destination: z.string().trim().min(2).max(100),
-  accommodation: z.enum([
-    "Condo",
-    "Apartment",
-    "Hotel",
-    "Resort",
-    "Vacation rental",
-  ]),
-  audience: z.enum(["Guests", "Hosts"]),
-});
-export const groupContextSchema = z.object({
-  destination: z
-    .string()
-    .trim()
-    .max(100)
-    .refine(
-      (value) => value.length === 0 || value.length >= 2,
-      "Use at least two characters or leave blank.",
-    )
-    .default(""),
-  accommodation: z
-    .enum(["", "Condo", "Apartment", "Hotel", "Resort", "Vacation rental"])
-    .default(""),
-  audience: z.enum(["", "Guests", "Hosts"]).default(""),
-});
+import { normalizeGroupUrl } from "./group-url";
+import { groupContextSchema } from "./group-context";
+export { normalizeGroupUrl } from "./group-url";
+export { searchGroupsSchema, groupContextSchema } from "./group-context";
+import { marketingEvidenceSchema } from "./group-marketing";
 export const duplicateCheckSchema = z.object({
   operation: z.literal("check_duplicates"),
   urls: z.array(z.string().max(500)).min(1).max(100),
@@ -101,6 +48,9 @@ export const updateGroupSchema = z
   });
 export const deleteGroupSchema = z.object({ id: z.uuid() });
 export const savedGroupSchema = z.object({
+  marketing_evidence: marketingEvidenceSchema
+    .catch(() => marketingEvidenceSchema.parse({}))
+    .optional(),
   id: z.uuid(),
   user_id: z.uuid(),
   identity: z.string(),

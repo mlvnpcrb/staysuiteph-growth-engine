@@ -1,15 +1,13 @@
 "use client";
+import { MarketingAnalysis } from "./marketing-analysis";
+import { rankGroupMarketing } from "@staysuite/validation";
 import { CollectionImport } from "./collection-import";
 import { useState } from "react";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { Button } from "@staysuite/ui";
 import type { SavedGroup } from "@staysuite/types";
-import {
-  assessGroup,
-  searchGroupsSchema,
-  effectiveReview,
-} from "@staysuite/validation";
+import { effectiveReview } from "@staysuite/validation";
 import { groupRequest, useGroups } from "./use-groups";
 function GroupEntry({
   group,
@@ -30,8 +28,6 @@ function GroupEntry({
   const [destination, setDestination] = useState(group.destination);
   const [accommodation, setAccommodation] = useState(group.accommodation);
   const [audience, setAudience] = useState(group.audience);
-  const context = searchGroupsSchema.safeParse(group);
-  const assessment = context.success ? assessGroup(group, context.data) : null;
   return (
     <article className="panel saved-group">
       <div className="section-heading">
@@ -59,12 +55,6 @@ function GroupEntry({
           .filter(Boolean)
           .join(" · ") || "Add hosting context when you’re ready"}
       </p>
-      {assessment && (
-        <p className="muted text-sm">
-          {assessment.score}/100 text relevance · {assessment.confidence}{" "}
-          confidence · Relevance does not establish posting permission
-        </p>
-      )}
       <p className="muted text-sm">
         Source: manually supplied, not independently verified. Saved{" "}
         {new Date(group.created_at).toLocaleDateString("en-PH", {
@@ -72,6 +62,11 @@ function GroupEntry({
         })}
         .
       </p>
+      <MarketingAnalysis
+        group={group}
+        onRefresh={onRefresh}
+        onMessage={onMessage}
+      />
       {group.evidence && (
         <blockquote className="group-evidence">{group.evidence}</blockquote>
       )}
@@ -254,13 +249,34 @@ export function MyGroups() {
   const [message, setMessage] = useState("");
   const [filter, setFilter] = useState("");
   const [review, setReview] = useState("all");
-  const visible = groups.filter(
-    (g) =>
-      `${g.title} ${g.destination}`
-        .toLowerCase()
-        .includes(filter.toLowerCase()) &&
-      (review === "all" || effectiveReview(g) === review),
-  );
+  const [sort, setSort] = useState("marketing");
+  const [permission, setPermission] = useState("all");
+  const reports = new Map(groups.map((g) => [g.id, rankGroupMarketing(g)]));
+  const visible = groups
+    .filter(
+      (g) =>
+        `${g.title} ${g.destination}`
+          .toLowerCase()
+          .includes(filter.toLowerCase()) &&
+        (review === "all" || effectiveReview(g) === review),
+    )
+    .filter(
+      (g) =>
+        permission === "all" || reports.get(g.id)?.readiness === permission,
+    )
+    .sort((a, b) => {
+      if (sort === "newest") return b.created_at.localeCompare(a.created_at);
+      const left = reports.get(a.id)!,
+        right = reports.get(b.id)!;
+      if (sort === "coverage") return right.coverage - left.coverage;
+      const priority = { reviewed_permission: 2, needs_review: 1, blocked: 0 };
+      return (
+        priority[right.readiness] - priority[left.readiness] ||
+        (right.score ?? -1) - (left.score ?? -1) ||
+        right.coverage - left.coverage ||
+        a.title.localeCompare(b.title)
+      );
+    });
   return (
     <div className="page group-workspace">
       <div className="page-heading">
@@ -292,7 +308,32 @@ export function MyGroups() {
             <option value="not_suitable">Not suitable</option>
           </select>
         </label>
+        <label>
+          Rank groups
+          <select value={sort} onChange={(e) => setSort(e.target.value)}>
+            <option value="marketing">Marketing priority</option>
+            <option value="coverage">Evidence coverage</option>
+            <option value="newest">Newest saved</option>
+          </select>
+        </label>
+        <label>
+          Permission review
+          <select
+            value={permission}
+            onChange={(e) => setPermission(e.target.value)}
+          >
+            <option value="all">All groups</option>
+            <option value="reviewed_permission">Reviewed permission</option>
+            <option value="needs_review">Needs review</option>
+            <option value="blocked">Blocked</option>
+          </select>
+        </label>
       </div>
+      <p className="muted text-sm">
+        Marketing priority puts reviewed permission first, blocked groups last,
+        then compares evidence-based scores. Ranking covers the loaded
+        shortlist, not predicted bookings. Unknown evidence never adds points.
+      </p>
       {loading && (
         <div className="panel" role="status">
           Loading your saved groups…
