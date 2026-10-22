@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   supabase: vi.fn(),
   login: vi.fn(),
   logout: vi.fn(),
+  oauth: vi.fn(),
 }));
 vi.mock("@/lib/env", () => ({ environment: mocks.environment }));
 vi.mock("@/lib/supabase", () => ({ supabaseServer: mocks.supabase }));
@@ -12,12 +13,23 @@ vi.mock("next/navigation", () => ({
     throw new Error(`redirect:${path}`);
   },
 }));
-import { signIn, signOut } from "../../apps/web/src/app/login/actions";
+import {
+  signIn,
+  signOut,
+  signInWithGoogle,
+} from "../../apps/web/src/app/login/actions";
 beforeEach(() => {
   vi.resetAllMocks();
-  mocks.environment.mockReturnValue({ configured: true });
+  mocks.environment.mockReturnValue({
+    configured: true,
+    siteUrl: "http://localhost:3000",
+  });
   mocks.supabase.mockResolvedValue({
-    auth: { signInWithPassword: mocks.login, signOut: mocks.logout },
+    auth: {
+      signInWithPassword: mocks.login,
+      signOut: mocks.logout,
+      signInWithOAuth: mocks.oauth,
+    },
   });
 });
 function credentials(
@@ -69,5 +81,43 @@ describe("auth actions with mocked SDK (not live auth)", () => {
       error: { message: "service unavailable" },
     });
     await expect(signOut()).rejects.toThrow("redirect:/login?error=logout");
+  });
+});
+
+describe("Google OAuth action", () => {
+  it("starts Google with the trusted callback and server cookie flow", async () => {
+    mocks.oauth.mockResolvedValue({
+      data: { url: "https://project.supabase.co/auth/v1/authorize" },
+      error: null,
+    });
+    await expect(signInWithGoogle()).rejects.toThrow(
+      "redirect:https://project.supabase.co/auth/v1/authorize",
+    );
+    expect(mocks.oauth).toHaveBeenCalledWith({
+      provider: "google",
+      options: {
+        redirectTo: "http://localhost:3000/auth/callback",
+        skipBrowserRedirect: true,
+      },
+    });
+  });
+  it.each([
+    undefined,
+    "http://evil.example",
+    "https://user:pass@example.com",
+    "https://example.com/path",
+    "javascript:alert(1)",
+  ])("rejects invalid site origin %s", async (siteUrl) => {
+    mocks.environment.mockReturnValue({ configured: true, siteUrl });
+    await expect(signInWithGoogle()).rejects.toThrow(
+      "redirect:/login?error=configuration",
+    );
+    expect(mocks.supabase).not.toHaveBeenCalled();
+  });
+  it("hides provider errors", async () => {
+    mocks.oauth.mockRejectedValue(new Error("private provider detail"));
+    await expect(signInWithGoogle()).rejects.toThrow(
+      "redirect:/login?error=oauth",
+    );
   });
 });

@@ -23,3 +23,40 @@ export async function signOut() {
   }
   redirect("/login");
 }
+
+export async function signInWithGoogle() {
+  const env = environment();
+  if (!env.configured || !env.siteUrl) redirect("/login?error=configuration");
+  let callback: string;
+  try {
+    const site = new URL(env.siteUrl);
+    const local =
+      site.hostname === "localhost" || site.hostname === "127.0.0.1";
+    if (
+      site.username ||
+      site.password ||
+      site.search ||
+      site.hash ||
+      site.pathname !== "/" ||
+      (site.protocol !== "https:" && !(local && site.protocol === "http:"))
+    ) {
+      throw new Error("Invalid site origin");
+    }
+    callback = new URL("/auth/callback", site).href;
+  } catch {
+    redirect("/login?error=configuration");
+  }
+  let authorizeUrl: string | undefined;
+  try {
+    const client = await supabaseServer();
+    const { data, error } = await client.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: callback, skipBrowserRedirect: true },
+    });
+    if (!error) authorizeUrl = data.url ?? undefined;
+  } catch {
+    // Never expose provider responses, tokens, or authorization codes.
+  }
+  if (!authorizeUrl) redirect("/login?error=oauth");
+  redirect(authorizeUrl);
+}

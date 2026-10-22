@@ -7,11 +7,17 @@ export async function GET(request: Request) {
     response.headers.set("Cache-Control", "private, no-store");
     return response;
   };
-  const code = new URL(request.url).searchParams.get("code");
+  const params = new URL(request.url).searchParams;
+  const code = params.get("code");
+  if (params.has("error")) return redirect("/login?error=callback");
   if (code && environment().configured) {
-    const client = await supabaseServer();
-    const { error } = await client.auth.exchangeCodeForSession(code);
-    if (!error) return redirect("/dashboard/overview");
+    try {
+      const client = await supabaseServer();
+      const { error } = await client.auth.exchangeCodeForSession(code);
+      if (!error) return redirect("/dashboard/overview");
+    } catch {
+      // Fail closed on expired/missing PKCE verifier or an Auth outage.
+    }
   }
   return redirect("/login?error=callback");
 }

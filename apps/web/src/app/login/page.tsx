@@ -2,7 +2,7 @@ import Link from "next/link";
 import { House } from "lucide-react";
 import { Button } from "@staysuite/ui";
 import { environment } from "@/lib/env";
-import { signIn, signOut } from "./actions";
+import { signIn, signOut, signInWithGoogle } from "./actions";
 export default async function Login({
   searchParams,
 }: {
@@ -24,39 +24,53 @@ export default async function Login({
             Supabase, or explicitly enable demo mode locally.
           </p>
         ) : (
-          <form action={signIn}>
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-            />
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              minLength={8}
-              maxLength={128}
-              required
-            />
-            {error ? (
-              <p role="alert" className="mt-4 text-red-700 dark:text-red-300">
-                {error === "logout"
-                  ? "Sign-out could not be confirmed. Retry before leaving a shared device."
-                  : "Sign-in failed. Check your details or contact your administrator."}
-              </p>
-            ) : null}
-            <Button type="submit">Sign in</Button>
-            <p className="muted mt-4 text-xs">
-              Use an account provisioned in your Supabase project. Self-service
-              registration and password recovery are not included in this
-              foundation.
+          <>
+            <form action={signInWithGoogle}>
+              <Button type="submit" variant="outline">
+                Continue with Google
+              </Button>
+            </form>
+            <p className="muted mt-5 text-center text-sm">
+              Or sign in with email
             </p>
-          </form>
+            <form action={signIn}>
+              <label htmlFor="email">Email</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+              />
+              <label htmlFor="password">Password</label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                minLength={8}
+                maxLength={128}
+                required
+              />
+              {error ? (
+                <p role="alert" className="mt-4 text-red-700 dark:text-red-300">
+                  {error === "logout"
+                    ? "Sign-out could not be confirmed. Retry before leaving a shared device."
+                    : error === "oauth" || error === "callback"
+                      ? "Google sign-in could not be completed. Please try again."
+                      : error === "configuration"
+                        ? "Authentication configuration is incomplete. Contact your administrator."
+                        : "Sign-in failed. Check your details or contact your administrator."}
+                </p>
+              ) : null}
+              <Button type="submit">Sign in</Button>
+              <p className="muted mt-4 text-xs">
+                Use Google or an email account provisioned in Supabase. Google
+                may create an account on first sign-in. Email registration and
+                password recovery are not included in this foundation.
+              </p>
+            </form>
+          </>
         )}
         {error === "logout" && env.configured ? (
           <form action={signOut}>
