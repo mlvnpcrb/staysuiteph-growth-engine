@@ -21,7 +21,8 @@ demo mode, the app displays setup guidance on `/login`.
 
 For authenticated use, provide the Supabase project URL and **publishable** key, apply the
 migration to a local Supabase instance, and provision a test user in Supabase Auth. Login uses
-email/password; signup and password recovery UI are not included. Add the local callback
+email/password or Google via Supabase SSR/PKCE; email signup and password recovery UI
+are not included. Set `SITE_URL=http://localhost:3000` and add the local callback
 `http://localhost:3000/auth/callback` to allowed redirects when using PKCE auth flows.
 
 ```sh
@@ -58,6 +59,9 @@ variables. OpenAI is reserved server-side; no model requests or spend occur in t
 
 See [architecture](docs/ARCHITECTURE.md), [development skills](docs/DEVELOPMENT_SKILLS.md),
 and [validation results](docs/PHASE_1_VALIDATION.md). Phase 2 requires separate authorization.
+See [Google OAuth setup](docs/GOOGLE_OAUTH_SETUP.md) and the
+[Vercel Preview deployment runbook](docs/PREVIEW_DEPLOYMENT.md) for hosted configuration,
+target-checked migrations, and the manual sign-in verification checklist.
 
 ## Stabilization review
 

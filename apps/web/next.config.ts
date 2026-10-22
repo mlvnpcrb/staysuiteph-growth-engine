@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 const config: NextConfig = {
+  outputFileTracingRoot: path.join(__dirname, "../.."),
   transpilePackages: [
     "@staysuite/ui",
     "@staysuite/types",
