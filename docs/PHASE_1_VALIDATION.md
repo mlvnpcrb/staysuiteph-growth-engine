@@ -1,3 +1,5 @@
+> Historical foundation results. For the current review, see [Phase 1 stabilization](PHASE_1_STABILIZATION.md) and [security review](SECURITY_REVIEW.md).
+
 # Phase 1 validation — 2026-10-22 (Asia/Manila)
 
 Branch: `feat/phase-1-foundation`, based on the verified default branch
@@ -5,20 +7,20 @@ Branch: `feat/phase-1-foundation`, based on the verified default branch
 
 ## Actual final results
 
-| Check | Result |
-| --- | --- |
-| pnpm install --frozen-lockfile | Passed with pnpm 10.28.2; all seven workspace projects |
-| pnpm lint | Passed; zero warnings allowed |
-| pnpm typecheck | Passed; tooling/tests plus all six application/shared packages |
-| pnpm test | Passed; 24 tests: 15 validation/contract checks and 9 embedded PostgreSQL migration/RLS checks |
-| pnpm build | Passed; Next.js production app and Plasmo Chrome MV3 bundle |
-| Built extension manifest verification | Passed; popup exists, manifest_version 3, no permissions, host permissions, or content scripts |
-| pnpm test:e2e | Passed; 27 checks across desktop, tablet, and mobile using installed /usr/bin/chromium |
-| git diff --check | Passed for project-authored changes |
-| Visual review | Desktop light and mobile dark captures reviewed; screenshots in docs/images |
-| pnpm db:test | Could not run SQL assertions: local database unavailable after blocked Supabase startup |
-| Full dependency audit | Nonzero: 0 critical, 9 high, 11 moderate, 2 low advisories remain |
-| Production dependency audit | Nonzero: 1 high advisory in next → sass → @parcel/watcher → micromatch → braces 3.0.3; audit reports no patched braces version |
+| Check                                 | Result                                                                                                                         |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| pnpm install --frozen-lockfile        | Passed with pnpm 10.28.2; all seven workspace projects                                                                         |
+| pnpm lint                             | Passed; zero warnings allowed                                                                                                  |
+| pnpm typecheck                        | Passed; tooling/tests plus all six application/shared packages                                                                 |
+| pnpm test                             | Passed; 24 tests: 15 validation/contract checks and 9 embedded PostgreSQL migration/RLS checks                                 |
+| pnpm build                            | Passed; Next.js production app and Plasmo Chrome MV3 bundle                                                                    |
+| Built extension manifest verification | Passed; popup exists, manifest_version 3, no permissions, host permissions, or content scripts                                 |
+| pnpm test:e2e                         | Passed; 27 checks across desktop, tablet, and mobile using installed /usr/bin/chromium                                         |
+| git diff --check                      | Passed for project-authored changes                                                                                            |
+| Visual review                         | Desktop light and mobile dark captures reviewed; screenshots in docs/images                                                    |
+| pnpm db:test                          | Could not run SQL assertions: local database unavailable after blocked Supabase startup                                        |
+| Full dependency audit                 | Nonzero: 0 critical, 9 high, 11 moderate, 2 low advisories remain                                                              |
+| Production dependency audit           | Nonzero: 1 high advisory in next → sass → @parcel/watcher → micromatch → braces 3.0.3; audit reports no patched braces version |
 
 Commands in this managed environment used `npm_config_cache=/tmp/staysuite-npm npx --yes
 pnpm@10.28.2` because the default pnpm binary is version 11. The local package store was

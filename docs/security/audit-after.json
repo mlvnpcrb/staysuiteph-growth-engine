@@ -1,0 +1,160 @@
+{
+  "date": "2026-10-22",
+  "counts": {
+    "info": 0,
+    "low": 1,
+    "moderate": 8,
+    "high": 1,
+    "critical": 0
+  },
+  "advisories": [
+    {
+      "package": "esbuild",
+      "title": "esbuild enables any website to send any requests to the development server and read the response",
+      "severity": "moderate",
+      "url": "https://github.com/advisories/GHSA-67mh-4wv8-2f99",
+      "patched_versions": ">=0.25.0",
+      "findings": [
+        {
+          "version": "0.18.20",
+          "paths": [
+            "apps__extension>plasmo>@plasmohq/parcel-config>@plasmohq/parcel-resolver-post>tsup>esbuild"
+          ]
+        }
+      ]
+    },
+    {
+      "package": "tsup",
+      "title": "tsup DOM Clobbering vulnerability",
+      "severity": "low",
+      "url": "https://github.com/advisories/GHSA-3mv9-4h5g-vhg3",
+      "patched_versions": "<0.0.0",
+      "findings": [
+        {
+          "version": "7.2.0",
+          "paths": [
+            "apps__extension>plasmo>@plasmohq/parcel-config>@plasmohq/parcel-resolver-post>tsup"
+          ]
+        }
+      ]
+    },
+    {
+      "package": "svelte",
+      "title": "Svelte SSR attribute spreading includes inherited properties from prototype chain",
+      "severity": "moderate",
+      "url": "https://github.com/advisories/GHSA-crpf-4hrx-3jrp",
+      "patched_versions": ">=5.51.5",
+      "findings": [
+        {
+          "version": "4.2.20",
+          "paths": [
+            "apps__extension>plasmo>@plasmohq/parcel-config>@plasmohq/parcel-transformer-svelte>svelte"
+          ]
+        }
+      ]
+    },
+    {
+      "package": "svelte",
+      "title": "Svelte SSR does not validate dynamic element tag names in `<svelte:element>`",
+      "severity": "moderate",
+      "url": "https://github.com/advisories/GHSA-m56q-vw4c-c2cp",
+      "patched_versions": ">=5.51.5",
+      "findings": [
+        {
+          "version": "4.2.20",
+          "paths": [
+            "apps__extension>plasmo>@plasmohq/parcel-config>@plasmohq/parcel-transformer-svelte>svelte"
+          ]
+        }
+      ]
+    },
+    {
+      "package": "svelte",
+      "title": "Svelte affected by cross-site scripting via spread attributes in Svelte SSR",
+      "severity": "moderate",
+      "url": "https://github.com/advisories/GHSA-f7gr-6p89-r883",
+      "patched_versions": ">=5.51.5",
+      "findings": [
+        {
+          "version": "4.2.20",
+          "paths": [
+            "apps__extension>plasmo>@plasmohq/parcel-config>@plasmohq/parcel-transformer-svelte>svelte"
+          ]
+        }
+      ]
+    },
+    {
+      "package": "svelte",
+      "title": "Svelte vulnerable to XSS during SSR with contenteditable `bind:innerText` and `bind:textContent`",
+      "severity": "moderate",
+      "url": "https://github.com/advisories/GHSA-phwv-c562-gvmh",
+      "patched_versions": ">=5.53.5",
+      "findings": [
+        {
+          "version": "4.2.20",
+          "paths": [
+            "apps__extension>plasmo>@plasmohq/parcel-config>@plasmohq/parcel-transformer-svelte>svelte"
+          ]
+        }
+      ]
+    },
+    {
+      "package": "@parcel/reporter-dev-server",
+      "title": "Parcel has an Origin Validation Error vulnerability",
+      "severity": "moderate",
+      "url": "https://github.com/advisories/GHSA-qm9p-f9j5-w83w",
+      "patched_versions": ">=2.16.4",
+      "findings": [
+        {
+          "version": "2.9.3",
+          "paths": [
+            "apps__extension>plasmo>@plasmohq/parcel-config>@parcel/config-default>@parcel/reporter-dev-server"
+          ]
+        }
+      ]
+    },
+    {
+      "package": "svelte",
+      "title": "Svelte Vulnerable to XSS via DOM Clobbering of Internal Framework State",
+      "severity": "moderate",
+      "url": "https://github.com/advisories/GHSA-rcqx-6q8c-2c42",
+      "patched_versions": ">=5.55.7",
+      "findings": [
+        {
+          "version": "4.2.20",
+          "paths": [
+            "apps__extension>plasmo>@plasmohq/parcel-config>@plasmohq/parcel-transformer-svelte>svelte"
+          ]
+        }
+      ]
+    },
+    {
+      "package": "svelte",
+      "title": "Svelte SSR vulnerable to cross-site scripting via spread attributes",
+      "severity": "moderate",
+      "url": "https://github.com/advisories/GHSA-pr6f-5x2q-rwfp",
+      "patched_versions": ">=5.55.7",
+      "findings": [
+        {
+          "version": "4.2.20",
+          "paths": [
+            "apps__extension>plasmo>@plasmohq/parcel-config>@plasmohq/parcel-transformer-svelte>svelte"
+          ]
+        }
+      ]
+    },
+    {
+      "package": "braces",
+      "title": "braces vulnerable to stack-exhaustion denial of service through deeply nested patterns",
+      "severity": "high",
+      "url": "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm",
+      "patched_versions": "<0.0.0",
+      "findings": [
+        {
+          "version": "3.0.3",
+          "paths": [".>vitest>vite>sass>@parcel/watcher>micromatch>braces"]
+        }
+      ]
+    }
+  ]
+}

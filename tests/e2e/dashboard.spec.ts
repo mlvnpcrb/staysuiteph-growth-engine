@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 import { navigation } from "../../packages/types/src";
 test("responsive shell, navigation, and honest placeholders", async ({
   page,
@@ -110,4 +111,63 @@ test("sync reports unavailable backend without granting a demo identity", async 
   });
   expect(response.status()).toBe(503);
   expect(await response.json()).toEqual({ error: "backend_not_configured" });
+});
+
+test("closed mobile navigation is absent from keyboard and accessibility navigation", async ({
+  page,
+}) => {
+  await page.goto("/dashboard/overview");
+  const menu = page.getByRole("button", { name: "Open navigation" });
+  if (!(await menu.isVisible())) return;
+  await expect(
+    page.getByRole("navigation", { name: "Main navigation" }),
+  ).toHaveCount(0);
+  await menu.focus();
+  await page.keyboard.press("Tab");
+  await expect(
+    page.getByRole("button", { name: "Toggle color theme" }),
+  ).toBeFocused();
+  await menu.click();
+  const drawer = page.getByRole("complementary", {
+    name: "Workspace navigation",
+  });
+  await expect(drawer.getByRole("link").first()).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(drawer.getByRole("link").last()).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(drawer.getByRole("link").first()).toBeFocused();
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await expect(page.locator(".workspace-body")).not.toHaveAttribute("inert");
+});
+
+test("auth callback failure is fixed-origin and non-cacheable", async ({
+  request,
+}) => {
+  const response = await request.get(
+    "http://localhost:3001/auth/callback?next=https://evil.example",
+    { maxRedirects: 0 },
+  );
+  expect(response.status()).toBe(307);
+  expect(response.headers()["location"]).toBe(
+    "http://localhost:3001/login?error=callback",
+  );
+  expect(response.headers()["cache-control"]).toContain("no-store");
+});
+
+test("overview has no automated WCAG A/AA violations in either theme", async ({
+  page,
+}) => {
+  await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
+  await page.goto("/dashboard/overview");
+  await expect(page.locator("html")).toHaveClass(/light/);
+  for (const theme of ["light", "dark"]) {
+    if (theme === "dark") {
+      await page.getByRole("button", { name: "Toggle color theme" }).click();
+      await expect(page.locator("html")).toHaveClass(/dark/);
+    }
+    const result = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+      .analyze();
+    expect(result.violations).toEqual([]);
+  }
 });

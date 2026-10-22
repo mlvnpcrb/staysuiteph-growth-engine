@@ -2,7 +2,7 @@ import Link from "next/link";
 import { House } from "lucide-react";
 import { Button } from "@staysuite/ui";
 import { environment } from "@/lib/env";
-import { signIn } from "./actions";
+import { signIn, signOut } from "./actions";
 export default async function Login({
   searchParams,
 }: {
@@ -45,8 +45,9 @@ export default async function Login({
             />
             {error ? (
               <p role="alert" className="mt-4 text-red-700 dark:text-red-300">
-                Sign-in failed. Check your details or contact your
-                administrator.
+                {error === "logout"
+                  ? "Sign-out could not be confirmed. Retry before leaving a shared device."
+                  : "Sign-in failed. Check your details or contact your administrator."}
               </p>
             ) : null}
             <Button type="submit">Sign in</Button>
@@ -57,6 +58,13 @@ export default async function Login({
             </p>
           </form>
         )}
+        {error === "logout" && env.configured ? (
+          <form action={signOut}>
+            <Button type="submit" variant="outline">
+              Retry sign out
+            </Button>
+          </form>
+        ) : null}
         {env.demo ? (
           <Link
             className="mt-5 block text-teal-700 underline dark:text-teal-300"

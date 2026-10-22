@@ -45,6 +45,7 @@ pnpm test
 pnpm build
 pnpm exec playwright install chromium
 pnpm test:e2e
+pnpm test:extension # requires Chrome policy allowing unpacked extensions
 pnpm db:test # requires local Supabase / Docker
 ```
 
@@ -57,3 +58,18 @@ variables. OpenAI is reserved server-side; no model requests or spend occur in t
 
 See [architecture](docs/ARCHITECTURE.md), [development skills](docs/DEVELOPMENT_SKILLS.md),
 and [validation results](docs/PHASE_1_VALIDATION.md). Phase 2 requires separate authorization.
+
+## Stabilization review
+
+See [security findings and dependency decisions](docs/SECURITY_REVIEW.md) and
+[the stabilization results](docs/PHASE_1_STABILIZATION.md). The full audit is not
+clean: 1 high, 8 moderate, 1 low remain. Development servers stay on loopback;
+this alone does not prevent malicious-site CORS attacks against older Parcel.
+Use an isolated browser profile with no unrelated browsing while Plasmo dev runs.
+
+`pnpm test:extension` attempts real unpacked installation using Chrome’s developer
+protocol in a disposable profile. Administrator-disabled installation is reported
+as BLOCKED (exit 2); no Chrome policies are changed. The browser suite separately
+tests the built popup in an HTTP fixture under its CSP, which is not a substitute
+for installed-extension or pairing validation. Pairing and Facebook integration
+are still unimplemented.

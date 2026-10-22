@@ -6,8 +6,9 @@ on:
 permissions:
   contents: read
 jobs:
-  validate:
-    runs-on: ubuntu-latest
+  quality:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -20,9 +21,56 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
-      - run: pnpm exec playwright install --with-deps chromium
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @staysuite/web build
+      - run: pnpm --filter @staysuite/extension build
+      - name: Install supported Chromium and OS dependencies
+        run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
+      - run: pnpm test:extension
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-failure-traces
+          path: test-results/
+          retention-days: 7
+  database:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - run: pnpm exec supabase start
       - run: pnpm db:test
       - if: always()
         run: pnpm exec supabase stop --no-backup
+  # Preserve the original gate name. Never make skipped or failed jobs look successful.
+  validate:
+    if: always()
+    needs: [quality, browser, database]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require every foundation check
+        env:
+          QUALITY_RESULT: ${{ needs.quality.result }}
+          BROWSER_RESULT: ${{ needs.browser.result }}
+          DATABASE_RESULT: ${{ needs.database.result }}
+        run: |
+          test "$QUALITY_RESULT" = success
+          test "$BROWSER_RESULT" = success
+          test "$DATABASE_RESULT" = success

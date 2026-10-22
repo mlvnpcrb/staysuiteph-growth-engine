@@ -75,3 +75,23 @@ React 18 is the extension runtime; React 19 is the dashboard runtime. Root pnpm 
 pin patched tar and tinypool versions after advisory review; Vitest is pinned to 5.0.5.
 The final full audit is not clean; see PHASE_1_VALIDATION.md. Review the upstream Plasmo
 toolchain and optional Next/Sass advisory before treating this foundation as release-ready.
+
+## Stabilization decisions
+
+The original migration remains immutable. A second migration grants only profile
+id/display_name inserts and display_name updates, keeping creation timestamps
+server-owned. Sync auth-service outages are distinguished from invalid credentials
+and always fail closed. Failed logout is shown to the user rather than silently
+implying that session revocation succeeded.
+
+The mobile drawer hides its closed navigation from keyboard/accessibility traversal;
+focus trapping, Escape, focus return, and viewport resize are checked in Playwright.
+The overview is scanned for automated WCAG A/AA findings in both themes at all three
+viewports. These checks supplement manual review and do not prove complete WCAG compliance.
+
+The explicit extension CSP and Map-parser adapter are covered by production build,
+browser popup harness, and a dev-build smoke check. Native install is an independent
+test and remains blocked locally by administrator policy. CI jobs run quality, browser,
+and database checks independently, with the original validate gate requiring all of them.
+See SECURITY_REVIEW.md for current dependency pins and PHASE_1_STABILIZATION.md for
+release gates; the earlier dependency review above describes the initial commit.

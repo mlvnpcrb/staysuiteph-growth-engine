@@ -80,7 +80,7 @@ describe("actual migration and PostgreSQL RLS (minimal Supabase Auth schema)", (
         userC,
         userA,
       ]),
-    ).rejects.toThrow("row-level security");
+    ).rejects.toThrow("permission denied");
   });
   it("prevents forged inserts", async () => {
     await expect(
@@ -98,6 +98,24 @@ describe("actual migration and PostgreSQL RLS (minimal Supabase Auth schema)", (
     expect((await db.query("select id from public.profiles")).rows).toEqual([
       { id: userC },
     ]);
+  });
+  it("prevents an owner from rewriting the creation timestamp", async () => {
+    await expect(
+      db.query("update public.profiles set created_at = now() where id = $1", [
+        userA,
+      ]),
+    ).rejects.toThrow("permission denied");
+  });
+  it("prevents explicit creation timestamp injection on insert", async () => {
+    await db.exec(
+      `select set_config('request.jwt.claim.sub', '${userC}', false)`,
+    );
+    await expect(
+      db.query(
+        "insert into public.profiles (id,created_at) values ($1,now())",
+        [userC],
+      ),
+    ).rejects.toThrow("permission denied");
   });
   it("denies profile deletion", async () => {
     await expect(db.query("delete from public.profiles")).rejects.toThrow(

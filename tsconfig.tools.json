@@ -5,7 +5,9 @@
   "compilerOptions": {
     "paths": {
       "@staysuite/validation": ["./packages/validation/src/index.ts"],
-      "@staysuite/types": ["./packages/types/src/index.ts"]
+      "@staysuite/types": ["./packages/types/src/index.ts"],
+      "@/*": ["./apps/web/src/*"],
+      "@staysuite/database": ["./packages/database/src/index.ts"]
     }
   }
 }

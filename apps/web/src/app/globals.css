@@ -407,7 +407,10 @@ h3 {
   bottom: 14px;
   right: 22px;
   font-size: 9px;
-  color: #c4dbe0;
+  color: #ffffff;
+  background: #153e47;
+  padding: 3px 8px;
+  border-radius: 4px;
 }
 .section-heading {
   display: flex;
@@ -713,10 +716,12 @@ h3 {
 }
 @media (max-width: 850px) {
   .sidebar {
+    visibility: hidden;
     transform: translateX(-100%);
     width: 260px;
   }
   .sidebar-open {
+    visibility: visible;
     transform: translateX(0);
   }
   .workspace-body {

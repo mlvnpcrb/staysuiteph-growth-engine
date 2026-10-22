@@ -18,7 +18,8 @@ export async function signIn(form: FormData) {
 export async function signOut() {
   if (environment().configured) {
     const client = await supabaseServer();
-    await client.auth.signOut();
+    const { error } = await client.auth.signOut();
+    if (error) redirect("/login?error=logout");
   }
   redirect("/login");
 }

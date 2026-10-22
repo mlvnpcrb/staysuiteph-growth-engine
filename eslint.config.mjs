@@ -10,6 +10,10 @@ export default ts.config(
       "**/next-env.d.ts",
     ],
   },
+  {
+    files: ["scripts/**/*.mjs"],
+    languageOptions: { globals: { console: "readonly", process: "readonly" } },
+  },
   js.configs.recommended,
   ...ts.configs.recommended,
   {

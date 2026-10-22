@@ -6,7 +6,7 @@
   "description": "A user-controlled companion for StaySuite. Foundation preview; no Facebook integrations.",
   "author": "StaySuite",
   "scripts": {
-    "dev": "plasmo dev --target=chrome-mv3",
+    "dev": "plasmo dev --target=chrome-mv3 --serve-host localhost --hmr-host localhost",
     "build": "plasmo build --target=chrome-mv3",
     "typecheck": "tsc --noEmit"
   },
@@ -23,6 +23,9 @@
   },
   "manifest": {
     "permissions": [],
-    "host_permissions": []
+    "host_permissions": [],
+    "content_security_policy": {
+      "extension_pages": "script-src 'self'; object-src 'none'; base-uri 'none'"
+    }
   }
 }
