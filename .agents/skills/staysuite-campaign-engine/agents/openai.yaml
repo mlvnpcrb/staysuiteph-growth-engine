@@ -1,0 +1,4 @@
+interface:
+  display_name: "StaySuite Campaign Engine"
+  short_description: "Plan sequential user-controlled campaign queues"
+  default_prompt: "Use $staysuite-campaign-engine to review the relevant StaySuite workflow and its validation requirements."

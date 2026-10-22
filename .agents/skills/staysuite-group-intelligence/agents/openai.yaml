@@ -1,0 +1,4 @@
+interface:
+  display_name: "StaySuite Group Intelligence"
+  short_description: "Verify group rules and accommodation relevance"
+  default_prompt: "Use $staysuite-group-intelligence to review the relevant StaySuite workflow and its validation requirements."

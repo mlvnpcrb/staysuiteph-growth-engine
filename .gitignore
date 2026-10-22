@@ -1,0 +1,12 @@
+node_modules/
+.next/
+.turbo/
+.plasmo/
+build/
+dist/
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.tsbuildinfo
+.DS_Store

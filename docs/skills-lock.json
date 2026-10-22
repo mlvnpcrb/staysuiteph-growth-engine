@@ -1,0 +1,67 @@
+{
+  "installed_public": [
+    {
+      "name": "vercel-react-best-practices",
+      "repository": "https://github.com/vercel-labs/agent-skills",
+      "commit": "063bee94c3f4df8453406c830b0a7df0f2860278",
+      "path": "skills/react-best-practices",
+      "url": "https://github.com/vercel-labs/agent-skills/tree/063bee94c3f4df8453406c830b0a7df0f2860278/skills/react-best-practices"
+    },
+    {
+      "name": "web-design-guidelines",
+      "repository": "https://github.com/vercel-labs/agent-skills",
+      "commit": "063bee94c3f4df8453406c830b0a7df0f2860278",
+      "path": "skills/web-design-guidelines",
+      "url": "https://github.com/vercel-labs/agent-skills/tree/063bee94c3f4df8453406c830b0a7df0f2860278/skills/web-design-guidelines"
+    },
+    {
+      "name": "frontend-design",
+      "repository": "https://github.com/anthropics/skills",
+      "commit": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
+      "path": "skills/frontend-design",
+      "url": "https://github.com/anthropics/skills/tree/dbd4588f9e1033efb41dad4bef2f7947c8993d44/skills/frontend-design"
+    },
+    {
+      "name": "supabase",
+      "repository": "https://github.com/supabase/agent-skills",
+      "commit": "c9be0e931b7930f7d02126d04774d904c381e7d7",
+      "path": "skills/supabase",
+      "url": "https://github.com/supabase/agent-skills/tree/c9be0e931b7930f7d02126d04774d904c381e7d7/skills/supabase"
+    },
+    {
+      "name": "supabase-postgres-best-practices",
+      "repository": "https://github.com/supabase/agent-skills",
+      "commit": "c9be0e931b7930f7d02126d04774d904c381e7d7",
+      "path": "skills/supabase-postgres-best-practices",
+      "url": "https://github.com/supabase/agent-skills/tree/c9be0e931b7930f7d02126d04774d904c381e7d7/skills/supabase-postgres-best-practices"
+    },
+    {
+      "name": "ai-sdk",
+      "repository": "https://github.com/vercel/ai",
+      "commit": "36e4ce7c7f4c2a51676167634adb8c4eb3b18e77",
+      "path": "skills/use-ai-sdk",
+      "url": "https://github.com/vercel/ai/tree/36e4ce7c7f4c2a51676167634adb8c4eb3b18e77/skills/use-ai-sdk"
+    }
+  ],
+  "custom": [
+    "staysuite-group-intelligence",
+    "staysuite-campaign-engine",
+    "staysuite-facebook-safety"
+  ],
+  "unavailable": [
+    {
+      "name": "playwright-interactive",
+      "repository": "https://github.com/openai/skills",
+      "commit": "49f948faa9258a0c61caceaf225e179651397431",
+      "path": "skills/.curated/playwright-interactive",
+      "reason": "Requires js_repl and disabled sandbox; incompatible with this session. Not installed."
+    }
+  ],
+  "tooling": {
+    "repository": "https://github.com/openai/skills",
+    "commit": "49f948faa9258a0c61caceaf225e179651397431",
+    "installer": "skills/.system/skill-installer/scripts/install-skill-from-github.py",
+    "creator": "skills/.system/skill-creator/scripts/init_skill.py",
+    "validator": "skills/.system/skill-creator/scripts/quick_validate.py"
+  }
+}

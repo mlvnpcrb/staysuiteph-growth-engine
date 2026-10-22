@@ -1,0 +1,4 @@
+interface:
+  display_name: "StaySuite Facebook Safety"
+  short_description: "Review Facebook Groups safety and publishing gates"
+  default_prompt: "Use $staysuite-facebook-safety to review the relevant StaySuite workflow and its validation requirements."
