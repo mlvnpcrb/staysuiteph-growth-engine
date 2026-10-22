@@ -99,3 +99,11 @@ Only a new live saved-groups migration, GitHub push and Preview deployment requi
 approval to make this MVP available on the hosted Preview. Search/AI provider integrations
 are optional future additions; current honest fallbacks work without credentials. No
 pending owner-only SQL or Auth changes are included in this branch.
+
+## Free joined-group collection follow-up
+
+The extension now offers an experimental user-triggered visible-name/link collector
+with local JSON export and dashboard bulk import, assessment and selected saving.
+See [JOINED_GROUP_COLLECTION.md](JOINED_GROUP_COLLECTION.md) for installation,
+permissions, privacy boundaries, limitations and manual acceptance. This adds no
+paid provider requirement, authentication change, or migration.

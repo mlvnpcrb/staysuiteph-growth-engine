@@ -42,3 +42,4 @@ export function safeDashboardUrl(value: string): string {
 }
 export * from "./groups";
 export * from "./group-assessment";
+export * from "./group-collection";

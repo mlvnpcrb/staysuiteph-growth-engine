@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "displayName": "StaySuite Growth Engine",
-  "description": "A user-controlled companion for StaySuite. Foundation preview; no Facebook integrations.",
+  "description": "User-triggered visible group-link collection for StaySuite. No background Facebook access or publishing.",
   "author": "StaySuite",
   "scripts": {
     "dev": "plasmo dev --target=chrome-mv3 --serve-host localhost --hmr-host localhost",
@@ -11,18 +11,22 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
+    "@staysuite/types": "workspace:*",
     "@staysuite/validation": "workspace:*",
-    "@staysuite/types": "workspace:*"
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
   },
   "devDependencies": {
+    "@types/chrome": "0.0.287",
     "@types/react": "18.3.27",
     "@types/react-dom": "18.3.7",
     "plasmo": "0.90.5"
   },
   "manifest": {
-    "permissions": [],
+    "permissions": [
+      "activeTab",
+      "scripting"
+    ],
     "host_permissions": [],
     "content_security_policy": {
       "extension_pages": "script-src 'self'; object-src 'none'; base-uri 'none'"

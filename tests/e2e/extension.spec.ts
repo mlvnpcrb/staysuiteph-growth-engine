@@ -1,16 +1,13 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type BrowserContext } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { basename, extname, resolve } from "node:path";
-test("built popup renders under its CSP and opens the dashboard (HTTP harness, not an installed extension)", async ({
-  context,
-  page,
-}) => {
+const dashboardOrigin =
+  process.env.PLASMO_PUBLIC_DASHBOARD_URL || "http://localhost:3000";
+async function servePopup(context: BrowserContext) {
   const directory = resolve("apps/extension/build/chrome-mv3-prod");
   const manifest = JSON.parse(
     await readFile(`${directory}/manifest.json`, "utf8"),
   );
-  const errors: string[] = [];
-  page.on("pageerror", (error) => errors.push(error.message));
   await context.route("http://extension-fixture.test/**", async (route) => {
     const file =
       basename(new URL(route.request().url()).pathname) || "popup.html";
@@ -30,7 +27,15 @@ test("built popup renders under its CSP and opens the dashboard (HTTP harness, n
       },
     });
   });
-  await context.route("http://localhost:3000/**", (route) =>
+}
+test("built popup renders under its CSP and opens the dashboard (HTTP harness, not an installed extension)", async ({
+  context,
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await servePopup(context);
+  await context.route(`${dashboardOrigin}/**`, (route) =>
     route.fulfill({
       contentType: "text/html",
       body: "<h1>Dashboard destination fixture</h1>",
@@ -38,24 +43,112 @@ test("built popup renders under its CSP and opens the dashboard (HTTP harness, n
   );
   await page.goto("http://extension-fixture.test/popup.html");
   await expect(
-    page.getByRole("heading", { name: "Your next connection starts here." }),
+    page.getByRole("heading", { name: "Your communities, together." }),
   ).toBeVisible();
   await expect(
-    page.getByText(
-      /No Facebook access, account monitoring, or publishing is active/,
-    ),
+    page.getByText(/No background access or publishing/),
   ).toBeVisible();
-  await expect(
-    page.getByText(/pairing is planned for a later phase/),
-  ).toBeVisible();
+  await expect(page.getByText(/Sign in only on your dashboard/)).toBeVisible();
   const opened = context.waitForEvent("page");
   await page.getByRole("button", { name: "Open dashboard" }).click();
   const destination = await opened;
   await expect(destination).toHaveURL(
-    "http://localhost:3000/dashboard/overview",
+    `${dashboardOrigin}/dashboard/group-finder`,
   );
   await expect(
     destination.getByRole("heading", { name: "Dashboard destination fixture" }),
   ).toBeVisible();
   expect(errors).toEqual([]);
+});
+
+test("popup requires consent, previews selected groups and exports only the selection (mock Chrome API)", async ({
+  context,
+  page,
+}) => {
+  await servePopup(context);
+  await page.addInitScript(() => {
+    Object.defineProperty(window, "chrome", {
+      configurable: true,
+      value: {
+        tabs: { query: async () => [{ id: 1 }] },
+        scripting: {
+          executeScript: async () => [
+            {
+              result: {
+                format: "staysuite-visible-groups-v1",
+                collected_at: "2026-10-22T10:00:00Z",
+                groups: [
+                  {
+                    url: "https://www.facebook.com/groups/fixtureone/",
+                    title: "Fixture one",
+                  },
+                  {
+                    url: "https://www.facebook.com/groups/fixturetwo/",
+                    title: "Fixture two",
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      },
+    });
+  });
+  await page.goto("http://extension-fixture.test/popup.html");
+  const collect = page.getByRole("button", { name: "Collect visible groups" });
+  await expect(collect).toBeDisabled();
+  await page.getByRole("checkbox", { name: /I authorize/ }).check();
+  await collect.click();
+  await expect(
+    page.getByRole("heading", { name: "2 groups collected" }),
+  ).toBeVisible();
+  await page.getByRole("checkbox", { name: "Fixture two" }).uncheck();
+  const downloaded = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export 1 selected groups" }).click();
+  const download = await downloaded;
+  expect(download.suggestedFilename()).toBe("staysuite-groups.json");
+  const stream = await download.createReadStream();
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream!) chunks.push(Buffer.from(chunk));
+  expect(JSON.parse(Buffer.concat(chunks).toString())).toEqual({
+    format: "staysuite-visible-groups-v1",
+    collected_at: "2026-10-22T10:00:00Z",
+    groups: [
+      {
+        url: "https://www.facebook.com/groups/fixtureone/",
+        title: "Fixture one",
+      },
+    ],
+  });
+  await page.getByRole("button", { name: "Clear collected list" }).click();
+  await expect(
+    page.getByRole("heading", { name: "2 groups collected" }),
+  ).toHaveCount(0);
+});
+
+test("popup handles Chrome permission denial without disclosing raw browser errors", async ({
+  context,
+  page,
+}) => {
+  await servePopup(context);
+  await page.addInitScript(() => {
+    Object.defineProperty(window, "chrome", {
+      configurable: true,
+      value: {
+        tabs: { query: async () => [{ id: 1 }] },
+        scripting: {
+          executeScript: async () => {
+            throw new Error(
+              "Denied: https://private.example/?code=not-to-display",
+            );
+          },
+        },
+      },
+    });
+  });
+  await page.goto("http://extension-fixture.test/popup.html");
+  await page.getByRole("checkbox", { name: /I authorize/ }).check();
+  await page.getByRole("button", { name: "Collect visible groups" }).click();
+  await expect(page.getByRole("alert")).toContainText("denied or unavailable");
+  await expect(page.getByRole("alert")).not.toContainText("private.example");
 });

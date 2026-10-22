@@ -2,6 +2,8 @@ import { chromium, expect } from "@playwright/test";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+const dashboardOrigin =
+  process.env.PLASMO_PUBLIC_DASHBOARD_URL || "http://localhost:3000";
 const extensionPath = resolve("apps/extension/build/chrome-mv3-prod");
 const profile = await mkdtemp(join(tmpdir(), "staysuite-extension-test-"));
 let context;
@@ -25,16 +27,14 @@ try {
   popup.on("pageerror", (error) => errors.push(error.message));
   await popup.goto(`chrome-extension://${id}/popup.html`);
   await expect(
-    popup.getByRole("heading", { name: "Your next connection starts here." }),
+    popup.getByRole("heading", { name: "Your communities, together." }),
   ).toBeVisible();
   await expect(
-    popup.getByText("Not connected", { exact: false }),
+    popup.getByRole("button", { name: "Collect visible groups" }),
   ).toBeVisible();
-  await expect(
-    popup.getByText(/pairing is planned for a later phase/),
-  ).toBeVisible();
+  await expect(popup.getByText(/Sign in only on your dashboard/)).toBeVisible();
   // Fulfill the dashboard navigation locally: no real backend or account is contacted.
-  await context.route("http://localhost:3000/**", (route) =>
+  await context.route(`${dashboardOrigin}/**`, (route) =>
     route.fulfill({
       contentType: "text/html",
       body: "<h1>Dashboard navigation fixture</h1>",
@@ -43,7 +43,9 @@ try {
   const opened = context.waitForEvent("page");
   await popup.getByRole("button", { name: "Open dashboard" }).click();
   const dashboard = await opened;
-  await expect(dashboard).toHaveURL("http://localhost:3000/dashboard/overview");
+  await expect(dashboard).toHaveURL(
+    `${dashboardOrigin}/dashboard/group-finder`,
+  );
   await expect(
     dashboard.getByRole("heading", { name: "Dashboard navigation fixture" }),
   ).toBeVisible();
