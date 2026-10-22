@@ -1,7 +1,7 @@
 name: Foundation checks
 on:
   push:
-    branches: [chore/initial-project-setup]
+    branches: [chore/initial-project-setup, feat/phase-2-group-finder]
   pull_request:
 concurrency:
   group: foundation-${{ github.event.pull_request.number || github.ref }}
@@ -94,3 +94,27 @@ jobs:
           test "$QUALITY_RESULT" = success
           test "$BROWSER_RESULT" = success
           test "$DATABASE_RESULT" = success
+
+  preview:
+    needs: validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/feat/phase-2-group-finder'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: preview
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Deploy tested commit to Preview and smoke test
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+          VERCEL_TEAM_ID: ${{ vars.VERCEL_TEAM_ID }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          DEPLOY_SHA: ${{ github.sha }}
+          DEPLOY_BRANCH: ${{ github.ref_name }}
+          REPOSITORY_ID: ${{ github.repository_id }}
+        run: node scripts/deploy-preview.mjs
