@@ -12,7 +12,14 @@ export default ts.config(
   },
   {
     files: ["scripts/**/*.mjs", "tests/scripts/**/*.mjs"],
-    languageOptions: { globals: { console: "readonly", process: "readonly" } },
+    languageOptions: {
+      globals: {
+        console: "readonly",
+        process: "readonly",
+        fetch: "readonly",
+        AbortSignal: "readonly",
+      },
+    },
   },
   js.configs.recommended,
   ...ts.configs.recommended,

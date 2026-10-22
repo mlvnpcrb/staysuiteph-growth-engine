@@ -55,13 +55,25 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Short-lived JWTs for isolated refresh validation
+        run: |
+          python3 - <<'PYTHON'
+          from pathlib import Path
+          p = Path('supabase/config.toml')
+          text = p.read_text()
+          assert 'jwt_expiry = 3600' in text
+          p.write_text(text.replace('jwt_expiry = 3600', 'jwt_expiry = 120'))
+          PYTHON
       - name: Start Supabase with sanitized failure annotation
         run: |
-          if ! pnpm exec supabase start > "$RUNNER_TEMP/supabase-start.log" 2>&1; then
+          if ! pnpm exec supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor > "$RUNNER_TEMP/supabase-start.log" 2>&1; then
             node scripts/report-supabase-start.mjs "$RUNNER_TEMP/supabase-start.log"
             exit 1
           fi
       - run: pnpm db:test
+      - run: pnpm --filter @staysuite/web build
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:supabase:auth
       - if: always()
         run: pnpm exec supabase stop --no-backup
   # Preserve the original gate name. Never make skipped or failed jobs look successful.

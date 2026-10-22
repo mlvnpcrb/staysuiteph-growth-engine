@@ -15,7 +15,8 @@
     "test:e2e": "playwright test",
     "db:test": "supabase test db",
     "db:reset": "supabase db reset",
-    "test:extension": "node scripts/test-extension.mjs"
+    "test:extension": "node scripts/test-extension.mjs",
+    "test:supabase:auth": "node scripts/test-supabase-auth.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.3.14",

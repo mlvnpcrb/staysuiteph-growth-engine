@@ -73,3 +73,12 @@ as BLOCKED (exit 2); no Chrome policies are changed. The browser suite separatel
 tests the built popup in an HTTP fixture under its CSP, which is not a substitute
 for installed-extension or pairing validation. Pairing and Facebook integration
 are still unimplemented.
+
+The database CI job also runs `pnpm test:supabase:auth` against disposable loopback
+Supabase users and the built dashboard. It tests provider signup/login, PostgREST
+isolation, real API tokens, dashboard form login, automatic cookie refresh and logout.
+CI uses a 120-second local JWT lifetime to make refresh observable; the committed
+project default remains 3600 seconds. Local use requires a running isolated stack,
+a dashboard build, installed Chromium and the same short test JWT setting. The test
+refuses non-loopback stacks, keeps local keys/passwords in memory, and deletes its users.
+No secret/status JSON or credential-bearing browser traces are published.
