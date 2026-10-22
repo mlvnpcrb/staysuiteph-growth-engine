@@ -5,6 +5,7 @@ import {
   type GroupCollection,
 } from "@staysuite/validation";
 import { collectVisibleGroups } from "./lib/collect-visible-groups";
+import { collectionError } from "./lib/collection-error";
 import "./style.css";
 export default function Popup() {
   const [error, setError] = useState("");
@@ -72,7 +73,7 @@ export default function Popup() {
           message,
         )
           ? message
-          : "Collection was denied or unavailable. Open Your Groups, click the extension again, and check Facebook for restrictions.",
+          : collectionError(error).message,
       );
     } finally {
       setBusy(false);

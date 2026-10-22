@@ -149,6 +149,8 @@ test("popup handles Chrome permission denial without disclosing raw browser erro
   await page.goto("http://extension-fixture.test/popup.html");
   await page.getByRole("checkbox", { name: /I authorize/ }).check();
   await page.getByRole("button", { name: "Collect visible groups" }).click();
-  await expect(page.getByRole("alert")).toContainText("denied or unavailable");
+  await expect(page.getByRole("alert")).toContainText(
+    "Collection could not run",
+  );
   await expect(page.getByRole("alert")).not.toContainText("private.example");
 });

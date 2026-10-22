@@ -27,10 +27,17 @@ collected personal data, and retention; redact secrets and personal data from lo
 
 ## Facebook Groups boundaries
 
-Do not invent integrations or use unsupported Facebook publishing APIs. Final
-publishing must remain user-controlled in Facebook's supported interface, with a
-fresh explicit user action for each post. A prepared draft or opened composer is
-not a published post; do not claim publication without reliable confirmation.
+Do not invent integrations or represent internal Facebook endpoints as a supported
+public API. Experimental adapters may be developed and tested in isolation; their
+current compatibility and support must be established before enabling live use.
+On 2026-10-23 the owner explicitly requested campaign-level approval followed by
+sequential automatic posting with configurable intervals. This replaces the
+original requirement for a separate final action for every post. Approval must
+bind the exact content versions and selected groups; changes invalidate approval.
+Live publishing still requires a validated adapter and approval of specific target
+groups and content, never an unspecified test post. A prepared draft or opened
+composer is not a published post; do not claim publication without reliable
+confirmation. No interval guarantees avoidance of restrictions or account bans.
 Verify group rules, posting eligibility, content restrictions, and any admin approval
 requirements before preparing a group-specific action. Unknown or stale rules block
 readiness until reviewed; track evidence and verification time.
