@@ -1,3 +1,5 @@
+> Preview OAuth origin update: see [one-time Preview OAuth setup](PREVIEW_OAUTH.md). This supersedes the manual Preview SITE_URL/callback-per-branch instructions below. Production/local SITE_URL remains fixed.
+
 # Phase 2 Preview — deployment instructions
 
 Decision: **GO for an approved, controlled Preview rollout**, based on the previously

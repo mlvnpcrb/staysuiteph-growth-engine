@@ -6,7 +6,7 @@ import {
   logOAuth,
   type OAuthCategory,
 } from "@/lib/oauth-diagnostics";
-import { oauthSiteOrigin } from "@/lib/oauth-origin";
+import { oauthTrustedOrigins } from "@/lib/oauth-origin";
 export async function GET(request: Request) {
   const redirect = (path: string) => {
     const response = NextResponse.redirect(new URL(path, request.url));
@@ -22,9 +22,10 @@ export async function GET(request: Request) {
   if (params.has("error")) return failure("callback_provider_error");
   if (!code) return failure("callback_missing_code");
   const env = environment();
-  const origin = oauthSiteOrigin(env.siteUrl);
-  if (!env.configured || !origin) return failure("callback_not_configured");
-  if (new URL(request.url).origin !== origin)
+  const origins = oauthTrustedOrigins(env);
+  if (!env.configured || !origins.length)
+    return failure("callback_not_configured");
+  if (!origins.includes(new URL(request.url).origin))
     return failure("callback_origin_mismatch");
   try {
     const client = await supabaseServer({ requireCookieWrites: true });

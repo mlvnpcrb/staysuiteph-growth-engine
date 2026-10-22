@@ -10,6 +10,10 @@
         "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
         "STAYSUITE_DEMO_MODE",
         "SITE_URL",
+        "VERCEL",
+        "VERCEL_ENV",
+        "VERCEL_URL",
+        "VERCEL_BRANCH_URL",
         "PLASMO_PUBLIC_DASHBOARD_URL"
       ]
     },

@@ -4,6 +4,10 @@ export function environment() {
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   return {
     siteUrl: process.env.SITE_URL,
+    vercel: process.env.VERCEL === "1",
+    vercelEnvironment: process.env.VERCEL_ENV,
+    deploymentUrl: process.env.VERCEL_URL,
+    branchUrl: process.env.VERCEL_BRANCH_URL,
     url,
     key,
     configured: Boolean(url && key),

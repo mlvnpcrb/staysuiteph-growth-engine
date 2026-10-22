@@ -192,3 +192,69 @@ it("reports verifier-cookie write failure without redirecting to Google", async 
     category: "oauth_cookie_write_failed",
   });
 });
+
+const previewHosts = [
+  "staysuiteph-growth-engine-abc123-mlvnpcrbs-projects.vercel.app",
+  "staysuiteph-growth-engine-git-feat-ph-004ea4-mlvnpcrbs-projects.vercel.app",
+];
+it.each(previewHosts)(
+  "starts OAuth on the FIRST click from trusted Preview %s despite stale SITE_URL",
+  async (host) => {
+    mocks.environment.mockReturnValue({
+      configured: true,
+      vercel: true,
+      vercelEnvironment: "preview",
+      deploymentUrl: previewHosts[0],
+      branchUrl: previewHosts[1],
+      siteUrl: "https://old-branch.vercel.app",
+    });
+    mocks.headers.mockResolvedValue(new Headers({ origin: `https://${host}` }));
+    mocks.oauth.mockResolvedValue({
+      data: { url: "https://project.supabase.co/auth/v1/authorize" },
+      error: null,
+    });
+    await expect(signInWithGoogle()).rejects.toThrow(
+      "redirect:https://project.supabase.co/auth/v1/authorize",
+    );
+    expect(mocks.oauth).toHaveBeenCalledExactlyOnceWith({
+      provider: "google",
+      options: {
+        redirectTo: `https://${host}/auth/callback`,
+        skipBrowserRedirect: true,
+      },
+    });
+    expect(mocks.supabase).toHaveBeenCalledWith({ requireCookieWrites: true });
+    expect(console.info).not.toHaveBeenCalled();
+  },
+);
+it.each([
+  "https://evil.vercel.app",
+  "https://old-branch.vercel.app",
+  "https://other-project-abc-mlvnpcrbs-projects.vercel.app",
+])(
+  "rejects untrusted Preview action origin %s before writing cookies",
+  async (origin) => {
+    mocks.environment.mockReturnValue({
+      configured: true,
+      vercel: true,
+      vercelEnvironment: "preview",
+      deploymentUrl: previewHosts[0],
+      branchUrl: previewHosts[1],
+      siteUrl: "https://old-branch.vercel.app",
+    });
+    mocks.headers.mockResolvedValue(
+      new Headers({
+        origin,
+        host: previewHosts[0]!,
+        "x-forwarded-host": previewHosts[0]!,
+      }),
+    );
+    await expect(signInWithGoogle()).rejects.toThrow(
+      "redirect:/login?error=configuration",
+    );
+    expect(mocks.supabase).not.toHaveBeenCalled();
+    expect(console.info).toHaveBeenCalledExactlyOnceWith("[auth]", {
+      category: "oauth_origin_mismatch",
+    });
+  },
+);

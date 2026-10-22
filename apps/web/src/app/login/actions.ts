@@ -5,7 +5,7 @@ import { signInSchema } from "@staysuite/validation";
 import { environment } from "@/lib/env";
 import { supabaseServer } from "@/lib/supabase";
 import { AuthCookieWriteError, logOAuth } from "@/lib/oauth-diagnostics";
-import { oauthSiteOrigin } from "@/lib/oauth-origin";
+import { oauthTrustedOrigins, isVercelPreview } from "@/lib/oauth-origin";
 export async function signIn(form: FormData) {
   if (!environment().configured) redirect("/login?error=configuration");
   const result = signInSchema.safeParse({
@@ -29,8 +29,8 @@ export async function signOut() {
 
 export async function signInWithGoogle() {
   const env = environment();
-  const origin = oauthSiteOrigin(env.siteUrl);
-  if (!env.configured || !origin) {
+  const origins = oauthTrustedOrigins(env);
+  if (!env.configured || !origins.length) {
     logOAuth("oauth_configuration_invalid");
     redirect("/login?error=configuration");
   }
@@ -41,10 +41,12 @@ export async function signInWithGoogle() {
     logOAuth("oauth_origin_missing");
     redirect("/login?error=configuration");
   }
-  if (requestOrigin !== origin) {
+  const origin = origins.find((trusted) => trusted === requestOrigin);
+  if (!origin) {
     logOAuth("oauth_origin_mismatch");
     // No authorization code or verifier is forwarded between hostnames.
-    redirect(new URL("/login", origin).href);
+    if (isVercelPreview(env)) redirect("/login?error=configuration");
+    redirect(new URL("/login", origins[0]).href);
   }
   const callback = new URL("/auth/callback", origin).href;
   let authorizeUrl: string | undefined;

@@ -125,3 +125,64 @@ it("rejects missing SITE_URL on the callback deployment", async () => {
   expectFailure(await GET(request()), "callback_not_configured");
   expect(mocks.client).not.toHaveBeenCalled();
 });
+
+const previewHosts = [
+  "staysuiteph-growth-engine-abc123-mlvnpcrbs-projects.vercel.app",
+  "staysuiteph-growth-engine-git-feat-ph-004ea4-mlvnpcrbs-projects.vercel.app",
+];
+it.each(previewHosts)(
+  "exchanges on the same trusted Preview %s without hostname forwarding",
+  async (host) => {
+    mocks.environment.mockReturnValue({
+      configured: true,
+      vercel: true,
+      vercelEnvironment: "preview",
+      deploymentUrl: previewHosts[0],
+      branchUrl: previewHosts[1],
+      siteUrl: "https://old-branch.vercel.app",
+    });
+    mocks.exchange.mockResolvedValue({ error: null });
+    const response = await GET(
+      request("?code=sensitive-code-sentinel", `https://${host}`),
+    );
+    expect(response.headers.get("location")).toBe(
+      `https://${host}/dashboard/overview`,
+    );
+    expect(mocks.exchange).toHaveBeenCalledExactlyOnceWith(
+      "sensitive-code-sentinel",
+    );
+    expect(mocks.client).toHaveBeenCalledWith({ requireCookieWrites: true });
+    expect(console.info).not.toHaveBeenCalled();
+  },
+);
+it("rejects a different Preview callback even with spoofed forwarding headers", async () => {
+  mocks.environment.mockReturnValue({
+    configured: true,
+    vercel: true,
+    vercelEnvironment: "preview",
+    deploymentUrl: previewHosts[0],
+    branchUrl: previewHosts[1],
+  });
+  const req = new Request(
+    "https://evil.vercel.app/auth/callback?code=sensitive-code-sentinel",
+    {
+      headers: { "x-forwarded-host": previewHosts[0]!, host: previewHosts[0]! },
+    },
+  );
+  expectFailure(
+    await GET(req),
+    "callback_origin_mismatch",
+    "https://evil.vercel.app",
+  );
+  expect(mocks.exchange).not.toHaveBeenCalled();
+});
+it("fails closed without Vercel metadata rather than using another branch SITE_URL", async () => {
+  mocks.environment.mockReturnValue({
+    configured: true,
+    vercel: true,
+    vercelEnvironment: "preview",
+    siteUrl: "https://old-branch.vercel.app",
+  });
+  expectFailure(await GET(request()), "callback_not_configured");
+  expect(mocks.exchange).not.toHaveBeenCalled();
+});
