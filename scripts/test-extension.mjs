@@ -27,11 +27,12 @@ try {
   popup.on("pageerror", (error) => errors.push(error.message));
   await popup.goto(`chrome-extension://${id}/popup.html`);
   await expect(
-    popup.getByRole("heading", { name: "Your communities, together." }),
+    popup.getByRole("heading", { name: "Bring your groups to StaySuite." }),
   ).toBeVisible();
   await expect(
     popup.getByRole("button", { name: "Collect visible groups" }),
   ).toBeVisible();
+  await popup.getByText("Connection & privacy").click();
   await expect(popup.getByText(/Sign in only on your dashboard/)).toBeVisible();
   // Fulfill the dashboard navigation locally: no real backend or account is contacted.
   await context.route(`${dashboardOrigin}/**`, (route) =>

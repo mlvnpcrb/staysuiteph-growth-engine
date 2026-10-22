@@ -7,6 +7,7 @@ assert.equal(manifest.action.default_popup, "popup.html");
 assert.deepEqual([...(manifest.permissions ?? [])].sort(), [
   "activeTab",
   "scripting",
+  "storage",
 ]);
 assert.equal(manifest.host_permissions?.length ?? 0, 0);
 assert.equal(manifest.content_scripts?.length ?? 0, 0);
@@ -24,5 +25,5 @@ assert.equal(
 );
 assert.ok(existsSync(`${directory}/${manifest.action.default_popup}`));
 console.log(
-  "PASS: built Chrome MV3 manifest, popup, and user-triggered activeTab/scripting only; zero permanent host/content-script permissions; optional dashboard-only site grant",
+  "PASS: built Chrome MV3 manifest, popup, and user-triggered activeTab/scripting plus session batch storage; zero permanent host/content-script permissions; optional dashboard-only site grant",
 );

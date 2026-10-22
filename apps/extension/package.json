@@ -1,6 +1,6 @@
 {
   "name": "@staysuite/extension",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "private": true,
   "displayName": "StaySuite Growth Engine",
   "description": "Select accessible group links in your own Facebook browser tab and send them to StaySuite for authenticated import. No posting.",
@@ -25,7 +25,8 @@
   "manifest": {
     "permissions": [
       "activeTab",
-      "scripting"
+      "scripting",
+      "storage"
     ],
     "host_permissions": [],
     "content_security_policy": {

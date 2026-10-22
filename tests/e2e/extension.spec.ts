@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { test, expect, type BrowserContext } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { basename, extname, resolve } from "node:path";
@@ -43,11 +44,12 @@ test("built popup renders under its CSP and opens the dashboard (HTTP harness, n
   );
   await page.goto("http://extension-fixture.test/popup.html");
   await expect(
-    page.getByRole("heading", { name: "Your communities, together." }),
+    page.getByRole("heading", { name: "Bring your groups to StaySuite." }),
   ).toBeVisible();
   await expect(
     page.getByText(/No background access or publishing/),
   ).toBeVisible();
+  await page.getByText("Connection & privacy").click();
   await expect(page.getByText(/Sign in only on your dashboard/)).toBeVisible();
   const opened = context.waitForEvent("page");
   await page.getByRole("button", { name: "Open dashboard" }).click();
@@ -251,4 +253,51 @@ test("popup sends only checked groups and confirms receipt rather than database 
   expect(outcome.result.value).toEqual({ result: "received" });
   await expect(receiver.getByText("Review 1 group")).toBeVisible();
   await session.detach();
+});
+
+test("popup keeps a batch across reopening and adds later groups without reselecting duplicates", async ({ context, page }) => {
+  await servePopup(context);
+  await page.addInitScript(() => {
+    Object.defineProperty(window, "chrome", { configurable: true, value: {
+      storage: { session: {
+        get: async (key: string) => ({ [key]: JSON.parse(sessionStorage.getItem(key) || "null") }),
+        set: async (values: Record<string, unknown>) => { for (const [key, value] of Object.entries(values)) sessionStorage.setItem(key, JSON.stringify(value)); },
+        remove: async (key: string) => { sessionStorage.removeItem(key); },
+      } },
+      tabs: { query: async () => [{ id: 1 }] },
+      scripting: { executeScript: async () => {
+        const pass = Number(sessionStorage.getItem("pass") || 0);
+        sessionStorage.setItem("pass", String(pass + 1));
+        return [{ result: { format: "staysuite-visible-groups-v1", collected_at: "2026-10-23T00:00:00Z", groups: (pass === 0 ? ["one", "two", "three", "four", "five", "six"] : ["six", "seven", "eight"]).map(id => ({ url: `https://www.facebook.com/groups/${id}/`, title: `Fixture ${id}` })) } }];
+      } },
+    } });
+  });
+  await page.goto("http://extension-fixture.test/popup.html");
+  await page.getByRole("checkbox", { name: /I authorize/ }).check();
+  await page.getByRole("button", { name: "Collect visible groups" }).click();
+  await expect(page.getByRole("heading", { name: "6 groups collected" })).toBeVisible();
+  await page.getByRole("checkbox", { name: /Fixture two/ }).uncheck();
+  await expect.poll(() => page.evaluate(() => JSON.parse(sessionStorage.getItem("staysuite-group-batch-v1") || "{}").selected?.length)).toBe(5);
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "6 groups collected" })).toBeVisible();
+  await expect(page.getByRole("checkbox", { name: /Fixture two/ })).not.toBeChecked();
+  await page.getByRole("checkbox", { name: /I authorize/ }).check();
+  await page.getByRole("button", { name: "Add more visible groups" }).click();
+  await expect(page.getByRole("heading", { name: "8 groups collected" })).toBeVisible();
+  await expect(page.getByRole("status")).toContainText("2 new groups added");
+  for (const scheme of ["light", "dark"] as const) {
+    await page.emulateMedia({ colorScheme: scheme, reducedMotion: "reduce" });
+    expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze()).violations).toEqual([]);
+    await page.locator("main").screenshot({ path: test.info().outputPath(`extension-batch-${scheme}.png`) });
+  }
+  await expect(page.getByRole("checkbox", { name: /Fixture two/ })).not.toBeChecked();
+  await page.getByLabel("Find in this batch").fill("seven");
+  await expect(page.getByRole("list", { name: "Collected groups" }).getByRole("checkbox")).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "Send 7 selected groups to StaySuite" })).toBeEnabled();
+  await page.getByRole("button", { name: "Add more visible groups" }).click();
+  await expect(page.getByRole("status")).toContainText("No new groups");
+  await page.getByRole("button", { name: "Clear collected list" }).click();
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem("staysuite-group-batch-v1"))).toBeNull();
+  await page.reload();
+  await expect(page.getByRole("heading", { name: /groups collected/ })).toHaveCount(0);
 });
