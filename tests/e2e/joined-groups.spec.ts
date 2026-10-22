@@ -361,6 +361,12 @@ test("import preview supports filtering, optional reselection and both accessibl
   for (const theme of ["light", "dark"]) {
     if (theme === "dark")
       await page.getByRole("button", { name: "Toggle color theme" }).click();
+    // Audit the settled theme, rather than an intermediate transition color.
+    await page.evaluate(async () => {
+      await Promise.all(
+        document.getAnimations().map((animation) => animation.finished.catch(() => {})),
+      );
+    });
     expect(
       (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze())
         .violations,
