@@ -267,7 +267,7 @@ async function main() {
 main().catch(() => {
   // Never log assertions/SDK/Playwright errors that could contain test credentials.
   console.error(
-    `FAIL: live Supabase validation at stage: ${stage}. No credential-bearing details are printed.`,
+    `::error title=Live Supabase check failed::Stage: ${stage}. No credential-bearing details are printed.`,
   );
   process.exitCode = 1;
 });

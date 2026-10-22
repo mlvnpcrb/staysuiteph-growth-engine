@@ -1,8 +1,11 @@
 name: Foundation checks
 on:
   push:
-    branches: [feat/phase-1-foundation]
+    branches: [chore/initial-project-setup]
   pull_request:
+concurrency:
+  group: foundation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
