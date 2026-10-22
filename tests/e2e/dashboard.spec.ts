@@ -25,10 +25,8 @@ test("responsive shell, navigation, and honest placeholders", async ({
   await expect(
     page.getByRole("heading", { name: "My Groups", exact: true }),
   ).toBeVisible();
-  await expect(
-    page.getByText(/no live data or functional integration/),
-  ).toBeVisible();
-  await page.getByRole("link", { name: "Back to overview" }).click();
+  await expect(page.getByText(/Saved groups are unavailable/)).toBeVisible();
+  await page.goto("/dashboard/overview");
   await expect(
     page.getByRole("heading", { name: "Make room for growth." }),
   ).toBeVisible();

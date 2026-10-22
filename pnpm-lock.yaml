@@ -170,6 +170,9 @@ importers:
 
   packages/validation:
     dependencies:
+      "@staysuite/types":
+        specifier: workspace:*
+        version: link:../types
       zod:
         specifier: 4.3.6
         version: 4.3.6

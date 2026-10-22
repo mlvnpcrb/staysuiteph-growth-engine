@@ -1,3 +1,4 @@
+import type { SavedGroup } from "./groups";
 export const navigation = [
   {
     slug: "overview",
@@ -59,6 +60,25 @@ export type SyncSnapshot = {
 export type Database = {
   public: {
     Tables: {
+      saved_groups: {
+        Row: SavedGroup;
+        Insert: Pick<
+          SavedGroup,
+          | "user_id"
+          | "identity"
+          | "url"
+          | "title"
+          | "destination"
+          | "accommodation"
+          | "audience"
+          | "evidence"
+        >;
+        Update: Pick<
+          SavedGroup,
+          "notes" | "review_status" | "rule_evidence" | "last_reviewed_at"
+        >;
+        Relationships: [];
+      };
       profiles: {
         Row: { id: string; display_name: string; created_at: string };
         Insert: { id: string; display_name?: string; created_at?: string };
@@ -72,3 +92,4 @@ export type Database = {
     CompositeTypes: { [_ in never]: never };
   };
 };
+export type { SavedGroup, GroupSearch, GroupAssessment } from "./groups";

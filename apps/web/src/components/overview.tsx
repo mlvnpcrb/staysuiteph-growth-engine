@@ -1,13 +1,12 @@
+import { SavedOverview } from "./groups/saved-overview";
 import Link from "next/link";
 import {
   ArrowRight,
   ArrowUpRight,
   Compass,
-  FilePenLine,
   Layers,
   ShieldCheck,
   Sparkles,
-  Users,
 } from "lucide-react";
 import { Button } from "@staysuite/ui";
 export function Overview() {
@@ -69,38 +68,7 @@ export function Overview() {
           </span>
         </div>
       </section>
-      <div className="section-heading">
-        <h2>Your workspace, ready to begin</h2>
-        <span className="muted text-sm">No live activity connected</span>
-      </div>
-      <section className="metric-grid" aria-label="Workspace activity">
-        {[
-          {
-            label: "Saved groups",
-            icon: Users,
-            note: "Build your community shortlist",
-          },
-          {
-            label: "Prepared drafts",
-            icon: FilePenLine,
-            note: "Give your property a voice",
-          },
-          {
-            label: "Active campaigns",
-            icon: Layers,
-            note: "Bring your next plan together",
-          },
-        ].map(({ label, icon: Icon, note }) => (
-          <article key={label} className="metric-card">
-            <div className="flex items-center justify-between">
-              <span className="muted text-sm">{label}</span>
-              <Icon size={20} className="text-teal-700 dark:text-teal-300" />
-            </div>
-            <p className="metric-value">—</p>
-            <p className="muted text-sm">{note}</p>
-          </article>
-        ))}
-      </section>
+      <SavedOverview />
       <div className="overview-grid">
         <section className="panel getting-started">
           <div className="section-heading">
@@ -176,9 +144,10 @@ export function Overview() {
       <div className="foundation-notice">
         <Sparkles size={18} />
         <p>
-          <strong>A foundation, with possibilities ahead.</strong> This preview
-          contains no live Facebook data. Group discovery, AI generation,
-          campaigns, and publishing integrations are not implemented yet.
+          <strong>A foundation, with possibilities ahead.</strong> Discover
+          through search links, assess user-supplied group information and
+          manage your shortlist. Automatic discovery and AI are not connected.
+          Campaigns and publishing remain unimplemented.
         </p>
       </div>
     </div>
