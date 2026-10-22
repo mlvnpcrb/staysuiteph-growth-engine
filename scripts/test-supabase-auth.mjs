@@ -56,13 +56,17 @@ async function main() {
   try {
     stage = "real signup/login";
     const clients = [];
-    const password = `StaySuite!${randomUUID()}${randomUUID()}`;
+    // Keep disposable passwords below bcrypt's 72-byte limit.
+    const password = `StaySuite!${randomUUID()}`;
+    assert.ok(Buffer.byteLength(password, "utf8") <= 72);
     for (let i = 0; i < 2; i++) {
       const client = createClient(api.origin, status.ANON_KEY, options);
       const email = `staysuite-qa-${randomUUID()}@example.com`;
+      stage = "real signup";
       const signup = await client.auth.signUp({ email, password });
       assert.ok(!signup.error && signup.data.user, "Signup failed");
       accounts.push(signup.data.user.id);
+      stage = "real password login";
       const login = await client.auth.signInWithPassword({ email, password });
       assert.ok(!login.error && login.data.session, "Login failed");
       clients.push({ client, email, session: login.data.session });
