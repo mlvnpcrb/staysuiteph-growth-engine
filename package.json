@@ -1,0 +1,37 @@
+{
+  "name": "staysuite-growth-engine",
+  "private": true,
+  "packageManager": "pnpm@10.28.2",
+  "engines": {
+    "node": "^22.12.0 || ^24.0.0 || >=26.0.0",
+    "pnpm": ">=10 <11"
+  },
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build && node scripts/verify-extension.mjs",
+    "lint": "eslint apps packages tests --max-warnings 0",
+    "typecheck": "tsc --project tsconfig.tools.json --noEmit && turbo typecheck",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "db:test": "supabase test db",
+    "db:reset": "supabase db reset"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.1",
+    "eslint": "9.39.1",
+    "typescript-eslint": "8.54.0",
+    "typescript": "5.9.3",
+    "turbo": "2.8.1",
+    "vitest": "5.0.5",
+    "@playwright/test": "1.58.0",
+    "@types/node": "22.19.7",
+    "supabase": "2.75.0",
+    "@electric-sql/pglite": "0.3.14"
+  },
+  "pnpm": {
+    "overrides": {
+      "tar": "7.5.22",
+      "tinypool": "2.2.0"
+    }
+  }
+}

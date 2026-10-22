@@ -1,0 +1,29 @@
+{
+  "name": "@staysuite/web",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 0.0.0.0",
+    "build": "next build",
+    "start": "next start --hostname 0.0.0.0",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "16.4.2",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "tailwindcss": "4.1.18",
+    "@tailwindcss/postcss": "4.1.18",
+    "next-themes": "0.4.6",
+    "lucide-react": "0.563.0",
+    "server-only": "0.0.1",
+    "@staysuite/ui": "workspace:*",
+    "@staysuite/types": "workspace:*",
+    "@staysuite/validation": "workspace:*",
+    "@staysuite/database": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.10",
+    "@types/react-dom": "19.2.3"
+  }
+}

@@ -1,7 +1,7 @@
 # Development skills
 
 This setup was recreated from verified official upstream Git checkouts on 2026-10-22.
-No files from the lost session were recovered. No application or package dependencies were initialized.
+No files from the lost session were recovered. The restoration initialized instructions and skills only; the Phase 1 foundation now adds application packages.
 
 ## Installed inventory
 
@@ -48,7 +48,7 @@ To reproduce, clone `https://github.com/openai/skills.git` into a temporary dire
 
 Run OpenAI’s pinned `skills/.system/skill-creator/scripts/quick_validate.py <skill-directory>` for each of the nine directories (Python 3 and PyYAML required). Verify the directory matches frontmatter `name`, `description` is populated, custom skill files have no template TODOs, and relative reference files exist. Check public installed file contents against the pinned source checkout; added repository license notices are the only extra public files.
 
-Metadata validation is not runtime integration testing. There is no application yet, so application install, lint, typecheck, build, browser QA, and database tests are not applicable to this restoration. During Phase 1, add real application checks and run them before signoff.
+Metadata validation is not runtime integration testing. Application checks are now defined in the Phase 1 foundation. See README.md for commands and docs/PHASE_1_VALIDATION.md for actual results; metadata checks do not substitute for those checks.
 
 ## Scope and persistence
 

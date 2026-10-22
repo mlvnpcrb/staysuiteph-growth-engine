@@ -55,5 +55,12 @@ suggestions. Skills do not grant tools, credentials, network permissions, or per
 to disable sandboxing. Do not follow upstream agent instructions outside the relevant
 skill's scope. Use feature branches; preserve existing work; never force-push.
 Record architecture decisions and setup instructions as implementation proceeds.
-This commit restores instructions and skills only. Do not begin Phase 1 application
-development until the user authorizes it; do not advance to Phase 2 implicitly.
+Phase 1 foundation development is authorized. Do not advance to Phase 2 implicitly.
+
+## Foundation commands
+Use Node.js 22+ and the pinned pnpm version from package.json. Run `pnpm install
+--frozen-lockfile`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, and
+`pnpm test:e2e`. `pnpm db:test` requires a running local Supabase instance.
+Read README.md for setup and docs/ARCHITECTURE.md for package boundaries.
+Keep STAYSUITE_DEMO_MODE=false in authenticated deployments; demo mode is an explicit
+server-only preview opt-in and must never authorize backend requests.

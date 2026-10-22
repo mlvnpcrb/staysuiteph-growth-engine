@@ -1,0 +1,18 @@
+begin;
+create extension if not exists pgtap with schema extensions;
+select plan(8);
+insert into auth.users (id) values ('11111111-1111-4111-8111-111111111111'), ('22222222-2222-4222-8222-222222222222');
+insert into public.profiles (id, display_name) values ('11111111-1111-4111-8111-111111111111', 'Host A'), ('22222222-2222-4222-8222-222222222222', 'Host B');
+set local role anon;
+select throws_ok('select * from public.profiles', '42501', 'permission denied for table profiles', 'anonymous reads denied');
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '11111111-1111-4111-8111-111111111111', true);
+select is((select count(*)::integer from public.profiles), 1, 'owner sees only own profile');
+select is((select count(*)::integer from public.profiles where id = '22222222-2222-4222-8222-222222222222'), 0, 'other profile hidden');
+select lives_ok($$update public.profiles set display_name = 'Updated host' where id = '11111111-1111-4111-8111-111111111111'$$, 'owner can update');
+select is((select display_name from public.profiles), 'Updated host', 'update persisted');
+select throws_ok($$update public.profiles set id = '33333333-3333-4333-8333-333333333333'$$, '42501', 'new row violates row-level security policy for table "profiles"', 'ownership reassignment blocked');
+select throws_ok($$insert into public.profiles (id) values ('33333333-3333-4333-8333-333333333333')$$, '42501', 'new row violates row-level security policy for table "profiles"', 'forged insert blocked');
+select throws_ok('delete from public.profiles', '42501', 'permission denied for table profiles', 'deletion denied');
+select * from finish();
+rollback;
