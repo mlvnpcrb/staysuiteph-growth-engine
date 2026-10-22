@@ -68,3 +68,11 @@ These are risk assessments of the reviewed foundation, not blanket waivers. Deve
 - No live credentials or runtime secret bindings were available. Only app environment templates exist. OpenAI is unused; public environment variables are restricted by documented convention to public configuration. Never configure a secret/service-role key under a public variable name; runtime UI masking cannot undo build-time exposure.
 - Extension production manifest requests zero permissions, optional permissions, host permissions, content scripts, or externally-connectable access. It has no background auth channel, token storage, or Facebook access. CSP permits scripts only from itself and disables object embedding and base URL changes. Native loading is blocked by the managed Chromium administrator policy, which was respected.
 - Remaining release gates: live Supabase Auth/pgTAP checks, green remote CI, confirmed branch/review requirements, and explicit review of the retained dependency risks. Phase 2 and Facebook automation were not started.
+
+## Additional CI evidence
+
+At commit 259e057, GitHub's browser job passed real unpacked Chrome installation,
+popup rendering and dashboard navigation. The local administrator-policy limitation
+is specific to this managed browser. The GitHub database job still failed at Supabase
+startup, so no real pgTAP pass or live Auth lifecycle is claimed. A follow-up CI helper
+emits fixed diagnostic categories only, avoiding disclosure of raw logs or credentials.

@@ -11,7 +11,7 @@ export default ts.config(
     ],
   },
   {
-    files: ["scripts/**/*.mjs"],
+    files: ["scripts/**/*.mjs", "tests/scripts/**/*.mjs"],
     languageOptions: { globals: { console: "readonly", process: "readonly" } },
   },
   js.configs.recommended,

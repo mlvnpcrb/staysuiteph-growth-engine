@@ -37,24 +37,24 @@ Environment: Node 24.19.0, pnpm 10.28.2, installed Chromium 154.0.8037.57.
 The host pnpm shim is version 11, so commands used the pinned pnpm via npx with a
 writable /tmp npm cache and pnpm store. These paths are not project configuration.
 
-| Check                                    | Result                   | Evidence / limit                                                                                                         |
-| ---------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| Frozen dependency installation           | PASS                     | `pnpm install --frozen-lockfile`; lockfile and committed patch apply                                                     |
-| Lint                                     | PASS                     | Applications, shared packages, tests and Node verification scripts; zero warnings                                        |
-| TypeScript                               | PASS                     | Root tooling/tests plus all six app/shared packages                                                                      |
-| Unit and embedded PostgreSQL/RLS tests   | PASS                     | 38 tests; 15 input contracts, 11 migration/RLS checks, 12 mocked auth/API checks                                         |
-| Dashboard production build               | PASS                     | Next.js 16.4.2 production output                                                                                         |
-| Chrome extension production build        | PASS                     | Plasmo 0.90.5 Chrome MV3 output; icon generation works after sharp update                                                |
-| Production manifest verification         | PASS                     | Explicit CSP; zero regular/optional/host permissions, content scripts, external connections or background auth           |
-| Development CSP adapter smoke check      | PASS                     | Actual Plasmo dev build preserved script-src, object-src, base-uri; added expected localhost source                      |
-| Playwright browser suite                 | PASS                     | 39 checks on desktop/tablet/mobile; installed Chromium used                                                              |
-| Automated accessibility scans            | PASS                     | Overview: light/dark at all three viewports, WCAG 2 A/AA + 2.1 A/AA axe tags; not a complete accessibility certification |
-| Native unpacked extension installation   | BLOCKED                  | `pnpm test:extension` exits 2: Chromium reports administrator-disabled unpacked loading; policy was not changed          |
-| Supabase startup                         | BLOCKED                  | `public.ecr.aws/v2/` image pulls return Forbidden                                                                        |
-| Real Supabase pgTAP suite                | BLOCKED                  | `pnpm db:test`: connection refused at 127.0.0.1:54322; ten assertions are committed but were not executed here           |
-| Live signup/login/session refresh/logout | BLOCKED                  | No configured Supabase credentials or running Auth service                                                               |
-| Full dependency security audit           | FAIL / retained findings | 0 critical, 1 high, 8 moderate, 1 low; audit exits nonzero                                                               |
-| Production-install dependency audit      | FAIL / retained finding  | 1 high, optional Sass/watcher/braces path; no app HTTP input route found to the vulnerable parser                        |
+| Check                                    | Result                   | Evidence / limit                                                                                                                                                    |
+| ---------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frozen dependency installation           | PASS                     | `pnpm install --frozen-lockfile`; lockfile and committed patch apply                                                                                                |
+| Lint                                     | PASS                     | Applications, shared packages, tests and Node verification scripts; zero warnings                                                                                   |
+| TypeScript                               | PASS                     | Root tooling/tests plus all six app/shared packages                                                                                                                 |
+| Unit/embedded PostgreSQL/script tests   | PASS                     | 41 tests; 15 input contracts, 11 migration/RLS checks, 12 mocked auth/API checks, 3 startup-diagnostic checks                                                       |
+| Dashboard production build               | PASS                     | Next.js 16.4.2 production output                                                                                                                                    |
+| Chrome extension production build        | PASS                     | Plasmo 0.90.5 Chrome MV3 output; icon generation works after sharp update                                                                                           |
+| Production manifest verification         | PASS                     | Explicit CSP; zero regular/optional/host permissions, content scripts, external connections or background auth                                                      |
+| Development CSP adapter smoke check      | PASS                     | Actual Plasmo dev build preserved script-src, object-src, base-uri; added expected localhost source                                                                 |
+| Playwright browser suite                 | PASS                     | 39 checks on desktop/tablet/mobile; installed Chromium used                                                                                                         |
+| Automated accessibility scans            | PASS                     | Overview: light/dark at all three viewports, WCAG 2 A/AA + 2.1 A/AA axe tags; not a complete accessibility certification                                            |
+| Native unpacked extension installation   | PASS in CI; BLOCKED locally | GitHub job 119678655674 passed real installation/popup/navigation. Local command exits 2 because managed Chromium disables unpacked loading; policy was not changed |
+| Supabase startup                         | BLOCKED                  | `public.ecr.aws/v2/` image pulls return Forbidden                                                                                                                   |
+| Real Supabase pgTAP suite                | BLOCKED                  | `pnpm db:test`: connection refused at 127.0.0.1:54322; ten assertions are committed but were not executed here                                                      |
+| Live signup/login/session refresh/logout | BLOCKED                  | No configured Supabase credentials or running Auth service                                                                                                          |
+| Full dependency security audit           | FAIL / retained findings | 0 critical, 1 high, 8 moderate, 1 low; audit exits nonzero                                                                                                          |
+| Production-install dependency audit      | FAIL / retained finding  | 1 high, optional Sass/watcher/braces path; no app HTTP input route found to the vulnerable parser                                                                   |
 
 The popup harness runs the actual built HTML/CSS/JS under the manifest CSP on a local
 intercepted HTTP origin, and checks visible content and dashboard navigation. It is
@@ -103,7 +103,7 @@ The public PR checks page and job page were accessible even though API requests 
 
 **Needs More Work before merge signoff or a production-readiness claim.** The source is
 stabilized and local executable checks pass, but green current remote CI, branch/review
-requirements, real Supabase Auth/pgTAP results and supported native extension installation
+requirements, real Supabase Auth/pgTAP results
 remain unverified or blocked. Review the retained dependency risks explicitly; the
 production-install high finding has no published patch. Parcel dev-server loopback
 binding alone does not prevent malicious-site CORS reads, so use an isolated profile
@@ -111,3 +111,24 @@ with no unrelated browsing and avoid exposure until a coordinated upstream fix i
 
 Do not merge automatically. No Phase 2 feature, Facebook automation, publishing API,
 pairing system, or credential storage was added.
+
+## Verified remote rerun at foundation stabilization commit 259e057
+
+The public job pages now confirm:
+
+- Quality job 119678655696: frozen install, lint, typecheck, unit tests and builds passed.
+- Browser job 119678655674: updated browser installation, all browser tests, and real
+  unpacked extension installation/popup/dashboard-navigation test passed. The earlier
+  browser-installer failure is no longer reproduced in this run.
+- Database job 119678655379: Supabase startup failed, so pgTAP was skipped. This is a
+  remaining remote CI failure, not merely an unavailable local test. Its underlying
+  error cannot be read through anonymous step-log URLs or the blocked GitHub API.
+- A subsequent workflow change emits only fixed startup-failure diagnostic categories
+  as a public job annotation. It does not print raw startup logs, JWTs, keys or credentials.
+  Three Node tests check secret non-disclosure, diagnostic usefulness and annotation escaping.
+
+Run: https://github.com/mlvnpcrb/staysuiteph-growth-engine/actions/runs/39735046963
+
+The updated feature branch and synthetic merge ref have matching ancestry and no observed
+source conflicts. PR body editing was retried after pushing and again returned
+`POST https://api.github.com/graphql: Forbidden`; the prepared body remains committed.

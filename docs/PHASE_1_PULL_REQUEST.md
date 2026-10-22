@@ -7,7 +7,7 @@ on their original versions; a committed parser Map adapter accompanies the CSP u
 The extension has an explicit CSP and still requests no Facebook/host permissions.
 
 Local validation: frozen install, lint, strict typecheck, both production builds and
-manifest verification passed. **38 unit/PostgreSQL tests and 39 desktop/tablet/mobile
+manifest verification passed. **41 unit/PostgreSQL/script tests and 39 desktop/tablet/mobile
 browser checks passed**, including mocked auth/API boundaries, popup browser harness,
 and light/dark automated accessibility scans. A real Plasmo dev build verified CSP
 adapter behavior.
@@ -24,13 +24,21 @@ jobs while preserving an aggregate validate gate requiring every job to succeed.
 must be confirmed by a green remote run; no protections or required reviews were bypassed.
 
 Limitations: full local Supabase startup/pgTAP is blocked by container-registry HTTP 403;
-no live Auth credentials are configured. Native extension installation is blocked by
-Chromium administrator policy. The popup HTTP harness is not installed-extension or
+no live Auth credentials are configured. Native extension installation is blocked locally by
+Chromium administrator policy but passed in the GitHub browser job. The popup HTTP harness is not installed-extension or
 pairing verification. Branch protection/review state and PR edits are blocked by GitHub
 API Forbidden responses from this environment.
 
 **Recommendation: Needs More Work before merge signoff.** Run current remote CI, verify
-required reviews/protections, complete real Supabase and supported native-extension tests,
+required reviews/protections, complete real Supabase Auth/pgTAP validation,
 and review remaining dependency risks. No automatic merge, Phase 2, or Facebook automation.
 
 Details: docs/PHASE_1_STABILIZATION.md. Setup: README.md. Screenshots: docs/images/.
+
+Remote rerun at 259e057: quality passed; updated browser installation, browser suite,
+and real installed-extension validation passed. Supabase startup still failed and
+pgTAP was skipped. The required aggregate validate gate therefore remains failing.
+A follow-up sanitized annotation surfaces only fixed failure categories without printing
+startup logs or credentials; its three non-disclosure/format tests passed locally.
+Source merge is clean. GitHub API restrictions still prevent this session from editing
+PR metadata or confirming protection/review requirements.

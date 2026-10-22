@@ -11,7 +11,7 @@
     "build": "turbo build && node scripts/verify-extension.mjs",
     "lint": "eslint apps packages tests scripts --max-warnings 0",
     "typecheck": "tsc --project tsconfig.tools.json --noEmit && turbo typecheck",
-    "test": "vitest run",
+    "test": "vitest run && node --test tests/scripts/*.test.mjs",
     "test:e2e": "playwright test",
     "db:test": "supabase test db",
     "db:reset": "supabase db reset",
