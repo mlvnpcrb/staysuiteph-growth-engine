@@ -10,6 +10,15 @@ export default defineConfig({
       "next/navigation": fileURLToPath(
         new URL("./apps/web/node_modules/next/navigation.js", import.meta.url),
       ),
+      "next/headers": fileURLToPath(
+        new URL("./apps/web/node_modules/next/headers.js", import.meta.url),
+      ),
+      "server-only": fileURLToPath(
+        new URL(
+          "./apps/web/node_modules/server-only/empty.js",
+          import.meta.url,
+        ),
+      ),
       "@staysuite/validation": fileURLToPath(
         new URL("./packages/validation/src/index.ts", import.meta.url),
       ),

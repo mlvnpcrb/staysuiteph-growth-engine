@@ -2,7 +2,8 @@ import "server-only";
 import { cookies } from "next/headers";
 import { serverDatabase } from "@staysuite/database";
 import { environment } from "./env";
-export async function supabaseServer() {
+import { AuthCookieWriteError } from "./oauth-diagnostics";
+export async function supabaseServer({ requireCookieWrites = false } = {}) {
   const { url, key } = environment();
   if (!url || !key) throw new Error("Supabase is not configured");
   const store = await cookies();
@@ -13,6 +14,7 @@ export async function supabaseServer() {
         for (const { name, value, options } of values)
           store.set(name, value, options);
       } catch {
+        if (requireCookieWrites) throw new AuthCookieWriteError();
         /* Server Components cannot write cookies; proxy refreshes sessions. */
       }
     },

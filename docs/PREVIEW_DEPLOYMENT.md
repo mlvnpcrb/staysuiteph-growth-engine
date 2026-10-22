@@ -1,5 +1,9 @@
 # Phase 1 Vercel Preview verification
 
+> Historical preparation snapshot. A Preview hostname was subsequently supplied by the
+> user; see [the callback diagnosis](OAUTH_CALLBACK_DIAGNOSIS.md) for that reported origin
+> and current diagnostic work. Its hosted settings remain unverified by this session.
+
 ## Status — 2026-10-22
 
 **No new Preview deployment has been created or verified by this session.** No exact

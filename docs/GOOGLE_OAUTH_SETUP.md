@@ -2,6 +2,11 @@
 
 The dashboard uses `@supabase/ssr` with PKCE. A same-origin Next.js Server Action starts Google OAuth and writes the verifier cookie. `/auth/callback` exchanges the code using that cookie, persists the session, and redirects only to `/dashboard/overview`. Provider errors and exchange failures return a generic error. Callback responses are private and non-cacheable. Existing `getUser()` route protection, session refresh, bearer API authorization, logout, and database RLS remain unchanged.
 
+The browser origin must match `SITE_URL` before OAuth starts; a different origin is moved
+to the trusted login first. Both OAuth start and callback require successful cookie writes.
+See [callback diagnostics](OAUTH_CALLBACK_DIAGNOSIS.md) for fixed error categories and the
+Preview hostname mismatch regression. These changes require a new Preview deployment.
+
 ## Local configuration
 
 Edit **`apps/web/.env.local`**, relative to the repository root (not a root `.env` file). This file is Git-ignored. Use:

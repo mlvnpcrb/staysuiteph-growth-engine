@@ -1,23 +1,37 @@
 import { NextResponse } from "next/server";
 import { environment } from "@/lib/env";
 import { supabaseServer } from "@/lib/supabase";
+import {
+  callbackErrorCategory,
+  logOAuth,
+  type OAuthCategory,
+} from "@/lib/oauth-diagnostics";
+import { oauthSiteOrigin } from "@/lib/oauth-origin";
 export async function GET(request: Request) {
   const redirect = (path: string) => {
     const response = NextResponse.redirect(new URL(path, request.url));
     response.headers.set("Cache-Control", "private, no-store");
     return response;
   };
+  const failure = (category: OAuthCategory) => {
+    logOAuth(category);
+    return redirect("/login?error=callback");
+  };
   const params = new URL(request.url).searchParams;
   const code = params.get("code");
-  if (params.has("error")) return redirect("/login?error=callback");
-  if (code && environment().configured) {
-    try {
-      const client = await supabaseServer();
-      const { error } = await client.auth.exchangeCodeForSession(code);
-      if (!error) return redirect("/dashboard/overview");
-    } catch {
-      // Fail closed on expired/missing PKCE verifier or an Auth outage.
-    }
+  if (params.has("error")) return failure("callback_provider_error");
+  if (!code) return failure("callback_missing_code");
+  const env = environment();
+  const origin = oauthSiteOrigin(env.siteUrl);
+  if (!env.configured || !origin) return failure("callback_not_configured");
+  if (new URL(request.url).origin !== origin)
+    return failure("callback_origin_mismatch");
+  try {
+    const client = await supabaseServer({ requireCookieWrites: true });
+    const { error } = await client.auth.exchangeCodeForSession(code);
+    if (error) return failure(callbackErrorCategory(error));
+  } catch (error) {
+    return failure(callbackErrorCategory(error, true));
   }
-  return redirect("/login?error=callback");
+  return redirect("/dashboard/overview");
 }
