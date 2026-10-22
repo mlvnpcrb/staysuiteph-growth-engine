@@ -37,24 +37,24 @@ Environment: Node 24.19.0, pnpm 10.28.2, installed Chromium 154.0.8037.57.
 The host pnpm shim is version 11, so commands used the pinned pnpm via npx with a
 writable /tmp npm cache and pnpm store. These paths are not project configuration.
 
-| Check                                    | Result                   | Evidence / limit                                                                                                                                                    |
-| ---------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Frozen dependency installation           | PASS                     | `pnpm install --frozen-lockfile`; lockfile and committed patch apply                                                                                                |
-| Lint                                     | PASS                     | Applications, shared packages, tests and Node verification scripts; zero warnings                                                                                   |
-| TypeScript                               | PASS                     | Root tooling/tests plus all six app/shared packages                                                                                                                 |
-| Unit/embedded PostgreSQL/script tests   | PASS                     | 41 tests; 15 input contracts, 11 migration/RLS checks, 12 mocked auth/API checks, 3 startup-diagnostic checks                                                       |
-| Dashboard production build               | PASS                     | Next.js 16.4.2 production output                                                                                                                                    |
-| Chrome extension production build        | PASS                     | Plasmo 0.90.5 Chrome MV3 output; icon generation works after sharp update                                                                                           |
-| Production manifest verification         | PASS                     | Explicit CSP; zero regular/optional/host permissions, content scripts, external connections or background auth                                                      |
-| Development CSP adapter smoke check      | PASS                     | Actual Plasmo dev build preserved script-src, object-src, base-uri; added expected localhost source                                                                 |
-| Playwright browser suite                 | PASS                     | 39 checks on desktop/tablet/mobile; installed Chromium used                                                                                                         |
-| Automated accessibility scans            | PASS                     | Overview: light/dark at all three viewports, WCAG 2 A/AA + 2.1 A/AA axe tags; not a complete accessibility certification                                            |
-| Native unpacked extension installation   | PASS in CI; BLOCKED locally | GitHub job 119678655674 passed real installation/popup/navigation. Local command exits 2 because managed Chromium disables unpacked loading; policy was not changed |
-| Supabase startup                         | BLOCKED                  | `public.ecr.aws/v2/` image pulls return Forbidden                                                                                                                   |
-| Real Supabase pgTAP suite                | BLOCKED                  | `pnpm db:test`: connection refused at 127.0.0.1:54322; ten assertions are committed but were not executed here                                                      |
-| Live signup/login/session refresh/logout | BLOCKED                  | No configured Supabase credentials or running Auth service                                                                                                          |
-| Full dependency security audit           | FAIL / retained findings | 0 critical, 1 high, 8 moderate, 1 low; audit exits nonzero                                                                                                          |
-| Production-install dependency audit      | FAIL / retained finding  | 1 high, optional Sass/watcher/braces path; no app HTTP input route found to the vulnerable parser                                                                   |
+| Check                                    | Result                                              | Evidence / limit                                                                                                                                                            |
+| ---------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frozen dependency installation           | PASS                                                | `pnpm install --frozen-lockfile`; lockfile and committed patch apply                                                                                                        |
+| Lint                                     | PASS                                                | Applications, shared packages, tests and Node verification scripts; zero warnings                                                                                           |
+| TypeScript                               | PASS                                                | Root tooling/tests plus all six app/shared packages                                                                                                                         |
+| Unit/embedded PostgreSQL/script tests    | PASS                                                | 41 tests; 15 input contracts, 11 migration/RLS checks, 12 mocked auth/API checks, 3 startup-diagnostic checks                                                               |
+| Dashboard production build               | PASS                                                | Next.js 16.4.2 production output                                                                                                                                            |
+| Chrome extension production build        | PASS                                                | Plasmo 0.90.5 Chrome MV3 output; icon generation works after sharp update                                                                                                   |
+| Production manifest verification         | PASS                                                | Explicit CSP; zero regular/optional/host permissions, content scripts, external connections or background auth                                                              |
+| Development CSP adapter smoke check      | PASS                                                | Actual Plasmo dev build preserved script-src, object-src, base-uri; added expected localhost source                                                                         |
+| Playwright browser suite                 | PASS                                                | 39 checks on desktop/tablet/mobile; installed Chromium used                                                                                                                 |
+| Automated accessibility scans            | PASS                                                | Overview: light/dark at all three viewports, WCAG 2 A/AA + 2.1 A/AA axe tags; not a complete accessibility certification                                                    |
+| Native unpacked extension installation   | PASS in CI; BLOCKED locally                         | GitHub job 119678655674 passed real installation/popup/navigation. Local command exits 2 because managed Chromium disables unpacked loading; policy was not changed         |
+| Supabase startup                         | PASS in earlier CI; currently FAIL / external quota | Run 39736152031 started the real stack; later runs report a container-registry rate limit. Local image pulls remain HTTP 403                                                |
+| Real Supabase pgTAP suite                | PASS in CI; BLOCKED locally/current rerun           | Native `pnpm db:test` succeeded in run 39736152031; suite contains ten assertions. Latest rerun cannot reach it due registry quota                                          |
+| Live signup/login/session refresh/logout | BLOCKED / not claimed as passed                     | New `pnpm test:supabase:auth` covers disposable signup, browser login, automatic cookie refresh, logout, token API and PostgREST isolation. Registry quota blocks execution |
+| Full dependency security audit           | FAIL / retained findings                            | 0 critical, 1 high, 8 moderate, 1 low; audit exits nonzero                                                                                                                  |
+| Production-install dependency audit      | FAIL / retained finding                             | 1 high, optional Sass/watcher/braces path; no app HTTP input route found to the vulnerable parser                                                                           |
 
 The popup harness runs the actual built HTML/CSS/JS under the manifest CSP on a local
 intercepted HTTP origin, and checks visible content and dashboard navigation. It is
@@ -101,13 +101,15 @@ The public PR checks page and job page were accessible even though API requests 
 
 ## Recommendation and remaining gates
 
-**Needs More Work before merge signoff or a production-readiness claim.** The source is
-stabilized and local executable checks pass, but green current remote CI, branch/review
-requirements, real Supabase Auth/pgTAP results
-remain unverified or blocked. Review the retained dependency risks explicitly; the
-production-install high finding has no published patch. Parcel dev-server loopback
-binding alone does not prevent malicious-site CORS reads, so use an isolated profile
-with no unrelated browsing and avoid exposure until a coordinated upstream fix is adopted.
+**Needs More Work before merge signoff or a production-readiness claim.** Quality and
+browser jobs are green, and a real native pgTAP run succeeded. The expanded live-auth
+check is still unexecuted because later database jobs hit container-registry quota.
+GitHub API restrictions prevent confirming protection/review requirements or updating
+the PR body. Review the ten retained advisories explicitly; do not bypass the failed
+aggregate gate. Respect registry limits: restore authorized capacity/authentication or
+wait for quota reset before rerunning the database job. No image-host or account rotation
+was introduced. Parcel dev-server loopback binding alone does not prevent malicious-site
+CORS reads; use an isolated profile with no unrelated browsing.
 
 Do not merge automatically. No Phase 2 feature, Facebook automation, publishing API,
 pairing system, or credential storage was added.
@@ -132,3 +134,31 @@ Run: https://github.com/mlvnpcrb/staysuiteph-growth-engine/actions/runs/39735046
 The updated feature branch and synthetic merge ref have matching ancestry and no observed
 source conflicts. PR body editing was retried after pushing and again returned
 `POST https://api.github.com/graphql: Forbidden`; the prepared body remains committed.
+
+## Latest integration coverage and exact remaining blocker
+
+Run https://github.com/mlvnpcrb/staysuiteph-growth-engine/actions/runs/39736152031 at
+commit 6181fe9 passed real Supabase startup, the native pgTAP command, quality checks,
+39 browser checks and real unpacked-extension validation. It was followed by new
+live-auth coverage at commits 26a8e26 and 51d525b, not application feature changes.
+
+Later run https://github.com/mlvnpcrb/staysuiteph-growth-engine/actions/runs/39738447810
+reports the sanitized database annotation:
+
+> Container registry rate limit reached. | Supabase could not pull a required Docker image.
+
+Quality and browser/native-extension jobs passed in that run. The database job failed
+before pgTAP or live Auth. Its aggregate gate correctly fails. No green live-auth
+result is invented. The CI workflow now keeps one run per PR commit, cancels stale
+runs and starts only the Auth/Postgres/PostgREST/gateway services needed for this
+foundation; this reduces redundant pulls without bypassing rate limits or health checks.
+
+`pnpm test:supabase:auth` uses local CLI-generated keys in memory, refuses non-loopback
+projects, creates random reserved-domain test accounts, and deletes them afterwards.
+The admin key is used only for cleanup, never supplied to the dashboard or browser.
+No status JSON, credentials, browser traces or raw provider error details are published.
+CI temporarily lowers only the test stack JWT lifetime to 120 seconds to observe
+automatic cookie rotation; the committed app default remains 3600 seconds. The test
+checks refresh-token revocation, not immediate invalidation of already-issued access JWTs.
+The script's local prerequisite reports BLOCKED; its full flow remains unverified until
+a registry-capable CI run completes. No signup UI or extension pairing was added.

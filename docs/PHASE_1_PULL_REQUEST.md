@@ -1,44 +1,41 @@
 # Phase 1 foundation — final review and stabilization
 
-The foundation now includes reviewed dependency fixes, stricter profile column grants,
-fail-closed sync outage handling, explicit auth no-cache responses, truthful logout
-failure handling, and mobile keyboard/contrast corrections. Next.js and Plasmo remain
-on their original versions; a committed parser Map adapter accompanies the CSP update.
-The extension has an explicit CSP and still requests no Facebook/host permissions.
+The foundation now has compatible dependency fixes, a reviewed CSP parser adapter,
+stricter profile column grants, fail-closed sync outage handling, explicit auth
+no-cache responses, truthful logout failure handling, and mobile keyboard/contrast
+corrections. Next.js and Plasmo versions are preserved. The extension has an explicit
+CSP and still requests no Facebook/host permissions or pairing capability.
 
-Local validation: frozen install, lint, strict typecheck, both production builds and
-manifest verification passed. **41 unit/PostgreSQL/script tests and 39 desktop/tablet/mobile
-browser checks passed**, including mocked auth/API boundaries, popup browser harness,
-and light/dark automated accessibility scans. A real Plasmo dev build verified CSP
-adapter behavior.
+Validation: frozen install, lint, strict typecheck, both production builds, manifest
+checks, **41 unit/PostgreSQL/script tests and 39 desktop/tablet/mobile browser checks**
+passed. Native extension installation/popup/dashboard navigation passed in GitHub CI.
+Real Supabase startup and native pgTAP passed in run 39736152031 (commit 6181fe9).
 
-Audit: **0 critical, 1 high, 8 moderate, 1 low**, reduced from 9/11/2. The remaining high
-is an unpatched braces glob-parser finding also installed through optional Next/Sass;
-no app request route to it was found. Retained Plasmo dev-tool advisories and exact
-paths/mitigations are documented in docs/SECURITY_REVIEW.md, with machine-readable snapshots.
-The audit is not clean and does not imply production security approval.
+Audit: **0 critical, 1 high, 8 moderate, 1 low**, reduced from 9/11/2. The unpatched high
+is braces in glob tooling, including optional Next/Sass. No application HTTP input path
+to it was found. Retained dev-tool exposure, exact paths and mitigations are documented
+in docs/SECURITY_REVIEW.md and normalized audit snapshots. This is not a clean audit.
 
-Original CI failed at Playwright browser installation, after all earlier checks passed.
-No source conflict was found. CI now pins Ubuntu 24.04 and separates quality/browser/DB
-jobs while preserving an aggregate validate gate requiring every job to succeed. This
-must be confirmed by a green remote run; no protections or required reviews were bypassed.
+CI now pins Ubuntu 24.04, uses a supported Playwright version, avoids duplicate push/PR
+runs and separates quality/browser/database jobs. The original validate gate still
+requires every job to pass. The original browser-install failure no longer reproduces.
+No source conflict was found; no protection or required review was bypassed.
 
-Limitations: full local Supabase startup/pgTAP is blocked by container-registry HTTP 403;
-no live Auth credentials are configured. Native extension installation is blocked locally by
-Chromium administrator policy but passed in the GitHub browser job. The popup HTTP harness is not installed-extension or
-pairing verification. Branch protection/review state and PR edits are blocked by GitHub
-API Forbidden responses from this environment.
+**Current blocker:** later database jobs hit a container-registry rate limit before
+expanded live-auth validation. A real-auth test is committed for disposable signup,
+PostgREST isolation, token API access, browser login, automatic cookie refresh, logout
+and refresh-token revocation. It has not completed in CI and is not claimed as passed.
+The failed aggregate gate must remain respected until authorized registry capacity is
+available and the database job succeeds. Local Supabase pulls are HTTP 403; local Chrome
+installation is administrator-blocked, although native installation succeeded in CI.
 
-**Recommendation: Needs More Work before merge signoff.** Run current remote CI, verify
-required reviews/protections, complete real Supabase Auth/pgTAP validation,
-and review remaining dependency risks. No automatic merge, Phase 2, or Facebook automation.
+GitHub API requests still return Forbidden, preventing this session from editing PR
+metadata or confirming required reviews/protection settings. This file preserves the
+prepared update; branch pushes update the PR's code and review documents normally.
 
-Details: docs/PHASE_1_STABILIZATION.md. Setup: README.md. Screenshots: docs/images/.
+**Recommendation: Needs More Work before merge signoff.** Complete the live-auth CI
+run, inspect current protections/reviews, and review retained dependency risks.
+No automatic merge, Phase 2 implementation, Facebook automation or credential storage.
 
-Remote rerun at 259e057: quality passed; updated browser installation, browser suite,
-and real installed-extension validation passed. Supabase startup still failed and
-pgTAP was skipped. The required aggregate validate gate therefore remains failing.
-A follow-up sanitized annotation surfaces only fixed failure categories without printing
-startup logs or credentials; its three non-disclosure/format tests passed locally.
-Source merge is clean. GitHub API restrictions still prevent this session from editing
-PR metadata or confirming protection/review requirements.
+Full results: docs/PHASE_1_STABILIZATION.md. Security: docs/SECURITY_REVIEW.md.
+Setup: README.md. Reviewed screenshots: docs/images/.

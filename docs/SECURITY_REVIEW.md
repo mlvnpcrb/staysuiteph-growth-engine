@@ -76,3 +76,18 @@ popup rendering and dashboard navigation. The local administrator-policy limitat
 is specific to this managed browser. The GitHub database job still failed at Supabase
 startup, so no real pgTAP pass or live Auth lifecycle is claimed. A follow-up CI helper
 emits fixed diagnostic categories only, avoiding disclosure of raw logs or credentials.
+
+## Final external validation boundary
+
+The next complete rerun at 6181fe9 passed real Supabase startup and the native pgTAP
+command, in addition to quality/browser/native-extension checks. Subsequent expanded
+Auth validation is blocked by a confirmed container-registry rate limit, not a claimed
+Auth success. Exact annotation and job references are in PHASE_1_STABILIZATION.md.
+
+The live-auth harness keeps disposable local credentials in memory and enforces a
+loopback backend. Its service-role client is restricted to test-account cleanup and
+never passed to frontend environment variables. It tests browser login, automatic SSR
+refresh, logout and revoked refresh tokens when executable. It does not claim that
+sign-out immediately invalidates all already-issued access JWTs. Future sensitive
+operations must account for provider token expiry/revocation semantics explicitly.
+No new production behavior, external identity or Facebook automation is introduced.
