@@ -1,0 +1,93 @@
+# Phase 1 security review — 2026-10-22
+
+## Audit result
+
+Baseline: **9 high, 11 moderate, 2 low, 0 critical**. After compatible fixes: **1 high, 8 moderate, 1 low, 0 critical**. Twelve advisory records were removed; ten remain. `pnpm audit` still exits nonzero. `pnpm audit --prod` retains one high (`braces`), which is an installed optional build dependency; this is not evidence that an HTTP request can reach it.
+
+The normalized audit snapshots preserve registry advisory URLs, affected versions, and every path returned by the audit endpoint. Production paths are captured separately because the full audit may report only a representative route. Audit counts describe advisory records, not independent reachable runtime exploits.
+
+## Fixes and compatibility decisions
+
+- Updated Turbo 2.8.1 → 2.9.14 within major 2, including both reported Turbo fixes.
+- Scoped overrides update msgpackr 1.8.5 → 1.11.8, Browserslist 4.22.1 → 4.28.7, fflate 0.8.2 → 0.8.3, and Svelte 4.2.2 → 4.2.20.
+- Updated Plasmo’s sharp 0.33.5 → 0.35.5. Because 0.x minor releases can break APIs, the generated icon assets, MV3 manifest, production build and popup browser harness were checked. This does not claim compatibility with every sharp API.
+- Updated the optional Vue compiler/runtime together to 3.5.42. The current extension remains React; Vue app behavior is not claimed as tested.
+- Updated CSP parser 0.4.1 → 0.6.0 with a committed pnpm patch to Plasmo’s manifest transformer. The parser now returns a Map; the adapter converts it to a null-prototype directive dictionary. A dev-build smoke test confirmed preservation of script-src, object-src, and base-uri while adding the expected localhost dev source. The production popup executes under an explicit self-only script CSP. Keep the parser override and adapter together; review/retest both on Plasmo updates.
+- Updated Playwright 1.58.0 → 1.64.1 within major 1 and pinned CI to Ubuntu 24.04. Next.js 16.4.2 and Plasmo 0.90.5 were preserved. No audit-force command was used. Existing patched tar/tinypool pins remain.
+
+## All original advisory dispositions
+
+| Advisory                                                                 | Package                        | Severity | Disposition                                     |
+| ------------------------------------------------------------------------ | ------------------------------ | -------- | ----------------------------------------------- |
+| [GHSA-7hpj-7hhx-2fgx](https://github.com/advisories/GHSA-7hpj-7hhx-2fgx) | msgpackr                       | high     | Removed from final audit after compatible patch |
+| [GHSA-8266-84wp-wv5c](https://github.com/advisories/GHSA-8266-84wp-wv5c) | svelte                         | moderate | Removed from final audit after compatible patch |
+| [GHSA-67mh-4wv8-2f99](https://github.com/advisories/GHSA-67mh-4wv8-2f99) | esbuild                        | moderate | Retained; assessment below                      |
+| [GHSA-3mv9-4h5g-vhg3](https://github.com/advisories/GHSA-3mv9-4h5g-vhg3) | tsup                           | low      | Retained; assessment below                      |
+| [GHSA-w2cq-g8g3-gm83](https://github.com/advisories/GHSA-w2cq-g8g3-gm83) | content-security-policy-parser | high     | Removed from final audit after compatible patch |
+| [GHSA-crpf-4hrx-3jrp](https://github.com/advisories/GHSA-crpf-4hrx-3jrp) | svelte                         | moderate | Retained; assessment below                      |
+| [GHSA-m56q-vw4c-c2cp](https://github.com/advisories/GHSA-m56q-vw4c-c2cp) | svelte                         | moderate | Retained; assessment below                      |
+| [GHSA-f7gr-6p89-r883](https://github.com/advisories/GHSA-f7gr-6p89-r883) | svelte                         | moderate | Retained; assessment below                      |
+| [GHSA-phwv-c562-gvmh](https://github.com/advisories/GHSA-phwv-c562-gvmh) | svelte                         | moderate | Retained; assessment below                      |
+| [GHSA-qm9p-f9j5-w83w](https://github.com/advisories/GHSA-qm9p-f9j5-w83w) | @parcel/reporter-dev-server    | moderate | Retained; assessment below                      |
+| [GHSA-3qcw-2rhx-2726](https://github.com/advisories/GHSA-3qcw-2rhx-2726) | turbo                          | low      | Removed from final audit after compatible patch |
+| [GHSA-rcqx-6q8c-2c42](https://github.com/advisories/GHSA-rcqx-6q8c-2c42) | svelte                         | moderate | Retained; assessment below                      |
+| [GHSA-pr6f-5x2q-rwfp](https://github.com/advisories/GHSA-pr6f-5x2q-rwfp) | svelte                         | moderate | Retained; assessment below                      |
+| [GHSA-hcf7-66rw-9f5r](https://github.com/advisories/GHSA-hcf7-66rw-9f5r) | turbo                          | moderate | Removed from final audit after compatible patch |
+| [GHSA-f88m-g3jw-g9cj](https://github.com/advisories/GHSA-f88m-g3jw-g9cj) | sharp                          | high     | Removed from final audit after compatible patch |
+| [GHSA-c83g-rgw3-j3cx](https://github.com/advisories/GHSA-c83g-rgw3-j3cx) | browserslist                   | high     | Removed from final audit after compatible patch |
+| [GHSA-73wf-gq98-2v4g](https://github.com/advisories/GHSA-73wf-gq98-2v4g) | browserslist                   | high     | Removed from final audit after compatible patch |
+| [GHSA-px8p-9vwx-vf98](https://github.com/advisories/GHSA-px8p-9vwx-vf98) | fflate                         | moderate | Removed from final audit after compatible patch |
+| [GHSA-rgj7-g3m4-5g8c](https://github.com/advisories/GHSA-rgj7-g3m4-5g8c) | sharp                          | high     | Removed from final audit after compatible patch |
+| [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) | braces                         | high     | Retained; assessment below                      |
+| [GHSA-g2v6-rqmx-r4w6](https://github.com/advisories/GHSA-g2v6-rqmx-r4w6) | @vue/server-renderer           | high     | Removed from final audit after compatible patch |
+| [GHSA-wq5f-xc86-pv6w](https://github.com/advisories/GHSA-wq5f-xc86-pv6w) | sharp                          | high     | Removed from final audit after compatible patch |
+
+## Retained findings, exploitability, and mitigations
+
+These are risk assessments of the reviewed foundation, not blanket waivers. Development-tool findings can still matter on developer machines. No production-release approval is implied.
+
+| Advisory                                                                            | Affected package/version          | Exposure and recommended action                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ----------------------------------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [GHSA-67mh-4wv8-2f99](https://github.com/advisories/GHSA-67mh-4wv8-2f99) (moderate) | esbuild 0.18.20                   | **Build-tool dev-server exposure.** Plasmo resolver → tsup 7 → esbuild 0.18.20. Application scripts do not invoke esbuild serve mode. Do not enable that mode; a coordinated tsup/esbuild upgrade is required rather than overriding a pre-1.0 major API boundary.                                                                                                                                                                                                                                                                                                       |
+| [GHSA-3mv9-4h5g-vhg3](https://github.com/advisories/GHSA-3mv9-4h5g-vhg3) (low)      | tsup 7.2.0                        | **Build-generated shim; assess consumer output.** Plasmo resolver uses tsup 7.2.0; advisory describes DOM clobbering in its CJS browser shim. No shim-based application integration is implemented. Audit reports no patched version. Avoid untrusted HTML / named DOM injections, review generated bundles, and replace the resolver/toolchain when an upstream compatible fix is available.                                                                                                                                                                            |
+| [GHSA-crpf-4hrx-3jrp](https://github.com/advisories/GHSA-crpf-4hrx-3jrp) (moderate) | svelte 4.2.20                     | **Unused optional compiler; no Svelte app or SSR deployed.** Plasmo Svelte transformer remains on 4.2.20. The remaining fixes require Svelte 5. React is the only extension framework. Do not add Svelte sources or SSR without a coordinated transformer upgrade and new tests; do not force a framework-major override.                                                                                                                                                                                                                                                |
+| [GHSA-m56q-vw4c-c2cp](https://github.com/advisories/GHSA-m56q-vw4c-c2cp) (moderate) | svelte 4.2.20                     | **Unused optional compiler; no Svelte app or SSR deployed.** Plasmo Svelte transformer remains on 4.2.20. The remaining fixes require Svelte 5. React is the only extension framework. Do not add Svelte sources or SSR without a coordinated transformer upgrade and new tests; do not force a framework-major override.                                                                                                                                                                                                                                                |
+| [GHSA-f7gr-6p89-r883](https://github.com/advisories/GHSA-f7gr-6p89-r883) (moderate) | svelte 4.2.20                     | **Unused optional compiler; no Svelte app or SSR deployed.** Plasmo Svelte transformer remains on 4.2.20. The remaining fixes require Svelte 5. React is the only extension framework. Do not add Svelte sources or SSR without a coordinated transformer upgrade and new tests; do not force a framework-major override.                                                                                                                                                                                                                                                |
+| [GHSA-phwv-c562-gvmh](https://github.com/advisories/GHSA-phwv-c562-gvmh) (moderate) | svelte 4.2.20                     | **Unused optional compiler; no Svelte app or SSR deployed.** Plasmo Svelte transformer remains on 4.2.20. The remaining fixes require Svelte 5. React is the only extension framework. Do not add Svelte sources or SSR without a coordinated transformer upgrade and new tests; do not force a framework-major override.                                                                                                                                                                                                                                                |
+| [GHSA-qm9p-f9j5-w83w](https://github.com/advisories/GHSA-qm9p-f9j5-w83w) (moderate) | @parcel/reporter-dev-server 2.9.3 | **Development server; source disclosure.** Plasmo → Parcel 2.9.3. A malicious website can read the dev server when a developer browses it. Loopback alone is insufficient. Use an isolated browser/profile with no unrelated browsing and do not expose the dev server. Update the coordinated Parcel stack and enable its no-CORS option before less restricted use; mixing only the reporter with 2.9.3 core is not considered safe.                                                                                                                                   |
+| [GHSA-rcqx-6q8c-2c42](https://github.com/advisories/GHSA-rcqx-6q8c-2c42) (moderate) | svelte 4.2.20                     | **Unused optional compiler; no Svelte app or SSR deployed.** Plasmo Svelte transformer remains on 4.2.20. The remaining fixes require Svelte 5. React is the only extension framework. Do not add Svelte sources or SSR without a coordinated transformer upgrade and new tests; do not force a framework-major override.                                                                                                                                                                                                                                                |
+| [GHSA-pr6f-5x2q-rwfp](https://github.com/advisories/GHSA-pr6f-5x2q-rwfp) (moderate) | svelte 4.2.20                     | **Unused optional compiler; no Svelte app or SSR deployed.** Plasmo Svelte transformer remains on 4.2.20. The remaining fixes require Svelte 5. React is the only extension framework. Do not add Svelte sources or SSR without a coordinated transformer upgrade and new tests; do not force a framework-major override.                                                                                                                                                                                                                                                |
+| [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) (high)     | braces 3.0.3                      | **Transitive glob parser; also installed in production dependency graph.** Reported full path: Vitest → Vite → optional Sass → watcher → micromatch → braces 3.0.3. Production audit reports Next → optional Sass → watcher → micromatch → braces. No patched version is published. The dashboard uses Tailwind/plain CSS and accepts no user glob patterns; no remote request path to braces was found in the app. Build only trusted repositories and configuration; never pass user patterns to glob/watch APIs. Recheck upstream before expanding the input surface. |
+
+## Application security review
+
+- Authenticated dashboard access independently verifies Supabase `getUser`; demo mode is explicit, server-only, and gives no API identity. Server actions validate credentials. No user_metadata authorization is used.
+- Sync requires a bearer token and verifies it using Supabase Auth. Client-supplied user IDs are ignored; the endpoint is read-only, returns no private profile records, has no permissive CORS, and disables caching. Mocked tests cover invalid tokens, verified identity, outages, exceptions, and absence of access-control grants. Outages now fail closed with 503 and no error detail leakage.
+- Logout failures are surfaced with retry guidance; successful sign-out navigation follows the SDK call. Live token revocation and refresh remain unverified. Auth callback redirects remain on a fixed application path and explicitly disable caching, as do proxy responses.
+- Profiles RLS checks user ownership for select/insert/update. An additive migration restricts INSERT to id/display_name and UPDATE to display_name, preventing timestamp forgery as well as ownership reassignment. No DELETE grants, service-role client, SECURITY DEFINER helper, or anonymous data grants are introduced.
+- No live credentials or runtime secret bindings were available. Only app environment templates exist. OpenAI is unused; public environment variables are restricted by documented convention to public configuration. Never configure a secret/service-role key under a public variable name; runtime UI masking cannot undo build-time exposure.
+- Extension production manifest requests zero permissions, optional permissions, host permissions, content scripts, or externally-connectable access. It has no background auth channel, token storage, or Facebook access. CSP permits scripts only from itself and disables object embedding and base URL changes. Native loading is blocked by the managed Chromium administrator policy, which was respected.
+- Remaining release gates: live Supabase Auth/pgTAP checks, green remote CI, confirmed branch/review requirements, and explicit review of the retained dependency risks. Phase 2 and Facebook automation were not started.
+
+## Additional CI evidence
+
+At commit 259e057, GitHub's browser job passed real unpacked Chrome installation,
+popup rendering and dashboard navigation. The local administrator-policy limitation
+is specific to this managed browser. The GitHub database job still failed at Supabase
+startup, so no real pgTAP pass or live Auth lifecycle is claimed. A follow-up CI helper
+emits fixed diagnostic categories only, avoiding disclosure of raw logs or credentials.
+
+## Final external validation boundary
+
+The next complete rerun at 6181fe9 passed real Supabase startup and the native pgTAP
+command, in addition to quality/browser/native-extension checks. Subsequent expanded
+Auth validation is blocked by a confirmed container-registry rate limit, not a claimed
+Auth success. Exact annotation and job references are in PHASE_1_STABILIZATION.md.
+
+The live-auth harness keeps disposable local credentials in memory and enforces a
+loopback backend. Its service-role client is restricted to test-account cleanup and
+never passed to frontend environment variables. It tests browser login, automatic SSR
+refresh, logout and revoked refresh tokens when executable. It does not claim that
+sign-out immediately invalidates all already-issued access JWTs. Future sensitive
+operations must account for provider token expiry/revocation semantics explicitly.
+No new production behavior, external identity or Facebook automation is introduced.

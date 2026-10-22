@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-22",
+  "counts": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 1,
+    "critical": 0
+  },
+  "advisories": [
+    {
+      "package": "braces",
+      "title": "braces vulnerable to stack-exhaustion denial of service through deeply nested patterns",
+      "severity": "high",
+      "url": "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm",
+      "patched_versions": "<0.0.0",
+      "findings": [
+        {
+          "version": "3.0.3",
+          "paths": ["apps__web>next>sass>@parcel/watcher>micromatch>braces"]
+        }
+      ]
+    }
+  ]
+}

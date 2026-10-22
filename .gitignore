@@ -1,6 +1,7 @@
 node_modules/
 .next/
 .turbo/
+.vercel/
 .plasmo/
 build/
 dist/
@@ -10,3 +11,8 @@ dist/
 !.env.*.example
 *.tsbuildinfo
 .DS_Store
+
+playwright-report/
+test-results/
+supabase/.temp/
+supabase/.branches/

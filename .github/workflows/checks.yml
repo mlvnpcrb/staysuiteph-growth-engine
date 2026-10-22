@@ -1,0 +1,96 @@
+name: Foundation checks
+on:
+  push:
+    branches: [chore/initial-project-setup]
+  pull_request:
+concurrency:
+  group: foundation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  quality:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @staysuite/web build
+      - run: pnpm --filter @staysuite/extension build
+      - name: Install supported Chromium and OS dependencies
+        run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+      - run: pnpm test:extension
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-failure-traces
+          path: test-results/
+          retention-days: 7
+  database:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Short-lived JWTs for isolated refresh validation
+        run: |
+          python3 - <<'PYTHON'
+          from pathlib import Path
+          p = Path('supabase/config.toml')
+          text = p.read_text()
+          assert 'jwt_expiry = 3600' in text
+          p.write_text(text.replace('jwt_expiry = 3600', 'jwt_expiry = 120'))
+          PYTHON
+      - name: Start Supabase with sanitized failure annotation
+        run: |
+          if ! pnpm exec supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor > "$RUNNER_TEMP/supabase-start.log" 2>&1; then
+            node scripts/report-supabase-start.mjs "$RUNNER_TEMP/supabase-start.log"
+            exit 1
+          fi
+      - run: pnpm db:test
+      - run: pnpm --filter @staysuite/web build
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:supabase:auth
+      - if: always()
+        run: pnpm exec supabase stop --no-backup
+  # Preserve the original gate name. Never make skipped or failed jobs look successful.
+  validate:
+    if: always()
+    needs: [quality, browser, database]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require every foundation check
+        env:
+          QUALITY_RESULT: ${{ needs.quality.result }}
+          BROWSER_RESULT: ${{ needs.browser.result }}
+          DATABASE_RESULT: ${{ needs.database.result }}
+        run: |
+          test "$QUALITY_RESULT" = success
+          test "$BROWSER_RESULT" = success
+          test "$DATABASE_RESULT" = success

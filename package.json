@@ -1,0 +1,51 @@
+{
+  "name": "staysuite-growth-engine",
+  "private": true,
+  "packageManager": "pnpm@10.28.2",
+  "engines": {
+    "node": "^22.12.0 || ^24.0.0 || >=26.0.0",
+    "pnpm": ">=10 <11"
+  },
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build && node scripts/verify-extension.mjs",
+    "lint": "eslint apps packages tests scripts --max-warnings 0",
+    "typecheck": "tsc --project tsconfig.tools.json --noEmit && turbo typecheck",
+    "test": "vitest run && node --test tests/scripts/*.test.mjs",
+    "test:e2e": "playwright test",
+    "db:test": "supabase test db",
+    "db:reset": "supabase db reset",
+    "test:extension": "node scripts/test-extension.mjs",
+    "test:supabase:auth": "node scripts/test-supabase-auth.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.3.14",
+    "@eslint/js": "9.39.1",
+    "@playwright/test": "1.64.1",
+    "@types/node": "22.19.7",
+    "eslint": "9.39.1",
+    "supabase": "2.75.0",
+    "turbo": "2.9.14",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.54.0",
+    "vitest": "5.0.5",
+    "@axe-core/playwright": "4.14.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "tar": "7.5.22",
+      "tinypool": "2.2.0",
+      "msgpackr@1.8.5": "1.11.8",
+      "@plasmohq/parcel-transformer-manifest>content-security-policy-parser": "0.6.0",
+      "plasmo>sharp": "0.35.5",
+      "@plasmohq/parcel-transformer-inline-css>browserslist": "4.28.7",
+      "plasmo>fflate": "0.8.3",
+      "@plasmohq/parcel-transformer-svelte>svelte": "4.2.20",
+      "@plasmohq/parcel-transformer-vue>vue": "3.5.42",
+      "@plasmohq/parcel-transformer-vue>@vue/compiler-sfc": "3.5.42"
+    },
+    "patchedDependencies": {
+      "@plasmohq/parcel-transformer-manifest@0.21.0": "patches/@plasmohq__parcel-transformer-manifest@0.21.0.patch"
+    }
+  }
+}
