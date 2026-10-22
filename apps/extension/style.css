@@ -59,4 +59,4 @@ summary { cursor:pointer; padding:6px 0; }
 .has-batch .collection-help { margin:6px 0; font-size:11px; }
 .has-batch .consent { margin:10px 0; }
 .has-batch .review-panel { margin-top:12px; }
-.has-batch .send-actions { position:sticky; bottom:0; background:var(--canvas); border-top:1px solid var(--line); padding:10px 0 1px; z-index:1; }
+.has-batch .send-actions { position:static; background:var(--canvas); border-top:1px solid var(--line); padding:10px 0 1px; z-index:1; }

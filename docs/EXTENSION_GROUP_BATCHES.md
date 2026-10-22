@@ -25,7 +25,7 @@ Groups, not a completed database import. The dashboard remains responsible for
 validation, authentication, ownership and persistence.
 
 UI changes include a compact collected-state header, distinct collect/review/send
-steps, searchable selection list, sticky send controls, readable errors, dark mode,
+steps, searchable selection list, separate send controls, readable errors, dark mode,
 keyboard focus, reduced motion and document language/title. Browser fixtures test
 reopening, six-to-eight accumulation, duplicate deselection, clear, export, delivery
 and automated light/dark WCAG checks. Fixtures do not establish live Facebook support.
