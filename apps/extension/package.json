@@ -1,9 +1,9 @@
 {
   "name": "@staysuite/extension",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "displayName": "StaySuite Growth Engine",
-  "description": "User-triggered visible group-link collection for StaySuite. No background Facebook access or publishing.",
+  "description": "Select accessible group links in your own Facebook browser tab and send them to StaySuite for authenticated import. No posting.",
   "author": "StaySuite",
   "scripts": {
     "dev": "plasmo dev --target=chrome-mv3 --serve-host localhost --hmr-host localhost",
@@ -30,6 +30,11 @@
     "host_permissions": [],
     "content_security_policy": {
       "extension_pages": "script-src 'self'; object-src 'none'; base-uri 'none'"
-    }
+    },
+    "optional_host_permissions": [
+      "https://*.vercel.app/*",
+      "http://localhost/*",
+      "http://127.0.0.1/*"
+    ]
   }
 }

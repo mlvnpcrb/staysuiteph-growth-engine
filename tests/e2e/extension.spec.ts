@@ -154,3 +154,103 @@ test("popup handles Chrome permission denial without disclosing raw browser erro
   );
   await expect(page.getByRole("alert")).not.toContainText("private.example");
 });
+
+test("popup sends only checked groups and confirms receipt rather than database success", async ({
+  context,
+  page,
+}) => {
+  await servePopup(context);
+  await page.addInitScript(() => {
+    Object.defineProperty(crypto, "randomUUID", {
+      configurable: true,
+      value: () => "11111111-1111-4111-8111-111111111111",
+    });
+    Object.defineProperty(window, "chrome", {
+      configurable: true,
+      value: {
+        permissions: { request: async () => true },
+        tabs: {
+          query: async () => [
+            {
+              id: 1,
+              status: "complete",
+              url: "http://localhost:3000/dashboard/group-finder",
+            },
+          ],
+          update: async () => ({}),
+        },
+        scripting: {
+          executeScript: async (input: {
+            args?: unknown[];
+            func?: { toString(): string };
+          }) => {
+            if (input.args) {
+              Reflect.set(window, "__sent", input.args[0]);
+              Reflect.set(window, "__deliverySource", input.func?.toString());
+              return [{ result: { result: "received" } }];
+            }
+            return [
+              {
+                result: {
+                  format: "staysuite-visible-groups-v1",
+                  collected_at: "2026-10-23T00:00:00Z",
+                  groups: [
+                    {
+                      url: "https://www.facebook.com/groups/one/",
+                      title: "Fixture one",
+                    },
+                    {
+                      url: "https://www.facebook.com/groups/two/",
+                      title: "Fixture two",
+                    },
+                  ],
+                },
+              },
+            ];
+          },
+        },
+      },
+    });
+  });
+  await page.goto("http://extension-fixture.test/popup.html");
+  await page.getByRole("checkbox", { name: /I authorize/ }).check();
+  await page.getByRole("button", { name: "Collect visible groups" }).click();
+  await page.getByRole("checkbox", { name: "Fixture two" }).uncheck();
+  await page
+    .getByRole("button", { name: "Send 1 selected groups to StaySuite" })
+    .click();
+  await expect(page.getByRole("status")).toContainText(
+    "Selection received by StaySuite",
+  );
+  await expect(page.getByRole("status")).toContainText("Save selected groups");
+  const sent = await page.evaluate(() => Reflect.get(window, "__sent"));
+  expect(sent.collection.groups).toEqual([
+    { url: "https://www.facebook.com/groups/one/", title: "Fixture one" },
+  ]);
+  // Exercise the production-bundled function in an actual isolated world, not
+  // just its TypeScript source. This is a bridge harness, not extension install.
+  const source = await page.evaluate(() =>
+    Reflect.get(window, "__deliverySource"),
+  );
+  const receiver = await context.newPage();
+  await receiver.goto("http://localhost:3000/dashboard/group-finder");
+  await expect(
+    receiver.locator("[data-staysuite-group-receiver=ready]"),
+  ).toBeVisible();
+  const session = await context.newCDPSession(receiver);
+  const tree = await session.send("Page.getFrameTree");
+  const world = await session.send("Page.createIsolatedWorld", {
+    frameId: tree.frameTree.frame.id,
+    worldName: "staysuite-bridge-fixture",
+  });
+  const outcome = await session.send("Runtime.evaluate", {
+    expression: `(${source})(${JSON.stringify(sent)})`,
+    contextId: world.executionContextId,
+    awaitPromise: true,
+    returnByValue: true,
+  });
+  expect(outcome.exceptionDetails).toBeUndefined();
+  expect(outcome.result.value).toEqual({ result: "received" });
+  await expect(receiver.getByText("1 unique groups imported")).toBeVisible();
+  await session.detach();
+});

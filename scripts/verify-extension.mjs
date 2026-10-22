@@ -11,7 +11,11 @@ assert.deepEqual([...(manifest.permissions ?? [])].sort(), [
 assert.equal(manifest.host_permissions?.length ?? 0, 0);
 assert.equal(manifest.content_scripts?.length ?? 0, 0);
 assert.equal(manifest.optional_permissions?.length ?? 0, 0);
-assert.equal(manifest.optional_host_permissions?.length ?? 0, 0);
+assert.deepEqual(manifest.optional_host_permissions, [
+  "https://*.vercel.app/*",
+  "http://localhost/*",
+  "http://127.0.0.1/*",
+]);
 assert.equal(manifest.externally_connectable, undefined);
 assert.equal(manifest.background, undefined);
 assert.equal(
@@ -20,5 +24,5 @@ assert.equal(
 );
 assert.ok(existsSync(`${directory}/${manifest.action.default_popup}`));
 console.log(
-  "PASS: built Chrome MV3 manifest, popup, and user-triggered activeTab/scripting only; zero permanent host/content-script permissions",
+  "PASS: built Chrome MV3 manifest, popup, and user-triggered activeTab/scripting only; zero permanent host/content-script permissions; optional dashboard-only site grant",
 );

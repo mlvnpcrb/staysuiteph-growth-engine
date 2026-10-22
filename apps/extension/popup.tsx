@@ -6,6 +6,7 @@ import {
 } from "@staysuite/validation";
 import { collectVisibleGroups } from "./lib/collect-visible-groups";
 import { collectionError } from "./lib/collection-error";
+import { sendToDashboard } from "./lib/send-to-dashboard";
 import "./style.css";
 export default function Popup() {
   const [error, setError] = useState("");
@@ -13,6 +14,8 @@ export default function Popup() {
   const [collection, setCollection] = useState<GroupCollection | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [consent, setConsent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [status, setStatus] = useState("");
   function openDashboard() {
     try {
       const origin = safeDashboardUrl(
@@ -33,6 +36,7 @@ export default function Popup() {
     setError("");
     setBusy(true);
     setCollection(null);
+    setStatus("");
     try {
       if (typeof chrome === "undefined" || !chrome.scripting)
         throw new Error(
@@ -79,6 +83,43 @@ export default function Popup() {
       setBusy(false);
     }
   }
+  async function sendSelected() {
+    if (!collection || !selected.size) return;
+    setSending(true);
+    setError("");
+    setStatus("");
+    try {
+      await sendToDashboard(
+        {
+          ...collection,
+          groups: collection.groups.filter((g) => selected.has(g.url)),
+        },
+        process.env.PLASMO_PUBLIC_DASHBOARD_URL || "http://localhost:3000",
+      );
+      setStatus(
+        "Selection received by StaySuite. Enter your destination, review, and click Save selected groups to import into My Groups.",
+      );
+    } catch (error) {
+      const code = error instanceof Error ? error.message : "";
+      const messages: Record<string, string> = {
+        dashboard_permission_denied:
+          "Dashboard access was not granted. Your selected groups are still here. Allow access to your configured StaySuite site to send them.",
+        dashboard_not_ready:
+          "StaySuite is not ready to receive. Sign in on the dashboard, open Group Finder, and send again. Your selection has not been saved.",
+        busy: "StaySuite is saving another batch. Wait for it to finish, then send again.",
+        batch_limit:
+          "StaySuite already has too many preview groups. Save and clear its current batch, then send again.",
+        invalid_payload:
+          "StaySuite rejected the collection format. Reload both the extension and dashboard.",
+      };
+      setError(
+        messages[code] ??
+          "Could not send groups to StaySuite. Check your configured dashboard URL and extension site permission. No import has been confirmed.",
+      );
+    } finally {
+      setSending(false);
+    }
+  }
   function exportCollection() {
     if (!collection) return;
     const payload = {
@@ -98,11 +139,12 @@ export default function Popup() {
   return (
     <main>
       <span className="wordmark">StaySuite</span>
-      <span className="badge">User-controlled collection · Experimental</span>
+      <span className="badge">Connected group import · Experimental</span>
       <h1>Your communities, together.</h1>
       <p>
-        Open Facebook’s Your Groups page. Collect only visible group names and
-        links, then review your selection.
+        Open Facebook’s Your Groups page in your own signed-in browser. Detect
+        visible group names and links, select them, and send them directly to
+        StaySuite.
       </p>
       <a
         href="https://www.facebook.com/groups/joins/"
@@ -124,23 +166,28 @@ export default function Popup() {
           No posts, member lists, Facebook cookies or tokens are collected. No
           background access or publishing.
         </p>
-        <button disabled={!consent || busy} onClick={() => void collect()}>
+        <button
+          disabled={!consent || busy || sending}
+          onClick={() => void collect()}
+        >
           {busy ? "Collecting…" : "Collect visible groups"}
         </button>
       </section>
       {error && <p role="alert">{error}</p>}
+      {status && <p role="status">{status}</p>}
       {collection && (
         <section>
           <h2>{collection.groups.length} groups collected</h2>
           <p>
             Unverified list, not proof of membership. Uncheck anything you don’t
-            want to export.
+            want to import.
           </p>
           <ul className="collection-list">
             {collection.groups.map((group) => (
               <li key={group.url}>
                 <label>
                   <input
+                    disabled={sending}
                     type="checkbox"
                     checked={selected.has(group.url)}
                     onChange={(e) =>
@@ -157,11 +204,24 @@ export default function Popup() {
               </li>
             ))}
           </ul>
-          <button disabled={!selected.size} onClick={exportCollection}>
+          <button
+            disabled={!selected.size || sending}
+            onClick={() => void sendSelected()}
+          >
+            {sending
+              ? "Sending to StaySuite…"
+              : `Send ${selected.size} selected groups to StaySuite`}
+          </button>
+          <button
+            className="secondary"
+            disabled={!selected.size || sending}
+            onClick={exportCollection}
+          >
             Export {selected.size} selected groups
           </button>
           <button
             className="secondary"
+            disabled={sending}
             onClick={() => {
               setCollection(null);
               setSelected(new Set());
@@ -175,10 +235,9 @@ export default function Popup() {
         Open dashboard ↗
       </button>
       <small>
-        Export before closing this popup; the list is not retained. Scroll
-        Facebook yourself and collect again to export another batch. Import
-        files in Group Finder; repeated groups are deduplicated. Sign in only on
-        your dashboard.
+        Send or export before closing this popup; the list is not retained.
+        Scroll Facebook yourself to load more groups. StaySuite deduplicates
+        saved groups. Sign in only on your dashboard.
       </small>
     </main>
   );

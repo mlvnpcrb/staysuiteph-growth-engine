@@ -107,3 +107,10 @@ with local JSON export and dashboard bulk import, assessment and selected saving
 See [JOINED_GROUP_COLLECTION.md](JOINED_GROUP_COLLECTION.md) for installation,
 permissions, privacy boundaries, limitations and manual acceptance. This adds no
 paid provider requirement, authentication change, or migration.
+
+## Connected Group Import milestone
+
+The extension can now send checked groups directly into Group Finder's validated
+preview. Explicit saving uses the existing authenticated API/RLS, with per-group
+success/duplicate/failure states and safe partial-batch retry. No posting, auth
+change or migration is included. See [CONNECTED_GROUP_IMPORT.md](CONNECTED_GROUP_IMPORT.md).

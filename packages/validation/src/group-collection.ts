@@ -40,3 +40,23 @@ export function parseGroupCollection(text: string): GroupCollection {
   for (const group of parsed.data.groups) unique.set(group.url, group);
   return { ...parsed.data, groups: [...unique.values()] };
 }
+
+export const groupTransferSchema = z
+  .object({
+    type: z.literal("STAYSUITE_GROUP_IMPORT"),
+    transfer_id: z.uuid(),
+    collection: groupCollectionSchema,
+  })
+  .strict();
+export const groupTransferAckSchema = z
+  .object({
+    type: z.literal("STAYSUITE_GROUP_IMPORT_ACK"),
+    transfer_id: z.uuid(),
+    result: z.enum(["received", "busy", "invalid_payload", "batch_limit"]),
+  })
+  .strict();
+export function parseGroupTransfer(value: unknown) {
+  const text = JSON.stringify(value);
+  if (!text || text.length > 100_000) throw new Error("Transfer exceeds limit");
+  return groupTransferSchema.parse(JSON.parse(text));
+}

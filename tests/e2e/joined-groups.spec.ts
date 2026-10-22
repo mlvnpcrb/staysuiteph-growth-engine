@@ -1,7 +1,8 @@
 import { test, expect } from "@playwright/test";
+import { deliverGroupCollection } from "../../apps/extension/lib/send-to-dashboard";
 import { collectVisibleGroups } from "../../apps/extension/lib/collect-visible-groups";
 const collection = {
-  format: "staysuite-visible-groups-v1",
+  format: "staysuite-visible-groups-v1" as const,
   collected_at: "2026-10-22T10:00:00Z",
   groups: [
     {
@@ -174,4 +175,131 @@ test("invalid imports and save failures preserve an honest recoverable preview",
     "Saving stopped after an error",
   );
   await expect(page.getByText("2 unique groups imported")).toBeVisible();
+});
+
+test("connected transfer previews selections, deduplicates on save, and shows individual results", async ({
+  page,
+}) => {
+  let saved = 0;
+  await page.route("**/api/groups", (route) => {
+    saved++;
+    return route.fulfill({ json: { duplicate: saved === 2 } });
+  });
+  await page.goto("/dashboard/group-finder");
+  await expect(
+    page.locator("[data-staysuite-group-receiver=ready]"),
+  ).toBeVisible();
+  const result = await page.evaluate(deliverGroupCollection, {
+    origin: new URL(page.url()).origin,
+    transferId: "11111111-1111-4111-8111-111111111111",
+    collection,
+  });
+  expect(result).toEqual({ result: "received" });
+  await expect(page.getByText("2 unique groups imported")).toBeVisible();
+  expect(saved).toBe(0);
+  await page.getByLabel("Destination", { exact: true }).fill("Cebu");
+  await page.getByRole("button", { name: "Save selected groups" }).click();
+  await expect(page.getByRole("status")).toContainText(
+    "1 groups saved; 1 already saved",
+  );
+  await expect(
+    page.getByText("Imported successfully", { exact: true }),
+  ).toHaveCount(1);
+  await expect(
+    page.getByText("Already in My Groups", { exact: true }),
+  ).toHaveCount(1);
+});
+
+test("dashboard rejects forged origins and invalid transfers without writes or credentials", async ({
+  page,
+}) => {
+  let writes = 0;
+  await page.route("**/api/groups", (route) => {
+    writes++;
+    return route.fulfill({ json: { duplicate: false } });
+  });
+  await page.goto("/dashboard/group-finder");
+  await expect(
+    page.locator("[data-staysuite-group-receiver=ready]"),
+  ).toBeVisible();
+  await page.evaluate((collection) => {
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        source: window,
+        origin: "https://evil.test",
+        data: {
+          type: "STAYSUITE_GROUP_IMPORT",
+          transfer_id: "11111111-1111-4111-8111-111111111111",
+          collection,
+        },
+      }),
+    );
+  }, collection);
+  await expect(page.getByText("2 unique groups imported")).toHaveCount(0);
+  const rejected = await page.evaluate(async (collection) => {
+    return new Promise((resolve) => {
+      const receive = (event: MessageEvent) => {
+        if (event.data?.type === "STAYSUITE_GROUP_IMPORT_ACK") {
+          window.removeEventListener("message", receive);
+          resolve(event.data.result);
+        }
+      };
+      window.addEventListener("message", receive);
+      window.postMessage(
+        {
+          type: "STAYSUITE_GROUP_IMPORT",
+          transfer_id: "11111111-1111-4111-8111-111111111111",
+          collection: { ...collection, access_token: "not accepted" },
+        },
+        location.origin,
+      );
+    });
+  }, collection);
+  expect(rejected).toBe("invalid_payload");
+  await expect(page.getByRole("main").getByRole("alert")).toContainText(
+    "rejected",
+  );
+  expect(writes).toBe(0);
+});
+
+test("partial import failure preserves saved groups and retry deduplicates them", async ({
+  page,
+}) => {
+  let attempt = 0;
+  await page.route("**/api/groups", (route) => {
+    attempt++;
+    return route.fulfill(
+      attempt === 2
+        ? { status: 503, json: { error: "Temporary save failure." } }
+        : { json: { duplicate: attempt === 3 } },
+    );
+  });
+  await page.goto("/dashboard/group-finder");
+  await expect(
+    page.locator("[data-staysuite-group-receiver=ready]"),
+  ).toBeVisible();
+  await page.evaluate(deliverGroupCollection, {
+    origin: new URL(page.url()).origin,
+    transferId: "11111111-1111-4111-8111-111111111111",
+    collection,
+  });
+  await page.getByLabel("Destination", { exact: true }).fill("Cebu");
+  await page.getByRole("button", { name: "Save selected groups" }).click();
+  await expect(page.getByRole("status")).toContainText(
+    "1 groups saved; 0 already saved",
+  );
+  await expect(
+    page.getByText("Imported successfully", { exact: true }),
+  ).toHaveCount(1);
+  await expect(
+    page.getByText("Import failed — retry available", { exact: true }),
+  ).toHaveCount(1);
+  await page.getByRole("button", { name: "Save selected groups" }).click();
+  await expect(page.getByRole("status")).toContainText(
+    "1 groups saved; 1 already saved",
+  );
+  await expect(
+    page.getByText("Import failed — retry available", { exact: true }),
+  ).toHaveCount(0);
+  expect(attempt).toBe(4);
 });

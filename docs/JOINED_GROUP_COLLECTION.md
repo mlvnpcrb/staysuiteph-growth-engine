@@ -113,3 +113,11 @@ A locally packaged extension targets the Phase 2 Preview origin
 The package is a build artifact, not committed credentials or a Chrome Web Store
 release. The built popup is additionally checked against that configured origin
 using a mocked destination; that is not evidence of a Ready Vercel deployment.
+
+## Connected transfer follow-up
+
+Version 0.0.2 adds direct selected-group transfer to the dashboard with an optional,
+user-approved dashboard host grant. JSON export is now a fallback. See
+[CONNECTED_GROUP_IMPORT.md](CONNECTED_GROUP_IMPORT.md) for the current permission
+model, local-only testing instructions and limitations; it supersedes the earlier
+zero-optional-host-permissions description for the new build.

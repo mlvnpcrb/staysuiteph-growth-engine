@@ -1,8 +1,10 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@staysuite/ui";
+import Link from "next/link";
 import {
   parseGroupCollection,
+  parseGroupTransfer,
   searchGroupsSchema,
   assessGroup,
   type GroupCollection,
@@ -20,22 +22,94 @@ export function CollectionImport({ search }: { search: GroupSearch }) {
   const [ready, setReady] = useState(false);
   const [filter, setFilter] = useState("");
   const stop = useRef(false);
+  const currentGroups = useRef<GroupCollection["groups"]>([]);
+  const importBusy = useRef(false);
+  const [outcomes, setOutcomes] = useState<
+    Record<string, "saved" | "already_saved" | "failed">
+  >({});
+  function acceptCollection(collection: GroupCollection) {
+    const merged = new Map(currentGroups.current.map((g) => [g.url, g]));
+    for (const group of collection.groups) merged.set(group.url, group);
+    if (merged.size > 100) throw new Error("batch_limit");
+    currentGroups.current = [...merged.values()];
+    setGroups(currentGroups.current);
+    setSelected(
+      (previous) =>
+        new Set([...previous, ...collection.groups.map((g) => g.url)]),
+    );
+    setOutcomes({});
+  }
   useEffect(() => {
     setReady(true);
+    const receive = (event: MessageEvent) => {
+      if (event.source !== window || event.origin !== window.location.origin)
+        return;
+      const data: unknown = event.data;
+      if (
+        !data ||
+        typeof data !== "object" ||
+        !("type" in data) ||
+        data.type !== "STAYSUITE_GROUP_IMPORT"
+      )
+        return;
+      if (
+        !("transfer_id" in data) ||
+        typeof data.transfer_id !== "string" ||
+        !/^[a-f0-9-]{36}$/i.test(data.transfer_id)
+      )
+        return;
+      const ack = (result: string) =>
+        window.postMessage(
+          {
+            type: "STAYSUITE_GROUP_IMPORT_ACK",
+            transfer_id: data.transfer_id,
+            result,
+          },
+          window.location.origin,
+        );
+      if (importBusy.current) {
+        ack("busy");
+        return;
+      }
+      try {
+        const parsed = parseGroupTransfer(data);
+        acceptCollection(parsed.collection);
+        setError("");
+        setStatus(
+          "Groups received from your extension. Review the selection and click Save selected groups to import into My Groups. Nothing has been saved yet.",
+        );
+        ack("received");
+      } catch (error) {
+        const result =
+          error instanceof Error && error.message === "batch_limit"
+            ? "batch_limit"
+            : "invalid_payload";
+        setError(
+          result === "batch_limit"
+            ? "Batch limit exceeded. Save and clear the current batch before receiving more groups."
+            : "The extension collection was rejected. No groups were saved.",
+        );
+        ack(result);
+      }
+    };
+    window.addEventListener("message", receive);
     return () => {
       stop.current = true;
+      window.removeEventListener("message", receive);
     };
   }, []);
   const context = searchGroupsSchema.safeParse(search);
-  const candidates = context.success
-    ? groups.map((group) => ({ ...context.data, ...group, evidence: "" }))
-    : [];
+  const candidates = groups.map((group) => ({
+    ...search,
+    ...group,
+    evidence: "",
+  }));
   const assessed = candidates
     .map((candidate) => ({
       candidate,
-      assessment: assessGroup(candidate, candidate),
+      assessment: context.success ? assessGroup(candidate, candidate) : null,
     }))
-    .sort((a, b) => b.assessment.score - a.assessment.score);
+    .sort((a, b) => (b.assessment?.score ?? 0) - (a.assessment?.score ?? 0));
   async function load(file: File) {
     setError("");
     setStatus("");
@@ -44,16 +118,10 @@ export function CollectionImport({ search }: { search: GroupSearch }) {
       return;
     }
     setLoading(true);
+    importBusy.current = true;
     try {
       const parsed = parseGroupCollection(await file.text());
-      const merged = new Map(groups.map((g) => [g.url, g]));
-      for (const group of parsed.groups) merged.set(group.url, group);
-      if (merged.size > 100) throw new Error("Batch limit");
-      setGroups([...merged.values()]);
-      setSelected(
-        (previous) =>
-          new Set([...previous, ...parsed.groups.map((g) => g.url)]),
-      );
+      acceptCollection(parsed);
       setStatus(
         "Collection loaded. Review your selection before saving. No data has been saved yet.",
       );
@@ -63,6 +131,7 @@ export function CollectionImport({ search }: { search: GroupSearch }) {
       );
     } finally {
       setLoading(false);
+      importBusy.current = false;
     }
   }
   async function saveSelected() {
@@ -70,6 +139,8 @@ export function CollectionImport({ search }: { search: GroupSearch }) {
       setError("Enter a destination above before assessing or saving groups.");
       return;
     }
+    if (importBusy.current) return;
+    importBusy.current = true;
     setSaving(true);
     stop.current = false;
     setError("");
@@ -82,9 +153,14 @@ export function CollectionImport({ search }: { search: GroupSearch }) {
       setStatus(`Saving ${index + 1} of ${batch.length}…`);
       try {
         const result = await groupRequest("POST", group);
+        setOutcomes((previous) => ({
+          ...previous,
+          [group.url]: result.duplicate ? "already_saved" : "saved",
+        }));
         if (result.duplicate) duplicates++;
         else saved++;
       } catch (error) {
+        setOutcomes((previous) => ({ ...previous, [group.url]: "failed" }));
         setError(
           error instanceof Error ? error.message : "Could not save groups.",
         );
@@ -93,6 +169,7 @@ export function CollectionImport({ search }: { search: GroupSearch }) {
       }
     }
     setSaving(false);
+    importBusy.current = false;
     setStatus(
       `${saved} groups saved; ${duplicates} already saved.${stop.current ? " Saving stopped." : failed ? " Saving stopped after an error. Retry safely; saved groups are deduplicated." : ""}`,
     );
@@ -104,13 +181,14 @@ export function CollectionImport({ search }: { search: GroupSearch }) {
     <section
       className="panel collection-import"
       aria-label="Import joined groups"
+      data-staysuite-group-receiver={ready ? "ready" : "loading"}
     >
       <span className="subtle-badge">Free · User-controlled collection</span>
       <h2>Bring your joined groups together</h2>
       <p className="muted">
         In the StaySuite Chrome extension, open Facebook’s Your Groups page,
-        collect visible names and links, review, and export. Import the JSON
-        file here. You can import another batch after scrolling yourself.
+        collect visible names and links, review, then choose Send selected
+        groups to StaySuite. You can also import an exported JSON file below.
       </p>
       <p className="muted text-sm">
         Files are processed locally until you choose Save. Only names and links
@@ -160,6 +238,7 @@ export function CollectionImport({ search }: { search: GroupSearch }) {
             <Button
               disabled={
                 saving ||
+                loading ||
                 !context.success ||
                 !candidates.some((g) => selected.has(g.url))
               }
@@ -181,7 +260,9 @@ export function CollectionImport({ search }: { search: GroupSearch }) {
               variant="outline"
               disabled={saving || loading}
               onClick={() => {
+                currentGroups.current = [];
                 setGroups([]);
+                setOutcomes({});
                 setSelected(new Set());
                 setStatus(
                   "Imported list cleared locally. Saved groups are unchanged.",
@@ -214,10 +295,21 @@ export function CollectionImport({ search }: { search: GroupSearch }) {
                   />
                   {candidate.title}
                 </label>
-                <span className="subtle-badge">
-                  {assessment.score}/100 text relevance ·{" "}
-                  {assessment.confidence} confidence
-                </span>
+                {outcomes[candidate.url] && (
+                  <span className="subtle-badge">
+                    {outcomes[candidate.url] === "saved"
+                      ? "Imported successfully"
+                      : outcomes[candidate.url] === "already_saved"
+                        ? "Already in My Groups"
+                        : "Import failed — retry available"}
+                  </span>
+                )}
+                {assessment && (
+                  <span className="subtle-badge">
+                    {assessment.score}/100 text relevance ·{" "}
+                    {assessment.confidence} confidence
+                  </span>
+                )}
                 <a
                   className="group-source"
                   href={candidate.url}
@@ -226,16 +318,18 @@ export function CollectionImport({ search }: { search: GroupSearch }) {
                 >
                   Review original group
                 </a>
-                <details>
-                  <summary>Assessment &amp; unknowns</summary>
-                  <ul className="evidence-list text-sm">
-                    {[...assessment.reasons, ...assessment.unknowns].map(
-                      (reason) => (
-                        <li key={reason}>{reason}</li>
-                      ),
-                    )}
-                  </ul>
-                </details>
+                {assessment && (
+                  <details>
+                    <summary>Assessment &amp; unknowns</summary>
+                    <ul className="evidence-list text-sm">
+                      {[...assessment.reasons, ...assessment.unknowns].map(
+                        (reason) => (
+                          <li key={reason}>{reason}</li>
+                        ),
+                      )}
+                    </ul>
+                  </details>
+                )}
               </article>
             ))}
           </div>
@@ -255,7 +349,7 @@ export function CollectionImport({ search }: { search: GroupSearch }) {
       )}
       {status && (
         <p role="status" className="group-success">
-          {status}
+          {status} <Link href="/dashboard/my-groups">Open My Groups</Link>
         </p>
       )}
     </section>
