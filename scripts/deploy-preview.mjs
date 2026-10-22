@@ -23,6 +23,7 @@ export async function deployPreview(env, request = fetch, wait = (ms) => new Pro
     if (!response.ok) throw new Error(`Vercel API HTTP ${response.status}`);
     return response.json();
   }
+  console.log("Preview stage: inspect project");
   const project = await api(`/v9/projects/${encodeURIComponent(env.VERCEL_PROJECT_ID)}`);
   if (project.name !== projectName || project.rootDirectory !== "apps/web" ||
       project.link?.type !== "github" || project.link?.repo !== projectName ||
@@ -30,6 +31,7 @@ export async function deployPreview(env, request = fetch, wait = (ms) => new Pro
       project.link.productionBranch === branch) {
     throw new Error("Project identity, monorepo root or Production branch check failed");
   }
+  console.log("Preview stage: create deployment");
   const created = await api("/v13/deployments", {
     name: projectName,
     project: env.VERCEL_PROJECT_ID,
@@ -37,6 +39,7 @@ export async function deployPreview(env, request = fetch, wait = (ms) => new Pro
     gitSource: { type: "github", repoId: String(env.REPOSITORY_ID), ref: env.DEPLOY_SHA },
   });
   if (!created.id || created.target === "production") throw new Error("Unexpected deployment target");
+  console.log("Preview stage: wait for Ready");
   let deployment;
   for (let attempt = 0; attempt < 120; attempt++) {
     deployment = await api(`/v13/deployments/${encodeURIComponent(created.id)}`);
@@ -52,6 +55,7 @@ export async function deployPreview(env, request = fetch, wait = (ms) => new Pro
       url.port || url.username || url.password || url.pathname !== "/" || url.search || url.hash) {
     throw new Error("Unexpected Preview hostname");
   }
+  console.log(`Preview stage: login smoke at ${url.origin}`);
   const smoke = await request(`${url.origin}/login`, {
     redirect: "error",
     headers: env.VERCEL_AUTOMATION_BYPASS_SECRET
