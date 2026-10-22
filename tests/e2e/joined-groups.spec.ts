@@ -293,6 +293,8 @@ test("connection states are honest and foreign or malformed transfers cannot wri
   await expect(
     importer.getByText("Extension needed", { exact: true }),
   ).toBeVisible();
+  // The initial label can render before the receiver effect has subscribed.
+  await expect(page.locator("[data-staysuite-group-receiver=ready]")).toBeVisible();
   await page.evaluate(() =>
     window.postMessage({ type: "STAYSUITE_EXTENSION_HELLO" }, location.origin),
   );
