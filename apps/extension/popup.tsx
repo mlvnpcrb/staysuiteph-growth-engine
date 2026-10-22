@@ -16,13 +16,14 @@ export default function Popup() {
   const [consent, setConsent] = useState(false);
   const [sending, setSending] = useState(false);
   const [status, setStatus] = useState("");
+  const [recovery, setRecovery] = useState<"collect" | "send">("collect");
   function openDashboard() {
     try {
       const origin = safeDashboardUrl(
         process.env.PLASMO_PUBLIC_DASHBOARD_URL || "http://localhost:3000",
       );
       window.open(
-        `${origin}/dashboard/group-finder`,
+        `${origin}/dashboard/my-groups`,
         "_blank",
         "noopener,noreferrer",
       );
@@ -33,6 +34,7 @@ export default function Popup() {
     }
   }
   async function collect() {
+    setRecovery("collect");
     setError("");
     setBusy(true);
     setCollection(null);
@@ -84,6 +86,7 @@ export default function Popup() {
     }
   }
   async function sendSelected() {
+    setRecovery("send");
     if (!collection || !selected.size) return;
     setSending(true);
     setError("");
@@ -97,7 +100,7 @@ export default function Popup() {
         process.env.PLASMO_PUBLIC_DASHBOARD_URL || "http://localhost:3000",
       );
       setStatus(
-        "Selection received by StaySuite. Enter your destination, review, and click Save selected groups to import into My Groups.",
+        "Groups received in My Groups. Review the new groups and choose Import. No destination is required.",
       );
     } catch (error) {
       const code = error instanceof Error ? error.message : "";
@@ -105,7 +108,7 @@ export default function Popup() {
         dashboard_permission_denied:
           "Dashboard access was not granted. Your selected groups are still here. Allow access to your configured StaySuite site to send them.",
         dashboard_not_ready:
-          "StaySuite is not ready to receive. Sign in on the dashboard, open Group Finder, and send again. Your selection has not been saved.",
+          "StaySuite is not ready to receive. Sign in on the dashboard, open My Groups, and send again. Your selection has not been saved.",
         busy: "StaySuite is saving another batch. Wait for it to finish, then send again.",
         batch_limit:
           "StaySuite already has too many preview groups. Save and clear its current batch, then send again.",
@@ -173,7 +176,37 @@ export default function Popup() {
           {busy ? "Collecting…" : "Collect visible groups"}
         </button>
       </section>
-      {error && <p role="alert">{error}</p>}
+      {error && (
+        <div role="alert">
+          <p>{error}</p>
+          {recovery === "collect" ? (
+            <button
+              className="secondary"
+              disabled={!consent || busy || sending}
+              onClick={() => void collect()}
+            >
+              Try collecting again
+            </button>
+          ) : (
+            <button className="secondary" onClick={openDashboard}>
+              Open dashboard
+            </button>
+          )}
+          {recovery === "send" && collection && selected.size > 0 && (
+            <button disabled={sending} onClick={() => void sendSelected()}>
+              Try sending again
+            </button>
+          )}
+          <details>
+            <summary>Extension permission help</summary>
+            <p>
+              Allow access to your configured StaySuite site when Chrome asks.
+              If collection is denied, reload the extension and your Facebook
+              tab, then collect again.
+            </p>
+          </details>
+        </div>
+      )}
       {status && <p role="status">{status}</p>}
       {collection && (
         <section>

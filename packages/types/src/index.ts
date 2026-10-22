@@ -76,7 +76,11 @@ export type Database = {
         Update: Pick<
           SavedGroup,
           "notes" | "review_status" | "rule_evidence" | "last_reviewed_at"
-        >;
+        > & {
+          destination?: string | undefined;
+          accommodation?: string | undefined;
+          audience?: string | undefined;
+        };
         Relationships: [];
       };
       profiles: {

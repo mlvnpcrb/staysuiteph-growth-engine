@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   getUser: vi.fn(),
   repo: vi.fn(),
   list: vi.fn(),
+  duplicates: vi.fn(),
   save: vi.fn(),
   find: vi.fn(),
   update: vi.fn(),
@@ -36,6 +37,7 @@ beforeEach(() => {
   });
   mocks.repo.mockReturnValue({
     list: mocks.list,
+    duplicates: mocks.duplicates,
     save: mocks.save,
     find: mocks.find,
     update: mocks.update,
@@ -201,4 +203,67 @@ it("reports unavailable persistence without inventing a successful save", async 
   );
   expect(response.status).toBe(503);
   expect(JSON.stringify(await response.json())).not.toContain("secret");
+});
+
+it("checks owned duplicates without writing, and accepts name/link-only imports", async () => {
+  mocks.duplicates.mockResolvedValue(["one"]);
+  expect(
+    (
+      await POST(
+        request("POST", {
+          operation: "check_duplicates",
+          urls: ["https://facebook.com/groups/ONE/?ref=share"],
+        }),
+      )
+    ).status,
+  ).toBe(200);
+  expect(mocks.duplicates).toHaveBeenCalledWith(["one"]);
+  expect(mocks.save).not.toHaveBeenCalled();
+  mocks.save.mockResolvedValue({ duplicate: false });
+  expect(
+    (
+      await POST(
+        request("POST", {
+          url: "https://facebook.com/groups/two/",
+          title: "New group",
+        }),
+      )
+    ).status,
+  ).toBe(200);
+  expect(mocks.save).toHaveBeenCalledWith(
+    expect.objectContaining({
+      destination: "",
+      accommodation: "",
+      audience: "",
+    }),
+  );
+});
+it("rejects invalid duplicate URLs without database lookup", async () => {
+  expect(
+    (
+      await POST(
+        request("POST", {
+          operation: "check_duplicates",
+          urls: ["https://evil.test/groups/one/"],
+        }),
+      )
+    ).status,
+  ).toBe(400);
+  expect(mocks.duplicates).not.toHaveBeenCalled();
+});
+it("accepts a full 100-link duplicate preview without the smaller single-entry size limit", async () => {
+  mocks.duplicates.mockResolvedValue([]);
+  const urls = Array.from(
+    { length: 100 },
+    (_, index) => `https://www.facebook.com/groups/${"g".repeat(150)}${index}/`,
+  );
+  expect(
+    JSON.stringify({ operation: "check_duplicates", urls }).length,
+  ).toBeGreaterThan(16000);
+  expect(
+    (await POST(request("POST", { operation: "check_duplicates", urls })))
+      .status,
+  ).toBe(200);
+  expect(mocks.duplicates.mock.calls[0]?.[0]).toHaveLength(100);
+  expect(mocks.save).not.toHaveBeenCalled();
 });

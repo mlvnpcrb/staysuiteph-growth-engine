@@ -114,3 +114,7 @@ The extension can now send checked groups directly into Group Finder's validated
 preview. Explicit saving uses the existing authenticated API/RLS, with per-group
 success/duplicate/failure states and safe partial-batch retry. No posting, auth
 change or migration is included. See [CONNECTED_GROUP_IMPORT.md](CONNECTED_GROUP_IMPORT.md).
+
+## My Groups import UX
+
+All seven UX refinements are implemented locally: see [GROUP_IMPORT_UX.md](GROUP_IMPORT_UX.md), including the prepared optional-context migration.

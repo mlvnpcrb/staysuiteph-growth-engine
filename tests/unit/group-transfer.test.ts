@@ -49,7 +49,7 @@ describe("untrusted dashboard transfer", () => {
           {
             id: 7,
             status: "complete",
-            url: "https://app.vercel.app/dashboard/group-finder",
+            url: "https://app.vercel.app/dashboard/my-groups",
           },
         ]),
         create: vi.fn(),
@@ -108,15 +108,13 @@ it("uses Chrome host patterns but checks exact origin and local port before tab 
   const api = {
     permissions: { request: vi.fn().mockResolvedValue(true) },
     tabs: {
-      query: vi
-        .fn()
-        .mockResolvedValue([
-          {
-            id: 1,
-            status: "complete",
-            url: "http://localhost:4000/dashboard/group-finder",
-          },
-        ]),
+      query: vi.fn().mockResolvedValue([
+        {
+          id: 1,
+          status: "complete",
+          url: "http://localhost:4000/dashboard/my-groups",
+        },
+      ]),
       create: vi.fn().mockResolvedValue({ id: 2, status: "complete" }),
       update: vi.fn().mockResolvedValue({}),
     },
@@ -132,7 +130,7 @@ it("uses Chrome host patterns but checks exact origin and local port before tab 
     origins: ["http://localhost/*"],
   });
   expect(api.tabs.create).toHaveBeenCalledWith({
-    url: "http://localhost:3000/dashboard/group-finder",
+    url: "http://localhost:3000/dashboard/my-groups",
     active: false,
   });
   expect(api.scripting.executeScript.mock.calls[0]?.[0].target).toEqual({

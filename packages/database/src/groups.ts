@@ -5,6 +5,15 @@ export function groupRepository(
   userId: string,
 ) {
   return {
+    async duplicates(identities: string[]) {
+      const result = await client
+        .from("saved_groups")
+        .select("identity")
+        .eq("user_id", userId)
+        .in("identity", identities);
+      if (result.error) throw result.error;
+      return result.data.map((row) => row.identity);
+    },
     async find(id: string) {
       const result = await client
         .from("saved_groups")
@@ -84,7 +93,11 @@ export function groupRepository(
       input: Pick<
         SavedGroup,
         "notes" | "review_status" | "rule_evidence" | "last_reviewed_at"
-      >,
+      > & {
+        destination?: string | undefined;
+        accommodation?: string | undefined;
+        audience?: string | undefined;
+      },
     ) {
       const result = await client
         .from("saved_groups")

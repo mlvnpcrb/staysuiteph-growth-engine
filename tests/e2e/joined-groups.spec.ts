@@ -82,59 +82,150 @@ test("collector fails closed on other pages, dialogs, challenges and changed lay
   expect(await page.evaluate(collectVisibleGroups)).toHaveProperty("error");
 });
 
-test("import assesses, deduplicates, selects and saves through the existing API", async ({
+import type { Page } from "@playwright/test";
+import type { SavedGroup } from "@staysuite/types";
+import AxeBuilder from "@axe-core/playwright";
+async function mockGroups(
+  page: Page,
+  options: {
+    existing?: boolean;
+    failSecond?: boolean;
+    failCheck?: boolean;
+  } = {},
+) {
+  const rows: SavedGroup[] = options.existing
+    ? [
+        {
+          ...collection.groups[0]!,
+          id: "11111111-1111-4111-8111-111111111111",
+          user_id: "11111111-1111-4111-8111-111111111111",
+          identity: "cebutest",
+          destination: "Cebu",
+          accommodation: "Condo",
+          audience: "Guests",
+          evidence: "",
+          source: "manual",
+          notes: "Original private note",
+          review_status: "reviewed",
+          rule_evidence: "Original rule evidence",
+          last_reviewed_at: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      ]
+    : [];
+  const writes: Record<string, unknown>[] = [];
+  let checks = 0;
+  await page.route("**/api/groups", (route) => {
+    const request = route.request();
+    if (request.method() === "GET")
+      return route.fulfill({
+        json: {
+          groups: rows,
+          stats: { total: rows.length, reviewed: 0, needsReview: rows.length },
+        },
+      });
+    const body = request.postDataJSON();
+    if (body.operation === "check_duplicates") {
+      checks++;
+      if (options.failCheck && checks === 1)
+        return route.fulfill({
+          status: 503,
+          json: { error: "Check unavailable" },
+        });
+      return route.fulfill({
+        json: { identities: rows.map((g) => g.identity) },
+      });
+    }
+    if (request.method() === "PATCH") {
+      const group = rows.find((g) => g.id === body.id);
+      Object.assign(group!, body, { updated_at: new Date().toISOString() });
+      return route.fulfill({ json: { group } });
+    }
+    writes.push(body);
+    if (options.failSecond && writes.length === 2)
+      return route.fulfill({
+        status: 503,
+        json: { error: "Temporary failure" },
+      });
+    const identity = new URL(body.url).pathname.split("/")[2]!;
+    const prior = rows.find((g) => g.identity === identity);
+    if (prior)
+      return route.fulfill({ json: { group: prior, duplicate: true } });
+    const group: SavedGroup = {
+      ...body,
+      identity,
+      destination: "",
+      accommodation: "",
+      audience: "",
+      evidence: "",
+      id: `22222222-2222-4222-8222-${String(rows.length + 1).padStart(12, "0")}`,
+      user_id: "11111111-1111-4111-8111-111111111111",
+      source: "manual",
+      notes: "",
+      review_status: "review_required",
+      rule_evidence: "",
+      last_reviewed_at: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    rows.push(group);
+    return route.fulfill({ json: { group, duplicate: false } });
+  });
+  return { rows, writes };
+}
+async function transfer(page: Page) {
+  await expect(
+    page.locator("[data-staysuite-group-receiver=ready]"),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(deliverGroupCollection, {
+      origin: new URL(page.url()).origin,
+      transferId: "11111111-1111-4111-8111-111111111111",
+      collection,
+    }),
+  ).toEqual({ result: "received" });
+}
+
+test("My Groups previews duplicates, imports without hosting context, and preserves notes", async ({
   page,
 }) => {
-  const saved: unknown[] = [];
-  await page.route("**/api/groups", (route) => {
-    saved.push(route.request().postDataJSON());
-    return route.fulfill({ json: { duplicate: false } });
+  const data = await mockGroups(page, { existing: true });
+  await page.goto("/dashboard/my-groups");
+  await transfer(page);
+  const importer = page.getByRole("region", { name: "Import from Facebook" });
+  await expect(
+    importer.getByText("Already saved", { exact: true }),
+  ).toHaveCount(1);
+  await importer
+    .getByRole("button", { name: "Import 1 group", exact: true })
+    .click();
+  await expect(importer.getByRole("status")).toContainText(
+    "1 imported · 1 already saved · 0 failed",
+  );
+  await page.screenshot({
+    path: test.info().outputPath("my-groups-import-ux.png"),
+    fullPage: true,
   });
-  await page.goto("/dashboard/group-finder");
-  await expect(
-    page.getByLabel("Import StaySuite group collection"),
-  ).toBeEnabled();
-  const file = {
-    name: "staysuite-groups.json",
-    mimeType: "application/json",
-    buffer: Buffer.from(JSON.stringify(collection)),
-  };
-  await page
-    .getByLabel("Import StaySuite group collection")
-    .setInputFiles(file);
-  await expect(page.getByText("2 unique groups imported")).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Save selected groups" }),
-  ).toBeDisabled();
-  await page.getByLabel("Destination", { exact: true }).fill("Cebu");
-  await expect(page.getByText(/\/100 text relevance/)).toHaveCount(2);
-  await page
-    .getByLabel("Import StaySuite group collection")
-    .setInputFiles(file);
-  await expect(page.getByText("2 unique groups imported")).toBeVisible();
-  await page
-    .getByRole("checkbox", { name: "Bohol resort hosts — fixture" })
-    .uncheck();
-  await page.getByRole("button", { name: "Save selected groups" }).click();
-  await expect(
-    page.getByRole("status").filter({ hasText: "1 groups saved" }),
-  ).toBeVisible();
-  expect(saved).toEqual([
-    {
-      destination: "Cebu",
-      accommodation: "Condo",
-      audience: "Guests",
-      url: collection.groups[0]!.url,
-      title: collection.groups[0]!.title,
-      evidence: "",
-    },
-  ]);
-  await page.getByRole("button", { name: "Clear imported list" }).click();
-  await expect(
-    page.getByText(
-      "Imported list cleared locally. Saved groups are unchanged.",
-    ),
-  ).toBeVisible();
+  expect(data.writes).toEqual([collection.groups[1]]);
+  expect(data.rows[0]?.notes).toBe("Original private note");
+  expect(data.rows[0]?.rule_evidence).toBe("Original rule evidence");
+  const entry = page.locator("article.saved-group").filter({
+    has: page.getByRole("heading", {
+      name: collection.groups[1]!.title,
+      exact: true,
+    }),
+  });
+  await entry.getByText("Notes & rule review").click();
+  await entry.getByLabel("Destination", { exact: true }).fill("Bohol");
+  await entry
+    .getByRole("combobox", { name: "Accommodation", exact: true })
+    .selectOption("Resort");
+  await entry
+    .getByRole("combobox", { name: "Audience", exact: true })
+    .selectOption("Hosts");
+  await entry.getByRole("button", { name: "Save changes" }).click();
+  await expect(entry.getByText("Bohol · Resort · Hosts")).toBeVisible();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -142,164 +233,137 @@ test("import assesses, deduplicates, selects and saves through the existing API"
   ).toBe(true);
 });
 
-test("invalid imports and save failures preserve an honest recoverable preview", async ({
+test("retry failed imports sends only failed rows and retains completed results", async ({
   page,
 }) => {
-  await page.route("**/api/groups", (route) =>
-    route.fulfill({
-      status: 503,
-      json: { error: "Saving is not connected yet." },
-    }),
+  const data = await mockGroups(page, { failSecond: true });
+  await page.goto("/dashboard/my-groups");
+  await transfer(page);
+  const importer = page.getByRole("region", { name: "Import from Facebook" });
+  await importer
+    .getByRole("button", { name: "Import 2 groups", exact: true })
+    .click();
+  await expect(importer.getByRole("status")).toContainText(
+    "1 imported · 0 already saved · 1 failed",
   );
-  await page.goto("/dashboard/group-finder");
-  await page.getByLabel("Destination", { exact: true }).fill("Cebu");
-  const upload = page.getByLabel("Import StaySuite group collection");
-  await upload.setInputFiles({
+  await importer
+    .getByRole("button", { name: "Retry failed (1)", exact: true })
+    .click();
+  await expect(importer.getByRole("status")).toContainText(
+    "2 imported · 0 already saved · 0 failed",
+  );
+  expect(data.writes.map((g) => g.url)).toEqual([
+    collection.groups[0]!.url,
+    collection.groups[1]!.url,
+    collection.groups[1]!.url,
+  ]);
+});
+
+test("duplicate-check recovery blocks unchecked imports and invalid files stay rejected", async ({
+  page,
+}) => {
+  const data = await mockGroups(page, { failCheck: true });
+  await page.goto("/dashboard/my-groups");
+  await transfer(page);
+  const importer = page.getByRole("region", { name: "Import from Facebook" });
+  await expect(importer.getByRole("alert")).toContainText("Couldn’t check");
+  await expect(
+    importer.getByRole("button", { name: "Import 0 groups", exact: true }),
+  ).toBeDisabled();
+  await importer.getByRole("button", { name: "Retry duplicate check" }).click();
+  await expect(
+    importer.getByRole("button", { name: "Import 2 groups", exact: true }),
+  ).toBeEnabled();
+  expect(data.writes).toHaveLength(0);
+  await importer.getByText("Setup & connection help").click();
+  await importer.getByLabel("Import StaySuite group collection").setInputFiles({
     name: "bad.json",
     mimeType: "application/json",
-    buffer: Buffer.from('{"access_token":"should not be accepted"}'),
+    buffer: Buffer.from('{"access_token":"no"}'),
   });
-  await expect(page.getByRole("main").getByRole("alert")).toContainText(
-    "Invalid collection",
-  );
-  await upload.setInputFiles({
-    name: "groups.json",
-    mimeType: "application/json",
-    buffer: Buffer.from(JSON.stringify(collection)),
-  });
-  await page.getByRole("button", { name: "Save selected groups" }).click();
-  await expect(page.getByRole("main").getByRole("alert")).toContainText(
-    "Saving is not connected",
-  );
-  await expect(page.getByRole("status")).toContainText(
-    "Saving stopped after an error",
-  );
-  await expect(page.getByText("2 unique groups imported")).toBeVisible();
+  await expect(importer.getByRole("alert")).toContainText("Invalid collection");
 });
 
-test("connected transfer previews selections, deduplicates on save, and shows individual results", async ({
+test("connection states are honest and foreign or malformed transfers cannot write data", async ({
   page,
 }) => {
-  let saved = 0;
-  await page.route("**/api/groups", (route) => {
-    saved++;
-    return route.fulfill({ json: { duplicate: saved === 2 } });
-  });
-  await page.goto("/dashboard/group-finder");
+  const data = await mockGroups(page);
+  await page.goto("/dashboard/my-groups");
+  const importer = page.getByRole("region", { name: "Import from Facebook" });
   await expect(
-    page.locator("[data-staysuite-group-receiver=ready]"),
+    importer.getByText("Extension needed", { exact: true }),
   ).toBeVisible();
-  const result = await page.evaluate(deliverGroupCollection, {
-    origin: new URL(page.url()).origin,
-    transferId: "11111111-1111-4111-8111-111111111111",
+  await page.evaluate(() =>
+    window.postMessage({ type: "STAYSUITE_EXTENSION_HELLO" }, location.origin),
+  );
+  await expect(
+    importer.getByText("Ready to collect", { exact: true }),
+  ).toBeVisible();
+  await page.evaluate(
+    (collection) =>
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          source: window,
+          origin: "https://evil.test",
+          data: {
+            type: "STAYSUITE_GROUP_IMPORT",
+            transfer_id: "11111111-1111-4111-8111-111111111111",
+            collection,
+          },
+        }),
+      ),
     collection,
-  });
-  expect(result).toEqual({ result: "received" });
-  await expect(page.getByText("2 unique groups imported")).toBeVisible();
-  expect(saved).toBe(0);
-  await page.getByLabel("Destination", { exact: true }).fill("Cebu");
-  await page.getByRole("button", { name: "Save selected groups" }).click();
-  await expect(page.getByRole("status")).toContainText(
-    "1 groups saved; 1 already saved",
   );
   await expect(
-    page.getByText("Imported successfully", { exact: true }),
-  ).toHaveCount(1);
-  await expect(
-    page.getByText("Already in My Groups", { exact: true }),
-  ).toHaveCount(1);
-});
-
-test("dashboard rejects forged origins and invalid transfers without writes or credentials", async ({
-  page,
-}) => {
-  let writes = 0;
-  await page.route("**/api/groups", (route) => {
-    writes++;
-    return route.fulfill({ json: { duplicate: false } });
-  });
-  await page.goto("/dashboard/group-finder");
-  await expect(
-    page.locator("[data-staysuite-group-receiver=ready]"),
-  ).toBeVisible();
-  await page.evaluate((collection) => {
-    window.dispatchEvent(
-      new MessageEvent("message", {
-        source: window,
-        origin: "https://evil.test",
-        data: {
-          type: "STAYSUITE_GROUP_IMPORT",
-          transfer_id: "11111111-1111-4111-8111-111111111111",
-          collection,
-        },
-      }),
-    );
-  }, collection);
-  await expect(page.getByText("2 unique groups imported")).toHaveCount(0);
-  const rejected = await page.evaluate(async (collection) => {
-    return new Promise((resolve) => {
-      const receive = (event: MessageEvent) => {
-        if (event.data?.type === "STAYSUITE_GROUP_IMPORT_ACK") {
-          window.removeEventListener("message", receive);
-          resolve(event.data.result);
-        }
-      };
-      window.addEventListener("message", receive);
+    importer.getByRole("heading", { name: "Review 2 groups" }),
+  ).toHaveCount(0);
+  await page.evaluate(
+    (collection) =>
       window.postMessage(
         {
           type: "STAYSUITE_GROUP_IMPORT",
           transfer_id: "11111111-1111-4111-8111-111111111111",
-          collection: { ...collection, access_token: "not accepted" },
+          collection: { ...collection, user_id: "forged" },
         },
         location.origin,
-      );
-    });
-  }, collection);
-  expect(rejected).toBe("invalid_payload");
-  await expect(page.getByRole("main").getByRole("alert")).toContainText(
-    "rejected",
+      ),
+    collection,
   );
-  expect(writes).toBe(0);
+  await expect(importer.getByRole("alert")).toContainText("rejected");
+  expect(data.writes).toHaveLength(0);
+  await transfer(page);
+  await expect(
+    importer.getByText("Groups received", { exact: true }),
+  ).toBeVisible();
+  await importer.getByRole("button", { name: "Clear preview" }).click();
+  await expect(
+    importer.getByText("Ready to collect", { exact: true }),
+  ).toBeVisible();
 });
 
-test("partial import failure preserves saved groups and retry deduplicates them", async ({
+test("import preview supports filtering, optional reselection and both accessible themes", async ({
   page,
 }) => {
-  let attempt = 0;
-  await page.route("**/api/groups", (route) => {
-    attempt++;
-    return route.fulfill(
-      attempt === 2
-        ? { status: 503, json: { error: "Temporary save failure." } }
-        : { json: { duplicate: attempt === 3 } },
-    );
-  });
-  await page.goto("/dashboard/group-finder");
+  await mockGroups(page);
+  await page.goto("/dashboard/my-groups");
+  await transfer(page);
+  const importer = page.getByRole("region", { name: "Import from Facebook" });
+  await expect(importer.getByRole("checkbox")).toHaveCount(0);
+  await importer.getByRole("button", { name: "Change selection" }).click();
+  await importer
+    .getByRole("checkbox", { name: collection.groups[1]!.title })
+    .uncheck();
   await expect(
-    page.locator("[data-staysuite-group-receiver=ready]"),
-  ).toBeVisible();
-  await page.evaluate(deliverGroupCollection, {
-    origin: new URL(page.url()).origin,
-    transferId: "11111111-1111-4111-8111-111111111111",
-    collection,
-  });
-  await page.getByLabel("Destination", { exact: true }).fill("Cebu");
-  await page.getByRole("button", { name: "Save selected groups" }).click();
-  await expect(page.getByRole("status")).toContainText(
-    "1 groups saved; 0 already saved",
-  );
-  await expect(
-    page.getByText("Imported successfully", { exact: true }),
-  ).toHaveCount(1);
-  await expect(
-    page.getByText("Import failed — retry available", { exact: true }),
-  ).toHaveCount(1);
-  await page.getByRole("button", { name: "Save selected groups" }).click();
-  await expect(page.getByRole("status")).toContainText(
-    "1 groups saved; 1 already saved",
-  );
-  await expect(
-    page.getByText("Import failed — retry available", { exact: true }),
-  ).toHaveCount(0);
-  expect(attempt).toBe(4);
+    importer.getByRole("button", { name: "Import 1 group", exact: true }),
+  ).toBeEnabled();
+  await importer.getByLabel("Filter imported groups").fill("Cebu");
+  await expect(importer.locator("article")).toHaveCount(1);
+  for (const theme of ["light", "dark"]) {
+    if (theme === "dark")
+      await page.getByRole("button", { name: "Toggle color theme" }).click();
+    expect(
+      (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze())
+        .violations,
+    ).toEqual([]);
+  }
 });

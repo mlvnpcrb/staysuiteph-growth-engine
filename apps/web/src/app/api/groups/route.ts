@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { groupRepository } from "@staysuite/database";
 import {
   addGroupSchema,
+  duplicateCheckSchema,
   updateGroupSchema,
   deleteGroupSchema,
   normalizeGroupUrl,
@@ -42,7 +43,7 @@ async function handle(
     if (method === "GET")
       return reply({ ...(await repository.list()), limit: 500 });
     const text = await request.text();
-    if (text.length > 16000)
+    if (text.length > 64000)
       return reply({ error: "This entry is too long." }, 413);
     let body: unknown;
     try {
@@ -50,6 +51,30 @@ async function handle(
     } catch {
       return reply({ error: "Enter a valid group entry." }, 400);
     }
+    if (
+      method === "POST" &&
+      body &&
+      typeof body === "object" &&
+      "operation" in body &&
+      body.operation === "check_duplicates"
+    ) {
+      const parsed = duplicateCheckSchema.safeParse(body);
+      if (!parsed.success)
+        return reply({ error: "Check up to 100 group links at a time." }, 400);
+      let identities: string[];
+      try {
+        identities = [
+          ...new Set(
+            parsed.data.urls.map((url) => normalizeGroupUrl(url).identity),
+          ),
+        ];
+      } catch {
+        return reply({ error: "Enter valid Facebook Group links." }, 400);
+      }
+      return reply({ identities: await repository.duplicates(identities) });
+    }
+    if (text.length > 16000)
+      return reply({ error: "This entry is too long." }, 413);
     if (method === "POST") {
       const parsed = addGroupSchema.safeParse(body);
       if (!parsed.success)

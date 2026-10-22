@@ -1,5 +1,9 @@
 # Connected Facebook Group Import
 
+**Current workflow:** see [GROUP_IMPORT_UX.md](GROUP_IMPORT_UX.md). The import entry
+point is now My Groups, context is optional, and a new prepared migration is
+required for context-free saves. The instructions below record the earlier milestone.
+
 Implemented 23 October 2026 (Asia/Manila). This milestone adds direct browser-to-
 dashboard transfer to the existing group collector and authenticated saved-groups
 API. It adds no automatic posting, Facebook Login integration, private API calls,

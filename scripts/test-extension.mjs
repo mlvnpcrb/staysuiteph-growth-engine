@@ -43,9 +43,7 @@ try {
   const opened = context.waitForEvent("page");
   await popup.getByRole("button", { name: "Open dashboard" }).click();
   const dashboard = await opened;
-  await expect(dashboard).toHaveURL(
-    `${dashboardOrigin}/dashboard/group-finder`,
-  );
+  await expect(dashboard).toHaveURL(`${dashboardOrigin}/dashboard/my-groups`);
   await expect(
     dashboard.getByRole("heading", { name: "Dashboard navigation fixture" }),
   ).toBeVisible();

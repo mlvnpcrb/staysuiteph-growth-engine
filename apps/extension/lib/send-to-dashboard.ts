@@ -15,7 +15,7 @@ export async function deliverGroupCollection(input: {
   const { origin, transferId, collection } = input;
   if (
     location.origin !== origin ||
-    location.pathname !== "/dashboard/group-finder"
+    location.pathname !== "/dashboard/my-groups"
   )
     return { result: "not_ready" };
   const deadline = Date.now() + 12_000;
@@ -53,6 +53,7 @@ export async function deliverGroupCollection(input: {
     };
     const timer = setTimeout(() => finish("not_ready"), 4000);
     window.addEventListener("message", ack);
+    window.postMessage({ type: "STAYSUITE_EXTENSION_HELLO" }, origin);
     window.postMessage(
       { type: "STAYSUITE_GROUP_IMPORT", transfer_id: transferId, collection },
       origin,
@@ -79,16 +80,14 @@ export async function sendToDashboard(
   let tab = tabs.find((tab) => {
     try {
       const url = new URL(tab.url ?? "");
-      return (
-        url.origin === origin && url.pathname === "/dashboard/group-finder"
-      );
+      return url.origin === origin && url.pathname === "/dashboard/my-groups";
     } catch {
       return false;
     }
   });
   if (!tab)
     tab = await chrome.tabs.create({
-      url: `${origin}/dashboard/group-finder`,
+      url: `${origin}/dashboard/my-groups`,
       active: false,
     });
   if (!tab.id) throw new Error("dashboard_unavailable");

@@ -42,7 +42,26 @@ export const searchGroupsSchema = z.object({
   ]),
   audience: z.enum(["Guests", "Hosts"]),
 });
-export const addGroupSchema = searchGroupsSchema.extend({
+export const groupContextSchema = z.object({
+  destination: z
+    .string()
+    .trim()
+    .max(100)
+    .refine(
+      (value) => value.length === 0 || value.length >= 2,
+      "Use at least two characters or leave blank.",
+    )
+    .default(""),
+  accommodation: z
+    .enum(["", "Condo", "Apartment", "Hotel", "Resort", "Vacation rental"])
+    .default(""),
+  audience: z.enum(["", "Guests", "Hosts"]).default(""),
+});
+export const duplicateCheckSchema = z.object({
+  operation: z.literal("check_duplicates"),
+  urls: z.array(z.string().max(500)).min(1).max(100),
+});
+export const addGroupSchema = groupContextSchema.extend({
   url: z
     .string()
     .max(500)
@@ -63,6 +82,9 @@ export const addGroupSchema = searchGroupsSchema.extend({
 export const updateGroupSchema = z
   .object({
     id: z.uuid(),
+    destination: groupContextSchema.shape.destination.optional(),
+    accommodation: groupContextSchema.shape.accommodation.optional(),
+    audience: groupContextSchema.shape.audience.optional(),
     confirm_review: z.boolean().default(false),
     notes: z.string().trim().max(4000),
     review_status: z.enum(["review_required", "reviewed", "not_suitable"]),
@@ -97,6 +119,7 @@ export const savedGroupSchema = z.object({
   updated_at: z.string(),
 });
 export const groupResponseSchema = z.object({
+  identities: z.array(z.string()).optional(),
   groups: z.array(savedGroupSchema).optional(),
   group: savedGroupSchema.optional(),
   stats: z

@@ -1,10 +1,15 @@
 "use client";
+import { CollectionImport } from "./collection-import";
 import { useState } from "react";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { Button } from "@staysuite/ui";
 import type { SavedGroup } from "@staysuite/types";
-import { effectiveReview } from "@staysuite/validation";
+import {
+  assessGroup,
+  searchGroupsSchema,
+  effectiveReview,
+} from "@staysuite/validation";
 import { groupRequest, useGroups } from "./use-groups";
 function GroupEntry({
   group,
@@ -22,6 +27,11 @@ function GroupEntry({
   const [notes, setNotes] = useState(group.notes);
   const [rules, setRules] = useState(group.rule_evidence);
   const [status, setStatus] = useState(group.review_status);
+  const [destination, setDestination] = useState(group.destination);
+  const [accommodation, setAccommodation] = useState(group.accommodation);
+  const [audience, setAudience] = useState(group.audience);
+  const context = searchGroupsSchema.safeParse(group);
+  const assessment = context.success ? assessGroup(group, context.data) : null;
   return (
     <article className="panel saved-group">
       <div className="section-heading">
@@ -45,8 +55,16 @@ function GroupEntry({
         </a>
       </div>
       <p className="muted">
-        {group.destination} · {group.accommodation} · {group.audience}
+        {[group.destination, group.accommodation, group.audience]
+          .filter(Boolean)
+          .join(" · ") || "Add hosting context when you’re ready"}
       </p>
+      {assessment && (
+        <p className="muted text-sm">
+          {assessment.score}/100 text relevance · {assessment.confidence}{" "}
+          confidence · Relevance does not establish posting permission
+        </p>
+      )}
       <p className="muted text-sm">
         Source: manually supplied, not independently verified. Saved{" "}
         {new Date(group.created_at).toLocaleDateString("en-PH", {
@@ -71,6 +89,9 @@ function GroupEntry({
                 review_status: status,
                 rule_evidence: rules,
                 confirm_review: confirmReview,
+                destination,
+                accommodation,
+                audience,
               });
               onMessage("Notes and review saved.");
               await onRefresh();
@@ -83,6 +104,46 @@ function GroupEntry({
             }
           }}
         >
+          <h3>Hosting context (optional)</h3>
+          <label>
+            Destination
+            <input
+              value={destination}
+              maxLength={100}
+              onChange={(e) => setDestination(e.target.value)}
+            />
+          </label>
+          <label>
+            Accommodation
+            <select
+              value={accommodation}
+              onChange={(e) => setAccommodation(e.target.value)}
+            >
+              {[
+                "",
+                "Condo",
+                "Apartment",
+                "Hotel",
+                "Resort",
+                "Vacation rental",
+              ].map((v) => (
+                <option value={v} key={v}>
+                  {v || "Not set"}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Audience
+            <select
+              value={audience}
+              onChange={(e) => setAudience(e.target.value)}
+            >
+              <option value="">Not set</option>
+              <option>Guests</option>
+              <option>Hosts</option>
+            </select>
+          </label>
           <label htmlFor={`notes-${group.id}`}>Private notes</label>
           <textarea
             id={`notes-${group.id}`}
@@ -208,11 +269,12 @@ export function MyGroups() {
           <h1>My Groups</h1>
           <p className="muted">Keep the context, not just the link.</p>
         </div>
-        <Button asChild>
+        <Button asChild variant="outline">
           <Link href="/dashboard/group-finder">Find more groups</Link>
         </Button>
       </div>
-      <div className="panel finder-fields">
+      <CollectionImport onImported={reload} />
+      <div id="saved-groups" className="panel finder-fields">
         <label>
           Filter saved groups
           <input

@@ -52,9 +52,7 @@ test("built popup renders under its CSP and opens the dashboard (HTTP harness, n
   const opened = context.waitForEvent("page");
   await page.getByRole("button", { name: "Open dashboard" }).click();
   const destination = await opened;
-  await expect(destination).toHaveURL(
-    `${dashboardOrigin}/dashboard/group-finder`,
-  );
+  await expect(destination).toHaveURL(`${dashboardOrigin}/dashboard/my-groups`);
   await expect(
     destination.getByRole("heading", { name: "Dashboard destination fixture" }),
   ).toBeVisible();
@@ -174,7 +172,7 @@ test("popup sends only checked groups and confirms receipt rather than database 
             {
               id: 1,
               status: "complete",
-              url: "http://localhost:3000/dashboard/group-finder",
+              url: "http://localhost:3000/dashboard/my-groups",
             },
           ],
           update: async () => ({}),
@@ -220,9 +218,9 @@ test("popup sends only checked groups and confirms receipt rather than database 
     .getByRole("button", { name: "Send 1 selected groups to StaySuite" })
     .click();
   await expect(page.getByRole("status")).toContainText(
-    "Selection received by StaySuite",
+    "Groups received in My Groups",
   );
-  await expect(page.getByRole("status")).toContainText("Save selected groups");
+  await expect(page.getByRole("status")).toContainText("Import");
   const sent = await page.evaluate(() => Reflect.get(window, "__sent"));
   expect(sent.collection.groups).toEqual([
     { url: "https://www.facebook.com/groups/one/", title: "Fixture one" },
@@ -233,7 +231,7 @@ test("popup sends only checked groups and confirms receipt rather than database 
     Reflect.get(window, "__deliverySource"),
   );
   const receiver = await context.newPage();
-  await receiver.goto("http://localhost:3000/dashboard/group-finder");
+  await receiver.goto("http://localhost:3000/dashboard/my-groups");
   await expect(
     receiver.locator("[data-staysuite-group-receiver=ready]"),
   ).toBeVisible();
@@ -251,6 +249,6 @@ test("popup sends only checked groups and confirms receipt rather than database 
   });
   expect(outcome.exceptionDetails).toBeUndefined();
   expect(outcome.result.value).toEqual({ result: "received" });
-  await expect(receiver.getByText("1 unique groups imported")).toBeVisible();
+  await expect(receiver.getByText("Review 1 group")).toBeVisible();
   await session.detach();
 });

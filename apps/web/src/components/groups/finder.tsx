@@ -11,7 +11,6 @@ import {
 } from "@staysuite/validation";
 import type { GroupSearch } from "@staysuite/types";
 import { groupRequest } from "./use-groups";
-import { CollectionImport } from "./collection-import";
 type Candidate = ReturnType<typeof addGroupSchema.parse>;
 export function GroupFinder() {
   const [search, setSearch] = useState<GroupSearch>({
@@ -35,7 +34,11 @@ export function GroupFinder() {
     }
   }, []);
   const links = submitted ? discoveryLinks(submitted) : null;
-  const assessment = candidate ? assessGroup(candidate, candidate) : null;
+  const candidateContext = searchGroupsSchema.safeParse(candidate);
+  const assessment =
+    candidate && candidateContext.success
+      ? assessGroup(candidate, candidateContext.data)
+      : null;
   return (
     <div className="page group-workspace">
       <div className="page-heading">
@@ -165,7 +168,6 @@ export function GroupFinder() {
           </p>
         </section>
       )}
-      <CollectionImport search={search} />
       <div className="finder-columns">
         <section className="panel">
           <h2>Add a group to assess</h2>

@@ -95,3 +95,28 @@ it("persists/reloads using the SDK data layer, sends owner filters, ignores dupl
       .every((r) => r.url.searchParams.get("id") === `eq.${owner}`),
   ).toBe(true);
 });
+
+it("looks up only requested identities owned by the verified user, beyond the UI list limit", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const request = new Request(input, init),
+        url = new URL(request.url);
+      expect(url.searchParams.get("user_id")).toBe(`eq.${owner}`);
+      expect(url.searchParams.get("identity")).toBe("in.(example)");
+      expect(url.searchParams.get("select")).toBe("identity");
+      return new Response(JSON.stringify([{ identity: "example" }]), {
+        headers: { "content-type": "application/json" },
+      });
+    }),
+  );
+  const repo = groupRepository(
+    tokenDatabase(
+      "https://fixture.supabase.co",
+      "public-fixture",
+      "fixture-token",
+    ),
+    owner,
+  );
+  expect(await repo.duplicates(["example"])).toEqual(["example"]);
+});
