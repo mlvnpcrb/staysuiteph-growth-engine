@@ -1171,3 +1171,10 @@ h3 {
   .campaign-tool > button { min-width: 38px; min-height: 44px; }
   .campaign-variation-toggle { min-height: 44px; }
 }
+
+.campaign-library { grid-column:1 / -1; grid-area:library; }
+.campaign-library-item { padding:1rem 0; border-top:1px solid var(--line); overflow-wrap:anywhere; }
+.campaign-library-item h3 { margin:0 0 .35rem; }
+.campaign-workspace { grid-template-areas:"heading heading" "availability availability" "library library" "compose audience" "assets audience" "review review" "save save"; }
+.campaign-compose > input, .campaign-compose > textarea { margin-bottom:1rem; }
+@media(max-width:1050px){.campaign-workspace {grid-template-areas:"heading" "availability" "library" "compose" "assets" "audience" "review" "save";}}

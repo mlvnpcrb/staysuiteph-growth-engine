@@ -20,6 +20,7 @@ import {
   type CampaignPlan,
 } from "@staysuite/validation";
 import { useGroups } from "../groups/use-groups";
+import { CampaignLibrary, type RestoredCampaign } from "./campaign-library";
 import { CampaignTextEditor } from "./campaign-text-editor";
 type Media = CampaignPlan["media"][number] & { preview: string };
 const metadata = (item: Media): CampaignPlan["media"][number] => ({
@@ -31,6 +32,9 @@ const metadata = (item: Media): CampaignPlan["media"][number] => ({
 export function CampaignBuilder() {
   const { groups, loading, error, reload } = useGroups();
   const [text, setText] = useState("");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [libraryVersion, setLibraryVersion] = useState(0);
   const [interval, setInterval] = useState(15);
   const [selected, setSelected] = useState<string[]>([]);
   const [filter, setFilter] = useState("");
@@ -113,7 +117,7 @@ export function CampaignBuilder() {
   const parsed = campaignPlanSchema.safeParse(plan);
   const settingsValid = campaignSettingsSchema.safeParse(settings).success;
   const liveDraft = useRef("");
-  liveDraft.current = JSON.stringify({ plan, settings });
+  liveDraft.current = JSON.stringify({ plan, settings, title, description });
   let snapshot = "";
   if (parsed.success) {
     try {
@@ -132,7 +136,96 @@ export function CampaignBuilder() {
     setApproved("");
     setConfirmed(false);
   }
+  function restore(value: RestoredCampaign) {
+    if (busy || cloudBusy) {
+      setCloudMessage(
+        "Finish saving or preparing media before reopening another draft.",
+      );
+      return;
+    }
+    if (
+      (text.trim() || media.length) &&
+      !window.confirm(
+        "Replace the current draft with this saved campaign? Unsaved edits will be lost.",
+      )
+    )
+      return;
+    const { job, files, duplicate } = value;
+    if (
+      !duplicate &&
+      ((job.state !== "draft" &&
+        job.state !== "ready" &&
+        job.state !== "paused" &&
+        job.state !== "blocked") ||
+        job.targets.some((t) => t.state !== "queued"))
+    ) {
+      setCloudMessage(
+        "This campaign has submission history. Duplicate it to prepare a new draft.",
+      );
+      return;
+    }
+    for (const url of previews.current) URL.revokeObjectURL(url);
+    previews.current.clear();
+    const restored = files.map((file, index) => {
+      const manifest = job.plan.media[index]!;
+      const preview = URL.createObjectURL(file);
+      previews.current.add(preview);
+      return { ...manifest, preview };
+    });
+    setText(job.plan.text);
+    setTitle(
+      duplicate ? `${job.title || "Campaign"} (copy)`.slice(0, 120) : job.title,
+    );
+    setDescription(job.description);
+    setSettings(job.settings);
+    setInterval(job.plan.intervalMinutes);
+    setSelected(job.plan.groupIds);
+    setMedia(restored);
+    invalidateApproval();
+    viewer.current = value.viewer;
+    pendingId.current = null;
+    setSavedJob(duplicate ? null : job);
+    remotePlan.current = duplicate
+      ? ""
+      : JSON.stringify({
+          plan: job.plan,
+          settings: job.settings,
+          title: job.title,
+          description: job.description,
+        });
+    setCloudMessage(
+      duplicate
+        ? "Copy loaded. Save it to create a separate campaign; nothing is published."
+        : "Saved draft and verified attachments restored. Review it before saving changes.",
+    );
+    document.getElementById("campaign-title")?.focus();
+  }
+  function newDraft() {
+    if (
+      (text.trim() || media.length) &&
+      !window.confirm(
+        "Start a new draft? Unsaved changes in this tab will be lost.",
+      )
+    )
+      return;
+    for (const url of previews.current) URL.revokeObjectURL(url);
+    previews.current.clear();
+    setText("");
+    setTitle("");
+    setDescription("");
+    setSelected([]);
+    setMedia([]);
+    setSavedJob(null);
+    pendingId.current = null;
+    remotePlan.current = "";
+    invalidateApproval();
+    setCloudMessage("");
+  }
   async function addMedia(files: File[]) {
+    if (savedJob?.media.length) {
+      setMediaError("Duplicate this campaign to replace saved attachments.");
+      return;
+    }
     if (processing.current) return;
     processing.current = true;
     setBusy(true);
@@ -213,7 +306,12 @@ export function CampaignBuilder() {
       storageState !== "ready"
     )
       return;
-    const savingVersion = JSON.stringify({ plan, settings });
+    const savingVersion = JSON.stringify({
+      plan,
+      settings,
+      title,
+      description,
+    });
     setCloudBusy(true);
     setCloudMessage("");
     try {
@@ -237,7 +335,7 @@ export function CampaignBuilder() {
                 id,
                 revision: 0,
                 command: "create",
-                payload: { plan, settings },
+                payload: { plan, settings, title, description },
               },
               viewer.current,
             );
@@ -247,7 +345,12 @@ export function CampaignBuilder() {
         } else {
           remotePlan.current = "creation-attempted";
           const created = await campaignCommand(
-            { id, revision: 0, command: "create", payload: { plan, settings } },
+            {
+              id,
+              revision: 0,
+              command: "create",
+              payload: { plan, settings, title, description },
+            },
             viewer.current,
           );
           current = created.job;
@@ -257,22 +360,32 @@ export function CampaignBuilder() {
         remotePlan.current = JSON.stringify({
           plan: current.plan,
           settings: current.settings,
+          title: current.title,
+          description: current.description,
         });
       }
       if (!current) throw new Error("Saved campaign could not be recovered.");
-      if (remotePlan.current !== JSON.stringify({ plan, settings })) {
+      if (
+        remotePlan.current !==
+        JSON.stringify({ plan, settings, title, description })
+      ) {
         const updated = await campaignCommand(
           {
             id: current.id,
             revision: current.revision,
             command: "edit",
-            payload: { plan, settings },
+            payload: { plan, settings, title, description },
           },
           viewer.current,
         );
         current = updated.job;
         setSavedJob(current);
-        remotePlan.current = JSON.stringify({ plan, settings });
+        remotePlan.current = JSON.stringify({
+          plan,
+          settings,
+          title,
+          description,
+        });
       }
       for (let position = 0; position < media.length; position++) {
         if (current.media.some((m) => m.position === position && m.uploaded))
@@ -327,6 +440,7 @@ export function CampaignBuilder() {
         current = done.job;
         setSavedJob(current);
       }
+      setLibraryVersion((v) => v + 1);
       setCloudMessage(
         liveDraft.current === savingVersion
           ? "Campaign and attachments saved privately. Nothing was sent to Facebook."
@@ -415,8 +529,66 @@ export function CampaignBuilder() {
           </Button>
         )}
       </aside>
+      <CampaignLibrary
+        version={libraryVersion}
+        onOpen={restore}
+        onDeleted={(id) => {
+          if (savedJob?.id === id) {
+            setSavedJob(null);
+            pendingId.current = null;
+            remotePlan.current = "";
+            invalidateApproval();
+            setCloudMessage(
+              "Saved campaign deleted. This tab keeps an unsaved copy; saving creates a new campaign.",
+            );
+          }
+        }}
+      />
       <section className="panel campaign-compose">
-        <h2>1. Write your post</h2>
+        <div className="group-actions">
+          <h2>1. Write your post</h2>
+          <Button
+            variant="outline"
+            disabled={busy || cloudBusy}
+            onClick={newDraft}
+          >
+            New draft
+          </Button>
+        </div>
+        <label htmlFor="campaign-title">
+          Campaign title <span className="muted">(private)</span>
+        </label>
+        <input
+          id="campaign-title"
+          name="campaignTitle"
+          autoComplete="off"
+          maxLength={120}
+          value={title}
+          placeholder="Weekend staycation offer…"
+          onChange={(e) => {
+            setTitle(e.target.value);
+            invalidateApproval();
+          }}
+        />
+        <label htmlFor="campaign-description">
+          Description <span className="muted">(private notes)</span>
+        </label>
+        <textarea
+          id="campaign-description"
+          name="campaignDescription"
+          autoComplete="off"
+          maxLength={2000}
+          rows={2}
+          value={description}
+          onChange={(e) => {
+            setDescription(e.target.value);
+            invalidateApproval();
+          }}
+        />
+        <p className="muted text-sm">
+          Only the post text below is intended for Facebook. Title and notes
+          stay in StaySuite.
+        </p>
         <CampaignTextEditor
           value={text}
           onChange={(next) => {
@@ -436,6 +608,11 @@ export function CampaignBuilder() {
       </section>
       <section className="panel campaign-assets">
         <h2>2. Add photos or a video</h2>
+        {savedJob?.media.length ? (
+          <p className="muted">
+            Saved attachments are immutable. Use Duplicate to replace them.
+          </p>
+        ) : null}
         <div
           className="campaign-dropzone"
           onDragOver={(e) => e.preventDefault()}
@@ -452,7 +629,7 @@ export function CampaignBuilder() {
             type="file"
             accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
             multiple
-            disabled={busy}
+            disabled={busy || cloudBusy || !!savedJob?.media.length}
             onChange={(e) => {
               void addMedia(Array.from(e.target.files ?? []));
               e.target.value = "";
@@ -504,7 +681,7 @@ export function CampaignBuilder() {
               </span>
               <Button
                 variant="outline"
-                disabled={busy}
+                disabled={busy || cloudBusy || !!savedJob?.media.length}
                 onClick={() => {
                   invalidateApproval();
                   URL.revokeObjectURL(item.preview);

@@ -260,6 +260,109 @@ async function main() {
       "PASS: authenticated campaign API write, real database persistence and queue reload",
     );
 
+    stage = "real campaign editor CRUD and private media";
+    const mediaBeforeManagement = (
+      await admin.from("campaign_media").select("id")
+    ).data.length;
+    await page.goto(`${origin}/dashboard/campaigns`);
+    await page.getByLabel(/Campaign title/).fill("Disposable managed campaign");
+    await page.getByLabel(/Description/).fill("Private QA notes");
+    await page
+      .getByLabel("Post text", { exact: true })
+      .fill("Disposable offer, not for Facebook publication");
+    await page
+      .getByRole("checkbox", { name: /Disposable QA accommodation group/ })
+      .check();
+    const qaImage = Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aS1cAAAAASUVORK5CYII=",
+      "base64",
+    );
+    await page.getByLabel("Choose media or drop files here").setInputFiles({
+      name: "qa.png",
+      mimeType: "image/png",
+      buffer: qaImage,
+    });
+    await page
+      .getByRole("button", { name: "Save campaign privately", exact: true })
+      .click();
+    await expect(
+      page.getByText(
+        "Campaign and attachments saved privately. Nothing was sent to Facebook.",
+        { exact: true },
+      ),
+    ).toBeVisible();
+    await page.reload();
+    let card = page.getByRole("article").filter({
+      has: page.getByRole("heading", {
+        name: "Disposable managed campaign",
+        exact: true,
+      }),
+    });
+    await card.getByRole("button", { name: "Open draft", exact: true }).click();
+    await expect(page.getByLabel(/Campaign title/)).toHaveValue(
+      "Disposable managed campaign",
+    );
+    await expect(
+      page.getByRole("img", { name: "Attachment 1: qa.png" }),
+    ).toBeVisible();
+    await expect(page.getByLabel(/Description/)).toHaveValue(
+      "Private QA notes",
+    );
+    await page.getByLabel(/Campaign title/).fill("Updated managed campaign");
+    await page
+      .getByLabel("Post text", { exact: true })
+      .fill("Edited disposable offer");
+    await page
+      .getByRole("button", { name: "Save campaign privately", exact: true })
+      .click();
+    await expect(
+      page.getByRole("heading", {
+        name: "Updated managed campaign",
+        exact: true,
+      }),
+    ).toBeVisible();
+    page.once("dialog", (dialog) => dialog.accept());
+    card = page.getByRole("article").filter({
+      has: page.getByRole("heading", {
+        name: "Updated managed campaign",
+        exact: true,
+      }),
+    });
+    await card.getByRole("button", { name: "Duplicate", exact: true }).click();
+    await expect(page.getByLabel(/Campaign title/)).toHaveValue(
+      "Updated managed campaign (copy)",
+    );
+    await page
+      .getByRole("button", { name: "Save campaign privately", exact: true })
+      .click();
+    await expect(
+      page.getByRole("heading", {
+        name: "Updated managed campaign (copy)",
+        exact: true,
+      }),
+    ).toBeVisible();
+    for (const name of [
+      "Updated managed campaign (copy)",
+      "Updated managed campaign",
+    ]) {
+      const entry = page
+        .getByRole("article")
+        .filter({ has: page.getByRole("heading", { name, exact: true }) });
+      await entry.getByRole("button", { name: "Delete", exact: true }).click();
+      await entry
+        .getByRole("button", { name: "Delete campaign and files", exact: true })
+        .click();
+      await expect(
+        page.getByRole("heading", { name, exact: true }),
+      ).toHaveCount(0);
+    }
+    const leftovers = await admin.from("campaign_media").select("id");
+    assert.equal(leftovers.error, null);
+    assert.equal(leftovers.data.length, mediaBeforeManagement);
+    console.log(
+      "PASS: real editor create/title/notes/image upload, signed retrieval after reload, edit, duplicate and delete with private object cleanup; no Facebook requests",
+    );
+
     stage = "automatic SSR refresh";
     const initial = await storedSession();
     assert.ok(

@@ -7,6 +7,8 @@ import type { CampaignJob } from "@staysuite/validation";
 const id = "11111111-1111-4111-8111-111111111111",
   token = "22222222-2222-4222-8222-222222222222";
 const job: CampaignJob = {
+  title: "",
+  description: "",
   id,
   user_id: id,
   actor_id: "12345",

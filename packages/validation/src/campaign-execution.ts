@@ -9,6 +9,10 @@ export const campaignSettingsSchema = z
     delayAfterFailure: z.boolean().default(true),
   })
   .strict();
+const metadata = {
+  title: z.string().trim().max(120).optional(),
+  description: z.string().trim().max(2000).optional(),
+};
 const actor = {
   actor_id: z.string().regex(/^[1-9][0-9]{0,79}$/),
   actor_type: z.enum(["personal", "page"]),
@@ -17,6 +21,7 @@ const payloads = {
   create: z
     .object({
       plan: campaignPlanSchema,
+      ...metadata,
       settings: campaignSettingsSchema.optional(),
       actor_id: actor.actor_id.optional(),
       actor_type: actor.actor_type.optional(),
@@ -25,6 +30,7 @@ const payloads = {
   edit: z
     .object({
       plan: campaignPlanSchema,
+      ...metadata,
       settings: campaignSettingsSchema.optional(),
     })
     .strict(),
@@ -108,6 +114,8 @@ export const campaignCommandSchema = z
       });
   });
 export const campaignJobSchema = z.object({
+  title: z.string().max(120).default(""),
+  description: z.string().max(2000).default(""),
   id: z.uuid(),
   user_id: z.uuid(),
   actor_id: z.string().nullable(),
@@ -186,9 +194,25 @@ export const campaignListSchema = z.object({
       id: z.uuid(),
       revision: z.number().int(),
       state: z.string(),
+      title: z.string().default(""),
+      description: z.string().default(""),
       created_at: z.string(),
       plan: z.object({ text: z.string() }),
     }),
   ),
 });
 export type CampaignList = z.infer<typeof campaignListSchema>;
+
+export const campaignIdSchema = z.uuid();
+export const campaignDeleteInputSchema = z
+  .object({ id: z.uuid(), revision: z.number().int().positive() })
+  .strict();
+export const campaignDeleteReplySchema = z.object({
+  deleted_id: z.uuid(),
+  viewer_id: z.uuid(),
+});
+export const campaignRestoreSchema = z.object({
+  job: campaignJobSchema,
+  viewer_id: z.uuid(),
+  assets: z.array(z.object({ id: z.uuid(), url: z.url() })),
+});

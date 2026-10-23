@@ -36,7 +36,7 @@ Media uses owner-scoped reservations and signed uploads. Objects cannot be overw
 after upload approval. Client validation checks signatures, sizes and hashes; the
 experimental publisher also rehashes bytes before attaching. Storage reconciliation
 checks object size, not independent server-side media decoding or malware scanning.
-There is no user-facing media deletion/retention job yet.
+The later campaign-management migration adds explicit campaign/file deletion; there is no automatic retention job.
 
 ## Publishing gate and remaining integration
 
@@ -47,12 +47,12 @@ merely because fixture tests pass.
 The isolated Classic adapter inspects the public Facebook actor and visible composer,
 preserves existing drafts, checks exact content/media, stops on warnings and requires
 an explicit confirmation plus a matching group post URL for a successful receipt.
-A link alone is uncertain. It is not connected to extension runtime messages and
+A link alone is uncertain. It is connected to a gated extension campaign workspace and
 has not been validated in the owner's authenticated Facebook browser.
 
-Still required before live campaign execution: authenticated dashboard/extension
-actor binding, runtime messaging, durable scheduling/worker recovery, restored draft
-editing and a specifically approved live adapter validation. The queue supports
+The later workspace supplies dashboard/profile binding, foreground execution and
+restored draft editing. A specifically approved live adapter validation is still
+required before automatic submission. Unattended background scheduling is not implemented. The queue supports
 explicit owner review of uncertain/stopped outcomes without resubmitting.
 Direct private-endpoint publishing, Page support, native multi-group posting,
 first comments, AI rewriting and unattended scheduling are not implemented.
@@ -71,3 +71,49 @@ No pacing setting guarantees avoidance of account restrictions or bans.
   disposable loopback Supabase stack. This checks actual signed uploads and concurrent
   PostgREST claims, then removes its own fixture records and disables the test publisher.
   These checks require local Docker/Supabase or the isolated CI job.
+
+## Campaign management and extension workspace (23 October 2026)
+
+The owner approved the campaign execution migration on 23 October. It was applied
+through the connected Supabase migration tool, transactionally; all four campaign
+tables have RLS and campaign-media is private. Existing groups/profiles were not
+modified. Publisher flags remain disabled. Legacy history is not reconciled by
+this work; do not run db push based on the hosted migration listing.
+
+The separate CLI-generated campaign_management migration adds private title/notes,
+includes them in approval digests, and wraps the existing execution state machine.
+Reopening retrieves signed private objects, verifies signatures/size/SHA-256, and
+restores editable text, targets and timing. Duplicate creates an unsaved copy,
+requiring an explicit save and fresh approval. Uploaded bytes remain immutable;
+duplicate to replace them. Deletion first freezes the job, removes its objects
+through Storage's API, then deletes metadata transactionally. It rejects running,
+in-flight or unresolved submissions, owner changes and stale revisions. Failed
+object removal leaves a cancelled, retryable job rather than an orphan cleanup
+claim. Saved groups are not deleted.
+
+Extension 0.3.0 adds a separate campaign workspace opened from the popup. It asks
+for only the selected StaySuite host and Facebook, sends backend requests inside
+the authenticated dashboard's isolated world, and never exports session cookies.
+Public Facebook page identity is checked before approval and each dispatch. The
+workspace binds the chosen profile, approves the saved digest, and can inspect a
+visible composer with allowSubmit=false (no text insertion or publishing). It
+supports personal profiles only. Page and Direct adapters remain unavailable.
+
+The sequential execution bridge connects server claims/recovery to the isolated
+Classic adapter. Backend eligibility survives workspace restarts. The foreground
+runner requires its extension workspace and signed-in dashboard tab to remain
+open; it is not an unattended background scheduler. Closing/reloading never
+automatically resumes a run. Lost claims must be recovered/reviewed in the queue.
+Stop permits a submission already in flight to finish and pauses subsequent work.
+The adapter has a 20 MB dispatch limit even though private draft storage accepts
+50 MB. Claims still require an enabled, live-validated publisher. This release
+DOES NOT enable that flag or claim live Facebook publication compatibility.
+A composer check, fixture tests, account access and broad implementation approval
+are not proof that real uploads/submission/receipts work. A specifically selected
+campaign and group need owner-operated live validation before automatic submission
+can be enabled. No Facebook posts were sent during implementation.
+
+CI now exercises real editor create/title/notes/image save, reload, signed image
+retrieval, edit, duplication and deletion against disposable Supabase. Hosted
+Google completion and installed-owner-extension execution are separate evidence
+boundaries; do not relabel these CI results as deployed OAuth/posting proof.

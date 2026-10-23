@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { campaignRepository } from "@staysuite/database";
-import { campaignCommandSchema } from "@staysuite/validation";
+import {
+  campaignCommandSchema,
+  campaignJobSchema,
+  campaignIdSchema,
+  campaignDeleteInputSchema,
+} from "@staysuite/validation";
 import { supabaseServer } from "@/lib/supabase";
 import { environment } from "@/lib/env";
 import { hasSameRequestOrigin } from "@/lib/request-origin";
@@ -9,7 +14,7 @@ const reply = (body: unknown, status = 200) =>
     status,
     headers: { "Cache-Control": "private, no-store" },
   });
-async function handle(request: Request, mutation: boolean) {
+async function handle(request: Request, mutation: boolean, removal = false) {
   if (mutation && !hasSameRequestOrigin(request))
     return reply({ error: "Request origin was not accepted." }, 403);
   if (!environment().configured)
@@ -29,6 +34,64 @@ async function handle(request: Request, mutation: boolean) {
         409,
       );
     const repo = campaignRepository(client, user.id);
+    if (removal) {
+      const raw = await request.text();
+      if (raw.length > 64000)
+        return reply({ error: "Campaign command too large." }, 413);
+      const input = campaignDeleteInputSchema.safeParse(JSON.parse(raw));
+      if (!input.success)
+        return reply({ error: "Check the campaign and version." }, 400);
+      const prepared = await client.rpc("campaign_delete", {
+        p_id: input.data.id,
+        p_revision: input.data.revision,
+        p_finish: false,
+      });
+      if (prepared.error) throw prepared.error;
+      const job = campaignJobSchema.parse(prepared.data);
+      const paths = job.media.map((asset) => asset.object_path);
+      if (paths.length) {
+        const removed = await client.storage
+          .from("campaign-media")
+          .remove(paths);
+        if (removed.error) throw removed.error;
+      }
+      const result = await client.rpc("campaign_delete", {
+        p_id: job.id,
+        p_revision: job.revision,
+        p_finish: true,
+      });
+      if (result.error) throw result.error;
+      return reply({ deleted_id: job.id, viewer_id: user.id });
+    }
+    if (!mutation && new URL(request.url).searchParams.has("id")) {
+      const id = campaignIdSchema.safeParse(
+        new URL(request.url).searchParams.get("id"),
+      );
+      if (!id.success) return reply({ error: "Choose a saved campaign." }, 400);
+      const job = await repo.command({
+        id: id.data,
+        revision: 0,
+        command: "inspect",
+        payload: {},
+      });
+      const assets = await Promise.all(
+        job.media
+          .filter((asset) => asset.uploaded)
+          .map(async (asset) => {
+            const signed = await client.storage
+              .from("campaign-media")
+              .createSignedUrl(asset.object_path, 300);
+            if (signed.error) throw signed.error;
+            return { id: asset.id, url: signed.data.signedUrl };
+          }),
+      );
+      return reply({
+        job,
+        assets,
+        viewer_id: user.id,
+        publishing_available: false,
+      });
+    }
     if (!mutation)
       return reply({
         campaigns: await repo.list(),
@@ -119,3 +182,5 @@ async function handle(request: Request, mutation: boolean) {
 }
 export const GET = (request: Request) => handle(request, false);
 export const POST = (request: Request) => handle(request, true);
+
+export const DELETE = (request: Request) => handle(request, true, true);

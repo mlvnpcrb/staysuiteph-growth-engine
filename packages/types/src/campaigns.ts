@@ -6,6 +6,8 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 export type CampaignJobRow = {
+  title: string;
+  description: string;
   id: string;
   user_id: string;
   actor_id: string | null;

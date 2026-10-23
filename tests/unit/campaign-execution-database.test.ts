@@ -15,6 +15,7 @@ it("transactional campaign commands isolate owners and fail closed before publis
       "20261023010000_optional_group_context.sql",
       "20261023020000_group_marketing_evidence.sql",
       "20261023110003_campaign_execution.sql",
+      "20261023145846_campaign_management.sql",
     ])
       await db.exec(
         await readFile(
@@ -78,12 +79,15 @@ it("transactional campaign commands isolate owners and fail closed before publis
       media: [],
     };
     let job = await cmd("create", 0, {
+      title: "Weekend offer",
+      description: "Private host notes",
       actor_id: "12345",
       actor_type: "personal",
       plan,
       settings: { avoidNight: false },
     });
     expect(job.state).toBe("draft");
+    expect(campaignJobSchema.parse(job).title).toBe("Weekend offer");
     expect(job.targets).toHaveLength(2);
     await expect(
       cmd("approve", job.revision, { digest: "stale" }),
@@ -211,6 +215,12 @@ it("transactional campaign commands isolate owners and fail closed before publis
       actor_type: "personal",
     });
     expect(job.targets[0]!.state).toBe("claimed");
+    await expect(
+      db.query("select public.campaign_delete($1,$2,false)", [
+        id,
+        job.revision,
+      ]),
+    ).rejects.toMatchObject({ code: "55000" });
     const token = job.targets[0]!.attempt_token;
     await expect(
       cmd("claim", job.revision, { actor_id: "12345", actor_type: "personal" }),
@@ -264,6 +274,35 @@ it("transactional campaign commands isolate owners and fail closed before publis
     expect(job.state).toBe("completed");
     expect(job.targets[1]!.state).toBe("not_sent");
     expect(job.next_eligible_at).toBe(reservedEligibility);
+    const deleting = (
+      await db.query<{ result: Job }>(
+        "select public.campaign_delete($1,$2,false) result",
+        [id, job.revision],
+      )
+    ).rows[0]!.result;
+    await expect(
+      db.query("select public.campaign_delete($1,$2,true)", [id, job.revision]),
+    ).rejects.toMatchObject({ code: "PT409" });
+    await db.exec(
+      `select set_config('request.jwt.claim.sub','${other}',false)`,
+    );
+    await expect(
+      db.query("select public.campaign_delete($1,$2,true)", [
+        id,
+        deleting.revision,
+      ]),
+    ).rejects.toMatchObject({ code: "42501" });
+    await db.exec(
+      `select set_config('request.jwt.claim.sub','${owner}',false)`,
+    );
+    await db.query("select public.campaign_delete($1,$2,true)", [
+      id,
+      deleting.revision,
+    ]);
+    expect(
+      (await db.query("select * from public.campaign_jobs where id=$1", [id]))
+        .rows,
+    ).toHaveLength(0);
     await db.exec("reset role;set role anon");
     await expect(
       db.exec("select * from public.campaign_jobs"),

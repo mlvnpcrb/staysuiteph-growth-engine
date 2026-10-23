@@ -69,6 +69,7 @@ export const savedGroupSchema = z.object({
   updated_at: z.string(),
 });
 export const groupResponseSchema = z.object({
+  viewer_id: z.uuid().optional(),
   identities: z.array(z.string()).optional(),
   groups: z.array(savedGroupSchema).optional(),
   group: savedGroupSchema.optional(),

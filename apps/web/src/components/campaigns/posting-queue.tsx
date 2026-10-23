@@ -112,7 +112,7 @@ export function PostingQueue() {
       )}
       {list?.campaigns.map((c) => (
         <article className="panel" key={c.id}>
-          <h2>{c.plan.text.slice(0, 80)}</h2>
+          <h2>{c.title || c.plan.text.slice(0, 80)}</h2>
           <p>
             {c.state} · Saved{" "}
             {new Date(c.created_at).toLocaleString("en-PH", {

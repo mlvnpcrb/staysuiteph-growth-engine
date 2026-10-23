@@ -61,7 +61,22 @@ export type SyncSnapshot = {
 export type Database = {
   public: {
     Tables: {
-      campaign_jobs: {Row:CampaignJobRow;Insert:never;Update:never;Relationships:[]};
+      campaign_publishers: {
+        Row: {
+          method: "classic" | "direct";
+          enabled: boolean;
+          verified_at: string | null;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      campaign_jobs: {
+        Row: CampaignJobRow;
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       saved_groups: {
         Row: SavedGroup;
         Insert: Pick<
@@ -96,7 +111,21 @@ export type Database = {
       };
     };
     Views: { [_ in never]: never };
-    Functions: { campaign_command: {Args:{p_id:string;p_revision:number;p_command:string;p_payload:Json};Returns:Json} };
+    Functions: {
+      campaign_delete: {
+        Args: { p_id: string; p_revision: number; p_finish: boolean };
+        Returns: Json;
+      };
+      campaign_command: {
+        Args: {
+          p_id: string;
+          p_revision: number;
+          p_command: string;
+          p_payload: Json;
+        };
+        Returns: Json;
+      };
+    };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };
   };

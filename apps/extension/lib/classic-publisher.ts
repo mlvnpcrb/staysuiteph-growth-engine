@@ -1,4 +1,4 @@
-/** Experimental isolated provider. Not connected to runtime messages or enabled publishers. */
+/** Experimental provider. Runtime execution requires a server-enabled, live-validated publisher. */
 export type ClassicPublishInput = {
   actorId: string;
   groupUrl: string;
