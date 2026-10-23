@@ -123,6 +123,8 @@ async function main() {
       },
     });
 
+    if (process.argv.includes("--queue-only")) return;
+
     stage = "application startup";
     server = spawn(
       process.execPath,

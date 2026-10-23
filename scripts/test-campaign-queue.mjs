@@ -153,6 +153,17 @@ export async function testCampaignQueue({ admin, a, b, apiUrl, onStage }) {
     onStage("campaign media reconciliation and approval");
     job = await command("media_uploaded", job.revision, { asset_id: asset.id });
     job = await command("approve", job.revision, { digest: job.digest });
+    assert.equal(
+      (
+        await fetch(signed.data.signedUrl, {
+          method: "PUT",
+          headers: { "x-upsert": "true" },
+          body: form,
+        })
+      ).ok,
+      false,
+      "A signed upload must not overwrite approved media",
+    );
     assert.ok(
       (
         await a.client.storage

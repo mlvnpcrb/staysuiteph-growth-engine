@@ -80,6 +80,8 @@ jobs:
             exit 1
           fi
       - run: pnpm db:test
+      - name: Check campaign storage and claims before browser installation
+        run: pnpm test:supabase:auth --queue-only
       - run: pnpm --filter @staysuite/web build
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:supabase:auth
