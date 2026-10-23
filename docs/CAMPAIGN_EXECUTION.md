@@ -141,3 +141,9 @@ write boundary. Reference:
 https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable
 The pre-existing leaked-password protection warning remains; Auth configuration
 was not changed.
+
+Dispatch additionally requires the same still-active, unexpired server claim after
+media downloads/navigation. The page adapter receives the lease deadline and
+checks it during its guarded waits and before submitting. Expiry before a click
+sends nothing; an interrupted/expired dispatched action remains uncertain and is
+never automatically retried.

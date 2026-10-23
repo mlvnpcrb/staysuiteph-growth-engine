@@ -8,6 +8,22 @@ export type ExecutorPort = {
     target: CampaignJob["targets"][number],
   ) => Promise<ClassicPublishResult>;
 };
+/** An expired/recovered/replaced claim must never dispatch after asynchronous work. */
+export function campaignClaimCurrent(
+  job: CampaignJob,
+  target: CampaignJob["targets"][number],
+  now = Date.now(),
+) {
+  const current = job.targets.find((t) => t.id === target.id);
+  return (
+    !!current &&
+    current.state === "claimed" &&
+    !!target.attempt_token &&
+    current.attempt_token === target.attempt_token &&
+    current.lease_until !== null &&
+    Date.parse(current.lease_until) > now
+  );
+}
 /** One server-claimed operation, never an automatic retry of an ambiguous publish. */
 export async function executeCampaignTarget(port: ExecutorPort, id: string) {
   let job = await port.command({
@@ -42,7 +58,8 @@ export async function executeCampaignTarget(port: ExecutorPort, id: string) {
   if (
     latest.state !== "running" ||
     latest.approved_digest !== job.approved_digest ||
-    latest.digest !== job.digest
+    latest.digest !== job.digest ||
+    !campaignClaimCurrent(latest, target)
   )
     return port.command({
       id,

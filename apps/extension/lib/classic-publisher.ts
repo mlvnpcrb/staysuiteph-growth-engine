@@ -6,6 +6,7 @@ export type ClassicPublishInput = {
   attemptToken: string;
   approvalDigest: string;
   allowSubmit: boolean;
+  expiresAt?: number;
   media: { name: string; type: string; base64: string; sha256: string }[];
 };
 export type ClassicPublishResult = {
@@ -80,6 +81,13 @@ export async function classicPublisherPage(
       );
   }
   function guard() {
+    if (
+      input.allowSubmit &&
+      (input.expiresAt === undefined ||
+        !Number.isFinite(input.expiresAt) ||
+        Date.now() >= input.expiresAt)
+    )
+      throw new Error("claim_expired");
     if (warning()) throw new Error("facebook_warning");
     currentActor();
     if (
@@ -336,6 +344,7 @@ export async function classicPublisherPage(
     const code =
       error instanceof Error &&
       [
+        "claim_expired",
         "actor_unavailable",
         "actor_changed",
         "facebook_warning",

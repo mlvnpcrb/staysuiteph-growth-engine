@@ -10,6 +10,7 @@ const input: ClassicPublishInput = {
   attemptToken: "11111111-1111-4111-8111-111111111111",
   approvalDigest: "a".repeat(64),
   allowSubmit: true,
+  expiresAt: Date.now() + 300000,
   media: [],
 };
 async function fixture(
@@ -80,4 +81,18 @@ test("a new post link alone is not publication proof", async ({ page }) => {
     outcome: "uncertain",
     code: "post_url_without_confirmation",
   });
+});
+
+test("expired publication claims never type or click Post", async ({
+  page,
+}) => {
+  await fixture(page);
+  expect(
+    await page.evaluate(classicPublisherPage, {
+      ...input,
+      expiresAt: Date.now() - 1,
+    }),
+  ).toMatchObject({ outcome: "not_sent", code: "claim_expired" });
+  expect(await page.locator('[role="textbox"]').innerText()).toBe("");
+  expect(await page.evaluate(() => Reflect.get(window, "postClicks"))).toBe(0);
 });

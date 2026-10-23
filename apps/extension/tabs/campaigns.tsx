@@ -15,7 +15,10 @@ import {
   classicPublisherPage,
   type ClassicPublishInput,
 } from "../lib/classic-publisher";
-import { executeCampaignTarget } from "../lib/campaign-executor";
+import {
+  executeCampaignTarget,
+  campaignClaimCurrent,
+} from "../lib/campaign-executor";
 import "../style.css";
 type Connection = { tabId: number; origin: string; viewer: string };
 export default function CampaignWorkspace() {
@@ -362,7 +365,8 @@ export default function CampaignWorkspace() {
       controller.current?.signal.aborted ||
       latest.state !== "running" ||
       latest.digest !== current.digest ||
-      latest.approved_digest !== current.approved_digest
+      latest.approved_digest !== current.approved_digest ||
+      !campaignClaimCurrent(latest, target)
     )
       throw new Error("Campaign changed before dispatch.");
     const response = (
@@ -378,6 +382,7 @@ export default function CampaignWorkspace() {
             attemptToken: target.attempt_token!,
             approvalDigest: current.digest,
             allowSubmit: true,
+            expiresAt: Date.parse(target.lease_until || ""),
             media,
           },
         ],

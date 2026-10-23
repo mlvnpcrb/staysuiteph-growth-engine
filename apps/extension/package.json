@@ -1,6 +1,6 @@
 {
   "name": "@staysuite/extension",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": true,
   "displayName": "StaySuite Growth Engine",
   "description": "Connect your Facebook browser session and collect your group list into an account-scoped extension library. Experimental read-only import; no posting.",

@@ -77,6 +77,18 @@ it("never dispatches after pause or approval invalidation", async () => {
   for (const modified of [
     { ...job, state: "paused" as const },
     { ...job, digest: "b".repeat(64) },
+    {
+      ...job,
+      targets: job.targets.map((t) => ({
+        ...t,
+        lease_until: new Date(Date.now() - 1).toISOString(),
+      })),
+    },
+    {
+      ...job,
+      targets: job.targets.map((t) => ({ ...t, state: "uncertain" as const })),
+    },
+    { ...job, targets: job.targets.map((t) => ({ ...t, attempt_token: id })) },
   ]) {
     const p = port();
     p.command
