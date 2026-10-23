@@ -181,3 +181,38 @@ the CONNECT with HTTP 403; this is not evidence of the vendor's own HTTP respons
 or current service availability. No workaround or vendor configuration dependency
 was added. Further live debugging requires Facebook's actual application error
 or response structure; the agent cannot inspect the owner's signed-in Chrome.
+
+## Reference session-bootstrap correction (0.2.4)
+
+The owner's 0.2.3 diagnostic is `response_errors`, HTTP 200, numeric error
+1357004, initial query and reviewed fallback. That establishes a Facebook
+application error before connection parsing, not its precise cause. The supplied
+package's `nn` collector calls `he` before the initial group request; `he` fetches
+fresh settings/profile HTML, binds the actor and extracts request context. Previous
+StaySuite builds used the bootstrap modules from the open Facebook SPA instead.
+That omitted a material part of the reference's request preparation.
+
+0.2.4 fetches fresh same-origin `/settings` HTML with the local browser session
+before each group page. It parses only JSON scripts and exact named bootstrap
+modules, validates the returned actor, rejects missing/identical DTSG/LSD tokens,
+and never mixes fresh identity with old page tokens. Context and HTML remain
+inside the Facebook page request function and are neither persisted nor returned.
+Only `contextSource` (a fixed enum) is added to safe diagnostics. JSON traversal,
+response sizes, module loading and network waits are bounded. Browser-managed
+Origin/Referer headers are used; no navigation-header spoofing, random telemetry,
+DNR rules, retries or restriction bypass are added.
+
+GraphQL requests include the observed ASBD client identifier and request counter.
+Revision, haste-session and spin metadata are included only when supplied by the
+fresh named SiteData module; no revision/session values are invented. Each page
+uses fresh context because tokens cannot be stored outside the page function.
+The existing budget and per-page wait still apply. Challenges, login, actor
+changes, denial and rate limits stop before any group request.
+
+Tests contrast stale open-tab context against fresh settings context, verify
+request metadata and non-export of tokens, and reject mismatched actor, login,
+missing/equal tokens and denied/rate-limited settings responses. The native
+fixture now supplies stale tab tokens and fresh settings tokens, requiring the
+compiled extension to use the latter. These checks do not establish that this
+change resolves 1357004 in the owner's live session. No new query IDs, permissions,
+file imports, publishing or database changes are included.

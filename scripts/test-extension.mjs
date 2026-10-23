@@ -36,8 +36,10 @@ try {
   let releaseSecond;
   const secondGate=new Promise(resolve=>{releaseSecond=resolve;});
   await context.route("https://www.facebook.com/**",async route=>{
-    if(new URL(route.request().url()).pathname!=="/api/graphql/"){
-      return route.fulfill({contentType:"text/html",body:`<!doctype html><html lang="en"><head><title>Facebook fixture</title></head><body><main>Group directory fixture</main><script>const data={CurrentUserInitialData:{USER_ID:'${actor}',NAME:'Fixture host'},DTSGInitialData:{token:'${csrf}'},LSD:{token:'${lsd}'}};window.require=name=>data[name];</script></body></html>`});
+    const path=new URL(route.request().url()).pathname;
+    if(path!=="/api/graphql/"){
+      const pageCsrf=path==="/settings"?csrf:"fixture-stale-csrf",pageLsd=path==="/settings"?lsd:"fixture-stale-lsd";
+      return route.fulfill({contentType:"text/html",body:`<!doctype html><html lang="en"><head><title>Facebook fixture</title></head><body><main>Group directory fixture</main><script type="application/json">${JSON.stringify({define:[["CurrentUserInitialData",[],{USER_ID:actor,NAME:"Fixture host"}],["DTSGInitialData",[],{token:pageCsrf}],["LSD",[],{token:pageLsd}]]})}</script><script>const data={CurrentUserInitialData:{USER_ID:'${actor}',NAME:'Fixture host'},DTSGInitialData:{token:'${pageCsrf}'},LSD:{token:'${pageLsd}'}};window.require=name=>data[name];</script></body></html>`});
     }
     fixtureRequests++;
     const form=new URLSearchParams(route.request().postData()??"");
@@ -60,7 +62,7 @@ try {
   await expect(reopened.locator(".workspace-list li")).toHaveCount(12,{timeout:15000});
   await expect(reopened.getByText("Group-list pagination completed.",{exact:false})).toBeVisible();
   const snapshot=await reopened.evaluate(async()=>JSON.stringify(await chrome.storage.local.get(null)));
-  if(snapshot.includes(csrf)||snapshot.includes(lsd)||snapshot.includes('"c_user"'))throw new Error("Fixture credentials crossed into persisted extension data.");
+  if(snapshot.includes(csrf)||snapshot.includes(lsd)||snapshot.includes('fixture-stale-')||snapshot.includes('"c_user"'))throw new Error("Fixture credentials crossed into persisted extension data.");
   if(fixtureRequests!==2)throw new Error("Restoring the library unexpectedly started another import.");
   await reopened.evaluate(async()=>{await chrome.cookies.set({url:"https://www.facebook.com/",name:"c_user",value:"987654321",domain:".facebook.com",path:"/",secure:true,sameSite:"lax"});});
   await expect(reopened.locator(".workspace-list li")).toHaveCount(0,{timeout:15000});

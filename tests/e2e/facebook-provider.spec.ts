@@ -4,7 +4,8 @@ const actor="123456789";
 const csrf="fixture-csrf-never-export", lsd="fixture-lsd-never-export";
 function markup(bootstrap=false){
   const data={CurrentUserInitialData:{USER_ID:actor,NAME:"Fixture host"},DTSGInitialData:{token:csrf},LSD:{token:lsd}};
-  const script=bootstrap?`<script type="application/json">${JSON.stringify({require:Object.entries(data).map(([name,value])=>[name,[],value])})}</script>`:`<script>window.fixtureModules=${JSON.stringify(data)};window.require=function(name){if(name.endsWith('.graphql'))return {params:{id:'11111111111111',operationKind:'query'}};return window.fixtureModules[name]};</script>`;
+  const jsonScript=`<script type="application/json">${JSON.stringify({require:Object.entries(data).map(([name,value])=>[name,[],value])})}</script>`;
+  const script=bootstrap?jsonScript:jsonScript+`<script>window.fixtureModules=${JSON.stringify(data)};window.require=function(name){if(name.endsWith('.graphql'))return {params:{id:'11111111111111',operationKind:'query'}};return window.fixtureModules[name]};</script>`;
   return `<!doctype html><html lang="en"><head><title>Facebook fixture</title></head><body>${script}<main>Joined groups fixture</main></body></html>`;
 }
 function payload(ids:number[],hasNext=false){return {data:{viewer:{groups_tab:{pinned_groups:{edges:[]},tab_groups_list:{edges:ids.map(id=>({node:{id:String(id),name:`Group ${id}`}})),page_info:{has_next_page:hasNext,end_cursor:hasNext?"page-two":null}}}}}};}
@@ -16,7 +17,7 @@ test("Facebook page provider follows the read-only request contract and returns 
   await page.route("https://www.facebook.com/**",async route=>{
     if(new URL(route.request().url()).pathname==="/api/graphql/"){
       const body=new URLSearchParams(route.request().postData()??"");
-      expect(body.get("__comet_req")).toBe("15");expect(body.get("fb_dtsg")).toBe(csrf);expect(body.get("jazoest")).toMatch(/^2\d+$/);expect(body.get("lsd")).toBe(lsd);expect(body.get("doc_id")).toBe("11111111111111");
+      expect(route.request().headers()["x-asbd-id"]).toBe("129477");expect(body.get("__comet_req")).toBe("15");expect(body.get("fb_dtsg")).toBe(csrf);expect(body.get("jazoest")).toMatch(/^2\d+$/);expect(body.get("lsd")).toBe(lsd);expect(body.get("doc_id")).toBe("11111111111111");
       const variables=JSON.parse(body.get("variables")??"{}");cursors.push(variables.cursor??null);
       expect(body.get("fb_api_req_friendly_name")).toBe(variables.cursor?"GroupsCometUnpinnedGroupsPaginationListPaginatedQuery":"GroupsCometPinnedGroupsDialogQuery");
       await route.fulfill({json:variables.cursor?payload([7,8,9,10,11,12]):payload([1,2,3,4,5,6],true)});
@@ -158,4 +159,59 @@ test("HTTP 200 application errors stop before connection parsing and expose only
   const result=await invoke(page);
   expect(result).toMatchObject({error:"facebook_error",diagnostic:{stage:"response_errors",httpStatus:200,facebookErrorCode:1357004}});
   expect(requests).toBe(1);expect(JSON.stringify(result)).not.toContain(csrf);expect(JSON.stringify(result)).not.toContain(lsd);expect(JSON.stringify(result)).not.toContain("PRIVATE");
+});
+
+function freshMarkup(user=actor,token="fresh-csrf-context",freshLsd="fresh-lsd-context"){
+  return `<!doctype html><html><body><script type="application/json">${JSON.stringify({require:[["ScheduledServerJS","handle",null,[{__bbox:{define:[["CurrentUserInitialData",[],{USER_ID:user,NAME:"Fresh profile"}],["DTSGInitialData",[],{token}],["LSD",[],{token:freshLsd}],["SiteData",[],{client_revision:12345678,haste_session:"fresh.session",__spin_r:12345678,__spin_b:"trunk",__spin_t:1700000000}]]}}]]]})}</script></body></html>`;
+}
+test("refreshes settings context before each group request instead of replaying open-tab tokens",async({page})=>{
+  const calls:string[]=[];
+  await page.route("https://www.facebook.com/**",route=>{
+    const path=new URL(route.request().url()).pathname;
+    if(path==="/settings"){
+      calls.push("settings");expect(route.request().method()).toBe("GET");expect(route.request().headers().accept).toBe("text/html");
+      return route.fulfill({contentType:"text/html",body:freshMarkup()});
+    }
+    if(path==="/api/graphql/"){
+      calls.push("groups");const form=new URLSearchParams(route.request().postData()??"");
+      expect(form.get("fb_dtsg")).toBe("fresh-csrf-context");expect(form.get("lsd")).toBe("fresh-lsd-context");
+      expect(form.get("__user")).toBe(actor);expect(form.get("av")).toBe(actor);
+      expect(form.get("__rev")).toBe("12345678");expect(form.get("__hs")).toBe("fresh.session");expect(form.get("__spin_b")).toBe("trunk");expect(form.get("__spin_t")).toBe("1700000000");
+      return route.fulfill({json:payload([calls.length],calls.length===2)});
+    }
+    return route.fulfill({contentType:"text/html",body:markup()});
+  });
+  await page.goto("https://www.facebook.com/groups/joins/");
+  const first=await invoke(page),second=await invoke(page,"page-two");
+  expect(first).toMatchObject({actorName:"Fresh profile",hasNext:true});expect(second).toHaveProperty("hasNext",false);
+  expect(calls).toEqual(["settings","groups","settings","groups"]);
+  expect(JSON.stringify([first,second])).not.toContain("fresh-csrf-context");expect(JSON.stringify([first,second])).not.toContain("fresh-lsd-context");expect(JSON.stringify([first,second])).not.toContain("fresh.session");
+});
+test("fresh context from another actor, login, missing tokens or duplicate tokens never reaches group API",async({page})=>{
+  let settings=0,groupRequests=0;
+  const replies=[freshMarkup("999"),'<form id="login_form"></form>',freshMarkup(actor,"",""),freshMarkup(actor,"same-token","same-token")];
+  await page.route("https://www.facebook.com/**",route=>{
+    const path=new URL(route.request().url()).pathname;
+    if(path==="/settings")return route.fulfill({contentType:"text/html",body:replies[settings++]??""});
+    if(path==="/api/graphql/"){groupRequests++;return route.fulfill({json:payload([1])});}
+    return route.fulfill({contentType:"text/html",body:markup()});
+  });
+  await page.goto("https://www.facebook.com/groups/joins/");
+  expect(await invoke(page)).toMatchObject({error:"account_changed"});
+  expect(await invoke(page)).toMatchObject({error:"signed_out"});
+  expect(await invoke(page)).toMatchObject({error:"unsupported",diagnostic:{stage:"bootstrap_tokens",contextSource:"fresh_settings"}});
+  expect(await invoke(page)).toMatchObject({error:"malformed_response"});
+  expect(groupRequests).toBe(0);
+});
+test("settings denial or rate limit stops without falling back to old page context",async({page})=>{
+  let settings=0,groupRequests=0;
+  await page.route("https://www.facebook.com/**",route=>{
+    const path=new URL(route.request().url()).pathname;
+    if(path==="/settings")return route.fulfill({status:settings++?429:403,body:"private server error"});
+    if(path==="/api/graphql/"){groupRequests++;return route.fulfill({json:payload([1])});}
+    return route.fulfill({contentType:"text/html",body:markup()});
+  });
+  await page.goto("https://www.facebook.com/groups/joins/");
+  expect(await invoke(page)).toMatchObject({error:"access_denied",diagnostic:{stage:"session_bootstrap",httpStatus:403}});
+  expect(await invoke(page)).toMatchObject({error:"rate_limited"});expect(settings).toBe(2);expect(groupRequests).toBe(0);
 });

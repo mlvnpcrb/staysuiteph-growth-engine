@@ -7,9 +7,10 @@
 export async function readFacebookGroupPage(actorId: string, cursor: string | null, probeOnly = false) {
   let stage = "input", httpStatus: number | null = null;
   let querySource = "reviewed_fallback";
+  let contextSource = "page_bootstrap";
   let facebookErrorCode: number | null = null;
   let structure: {data: boolean; viewer: boolean; groupsTab: boolean; connection: boolean; edges: boolean; pageInfo: boolean; hasNextPage: boolean} | undefined;
-  const failure = (error: string) => ({ error, diagnostic: {stage,httpStatus,query:cursor === null ? "initial" : "pagination",querySource,facebookErrorCode,...(structure ? {structure} : {})} });
+  const failure = (error: string) => ({ error, diagnostic: {stage,httpStatus,query:cursor === null ? "initial" : "pagination",querySource,contextSource,facebookErrorCode,...(structure ? {structure} : {})} });
   if (!/^[1-9]\d{0,79}$/.test(actorId) || (cursor !== null && (typeof cursor !== "string" || !cursor.length || cursor.length > 4096))) return failure("malformed_response");
   if (location.origin !== "https://www.facebook.com") return failure("access_denied");
   stage = "page_guard";
@@ -46,15 +47,71 @@ export async function readFacebookGroupPage(actorId: string, cursor: string | nu
     }
   }
   stage = "bootstrap_identity";
-  const identity = modules.get("CurrentUserInitialData");
+  let identity = modules.get("CurrentUserInitialData");
   if (!identity || typeof identity.USER_ID !== "string") return failure("unsupported");
   if (identity.USER_ID === "0") return failure("signed_out");
   if (String(identity.USER_ID) !== actorId) return failure("account_changed");
   if (probeOnly) return {actorId,actorName:typeof identity.NAME === "string" && identity.NAME.trim()?identity.NAME.trim().slice(0,120):"Facebook profile"};
+  // The reference refreshes settings/profile HTML before collecting. Tokens
+  // from an already-open SPA may not be the current request context. Fetch one
+  // fresh same-origin settings response, with no spoofed navigation headers.
+  stage = "session_bootstrap";
+  const fresh = new Map<string, Record<string, unknown>>();
+  try {
+    const response = await fetch("/settings", {headers:{accept:"text/html"},credentials:"same-origin",cache:"no-store",redirect:"follow",signal:AbortSignal.timeout(20_000)});
+    httpStatus = response.status;
+    if (response.status === 429) return failure("rate_limited");
+    if (response.status === 401) return failure("signed_out");
+    if (response.status === 403) return failure("access_denied");
+    if (!response.ok) return failure("network");
+    const destination = new URL(response.url);
+    if (destination.origin !== location.origin) return failure("access_denied");
+    if (/\/(?:checkpoint|recover|disabled)(?:[/.]|$)/.test(destination.pathname)) return failure("challenge");
+    if (/\/login(?:[/.]|$)/.test(destination.pathname)) return failure("signed_out");
+    if (Number(response.headers.get("content-length")) > 8_000_000) return failure("malformed_response");
+    const html = await response.text();
+    if (html.length > 8_000_000) return failure("malformed_response");
+    if (/<form\b[^>]*\bid\s*=\s*["']login_form["']/i.test(html)) return failure("signed_out");
+    if (/<form\b[^>]*\baction\s*=\s*["'][^"']*\/checkpoint(?:[/?"'])/i.test(html)) return failure("challenge");
+    const freshNames = ["CurrentUserInitialData","DTSGInitialData","LSD","SiteData"];
+    let remaining = 80_000, scriptCount = 0, ambiguous = false;
+    // Extract JSON script text only. Do not create a document that could load
+    // images, execute script, or expose settings HTML outside this function.
+    for (const match of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)) {
+      if (++scriptCount > 250) break;
+      if (!/\btype\s*=\s*["']application\/json["']/i.test(match[1] ?? "")) continue;
+      const text = match[2] ?? "";
+      if (text.length > 2_000_000 || !freshNames.some(name => text.includes(name))) continue;
+      let value: unknown;
+      try { value = JSON.parse(text); } catch { continue; }
+      const stack = [{value,depth:0}];
+      while (stack.length && remaining-- > 0) {
+        const item = stack.pop();
+        if (!item || item.depth > 40 || !item.value || typeof item.value !== "object") continue;
+        const candidate = item.value;
+        if (Array.isArray(candidate) && typeof candidate[0] === "string" && freshNames.includes(candidate[0]) && candidate[2] && typeof candidate[2] === "object" && !Array.isArray(candidate[2])) {
+          const name = candidate[0], data = candidate[2] as Record<string,unknown>;
+          const previous = fresh.get(name), field = name === "CurrentUserInitialData" ? "USER_ID" : name === "SiteData" ? "client_revision" : "token";
+          if (previous && previous[field] !== data[field]) ambiguous = true;
+          else fresh.set(name,data);
+        }
+        for (const child of Object.values(candidate)) if (child && typeof child === "object") stack.push({value:child,depth:item.depth+1});
+      }
+    }
+    if (ambiguous || remaining <= 0) return failure("malformed_response");
+  } catch { return failure("network"); }
+  stage = "bootstrap_identity";
+  const freshIdentity = fresh.get("CurrentUserInitialData");
+  if (!freshIdentity || typeof freshIdentity.USER_ID !== "string") return failure("unsupported");
+  if (freshIdentity.USER_ID === "0") return failure("signed_out");
+  if (freshIdentity.USER_ID !== actorId) return failure("account_changed");
+  identity = freshIdentity;
+  contextSource = "fresh_settings";
   stage = "bootstrap_tokens";
-  const token = modules.get("DTSGInitialData")?.token;
-  const lsd = modules.get("LSD")?.token;
+  const token = fresh.get("DTSGInitialData")?.token;
+  const lsd = fresh.get("LSD")?.token;
   if (typeof token !== "string" || !token || token.length > 2048 || typeof lsd !== "string" || !lsd || lsd.length > 2048) return failure("unsupported");
+  if (token === lsd) return failure("malformed_response");
   const friendlyName = cursor === null ? "GroupsCometPinnedGroupsDialogQuery" : "GroupsCometUnpinnedGroupsPaginationListPaginatedQuery";
   let documentId = cursor === null ? "7740459739385247" : "7218669964900608";
   const queryId = (value: unknown): string | null => {
@@ -91,10 +148,18 @@ export async function readFacebookGroupPage(actorId: string, cursor: string | nu
     if (String((pageRequire("CurrentUserInitialData") as {USER_ID?: unknown})?.USER_ID) !== actorId) return failure("account_changed");
   } catch { return failure("account_changed"); }
   const variables = cursor === null ? {ordering:["viewer_added"],scale:1} : {count:50,cursor,ordering:["viewer_added"],scale:1};
-  const body = new URLSearchParams({__user:actorId,av:actorId,__a:"1",__comet_req:"15",fb_dtsg:token,jazoest:`2${Array.from(token).reduce((sum,char)=>sum+char.charCodeAt(0),0)}`,lsd,doc_id:documentId,fb_api_caller_class:"RelayModern",fb_api_req_friendly_name:friendlyName,variables:JSON.stringify(variables),server_timestamps:"true"});
+  const body = new URLSearchParams({__user:actorId,av:actorId,__a:"1",__req:"1",__comet_req:"15",fb_dtsg:token,jazoest:`2${Array.from(token).reduce((sum,char)=>sum+char.charCodeAt(0),0)}`,lsd,doc_id:documentId,fb_api_caller_class:"RelayModern",fb_api_req_friendly_name:friendlyName,variables:JSON.stringify(variables),server_timestamps:"true"});
+  const site = fresh.get("SiteData");
+  const revision = (value: unknown) => typeof value === "number" && Number.isSafeInteger(value) && value > 0 ? String(value) : typeof value === "string" && /^[1-9]\d{0,19}$/.test(value) ? value : null;
+  const rev = revision(site?.client_revision), spinR = revision(site?.__spin_r), spinT = revision(site?.__spin_t);
+  if (rev) body.set("__rev",rev);
+  if (typeof site?.haste_session === "string" && site.haste_session.length <= 512) body.set("__hs",site.haste_session);
+  if (spinR) body.set("__spin_r",spinR);
+  if (spinT) body.set("__spin_t",spinT);
+  if (typeof site?.__spin_b === "string" && /^[A-Za-z0-9._-]{1,40}$/.test(site.__spin_b)) body.set("__spin_b",site.__spin_b);
   try {
     stage = "request";
-    const response = await fetch("/api/graphql/", {method:"POST",credentials:"same-origin",redirect:"error",cache:"no-store",headers:{"content-type":"application/x-www-form-urlencoded","x-fb-lsd":lsd,"x-fb-friendly-name":friendlyName},body:body.toString(),signal:AbortSignal.timeout(20_000)});
+    const response = await fetch("/api/graphql/", {method:"POST",credentials:"same-origin",redirect:"error",cache:"no-store",headers:{"content-type":"application/x-www-form-urlencoded","x-fb-lsd":lsd,"x-asbd-id":"129477","x-fb-friendly-name":friendlyName},body:body.toString(),signal:AbortSignal.timeout(20_000)});
     httpStatus = response.status;
     if (response.status === 429) return failure("rate_limited");
     if (response.status === 401) return failure("signed_out");
