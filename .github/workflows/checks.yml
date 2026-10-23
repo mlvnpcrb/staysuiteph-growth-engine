@@ -75,7 +75,7 @@ jobs:
           PYTHON
       - name: Start Supabase with sanitized failure annotation
         run: |
-          if ! pnpm exec supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor > "$RUNNER_TEMP/supabase-start.log" 2>&1; then
+          if ! pnpm exec supabase start -x realtime,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor > "$RUNNER_TEMP/supabase-start.log" 2>&1; then
             node scripts/report-supabase-start.mjs "$RUNNER_TEMP/supabase-start.log"
             exit 1
           fi

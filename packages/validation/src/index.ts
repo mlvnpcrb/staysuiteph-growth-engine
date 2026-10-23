@@ -49,3 +49,6 @@ export * from "./facebook-library";
 export * from "./group-categories";
 export { assessPostingPriority } from "./posting-priority";
 export { campaignPlanSchema, campaignMediaSchema, campaignApprovalSnapshot, campaignGroupBlockers, detectCampaignMediaType, type CampaignPlan } from "./campaign-plan";
+export {campaignSettingsSchema,campaignCommandSchema,campaignJobSchema,type CampaignJob,type CampaignSettings,type CampaignCommand} from "./campaign-execution";
+
+export {campaignCommandReplySchema,campaignListSchema,type CampaignList} from "./campaign-execution";

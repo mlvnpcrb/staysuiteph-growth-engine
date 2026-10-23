@@ -1,3 +1,4 @@
+import { PostingQueue } from "@/components/campaigns/posting-queue";
 import { CampaignBuilder } from "@/components/campaigns/campaign-builder";
 import { GroupFinder } from "@/components/groups/finder";
 import { MyGroups } from "@/components/groups/my-groups";
@@ -16,6 +17,7 @@ export default async function SectionPage({
   if (item.slug === "group-finder") return <GroupFinder />;
   if (item.slug === "my-groups") return <MyGroups />;
   if (item.slug === "campaigns") return <CampaignBuilder />;
+  if (item.slug === "posting-queue") return <PostingQueue />;
   return item.slug === "overview" ? (
     <Overview />
   ) : (

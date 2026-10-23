@@ -1,3 +1,4 @@
+import type { CampaignJobRow, Json } from "./campaigns";
 import type { MarketingEvidence, SavedGroup } from "./groups";
 export const navigation = [
   {
@@ -60,6 +61,7 @@ export type SyncSnapshot = {
 export type Database = {
   public: {
     Tables: {
+      campaign_jobs: {Row:CampaignJobRow;Insert:never;Update:never;Relationships:[]};
       saved_groups: {
         Row: SavedGroup;
         Insert: Pick<
@@ -94,7 +96,7 @@ export type Database = {
       };
     };
     Views: { [_ in never]: never };
-    Functions: { [_ in never]: never };
+    Functions: { campaign_command: {Args:{p_id:string;p_revision:number;p_command:string;p_payload:Json};Returns:Json} };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };
   };
@@ -105,3 +107,5 @@ export type {
   GroupAssessment,
   MarketingEvidence,
 } from "./groups";
+
+export type { CampaignJobRow, Json } from "./campaigns";

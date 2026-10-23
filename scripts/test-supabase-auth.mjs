@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { testCampaignQueue } from "./test-campaign-queue.mjs";
 import { createRequire } from "node:module";
 import { execFileSync, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
@@ -52,7 +53,7 @@ async function main() {
   };
   const admin = createClient(api.origin, status.SERVICE_ROLE_KEY, options);
   const accounts = [];
-  let server, browser;
+  let server, browser, campaignChecks;
   try {
     stage = "real signup/login";
     const clients = [];
@@ -110,6 +111,14 @@ async function main() {
     console.log(
       "PASS: real PostgREST owner isolation and column/anonymous denial",
     );
+
+    stage = "isolated campaign execution and storage";
+    campaignChecks = await testCampaignQueue({
+      admin,
+      a,
+      b,
+      apiUrl: api.origin,
+    });
 
     stage = "application startup";
     server = spawn(
@@ -209,6 +218,43 @@ async function main() {
           : value,
       );
     }
+    stage = "real campaign API persistence";
+    const campaignId = randomUUID();
+    const createdCampaign = await page.request.post(`${origin}/api/campaigns`, {
+      headers: { Origin: origin },
+      data: {
+        id: campaignId,
+        revision: 0,
+        command: "create",
+        payload: {
+          plan: {
+            version: 1,
+            text: "Disposable UI/API campaign",
+            intervalMinutes: 2,
+            groupIds: [campaignChecks.groupId],
+            media: [],
+          },
+          settings: { avoidNight: false },
+        },
+      },
+    });
+    assert.equal(createdCampaign.status(), 200);
+    const createdBody = await createdCampaign.json();
+    assert.equal(createdBody.job.user_id, accounts[0]);
+    await page.goto(`${origin}/dashboard/posting-queue`);
+    await expect(
+      page.getByRole("heading", { name: "Disposable UI/API campaign" }),
+    ).toBeVisible();
+    await page.reload();
+    await expect(
+      page.getByRole("heading", { name: "Disposable UI/API campaign" }),
+    ).toBeVisible();
+    await admin.from("campaign_targets").delete().eq("campaign_id", campaignId);
+    await admin.from("campaign_jobs").delete().eq("id", campaignId);
+    console.log(
+      "PASS: authenticated campaign API write, real database persistence and queue reload",
+    );
+
     stage = "automatic SSR refresh";
     const initial = await storedSession();
     assert.ok(
@@ -259,6 +305,12 @@ async function main() {
   } finally {
     await browser?.close();
     server?.kill("SIGTERM");
+    try {
+      await campaignChecks?.cleanup();
+    } catch {
+      console.error("FAIL: disposable campaign cleanup");
+      process.exitCode = 1;
+    }
     for (const id of accounts) {
       const result = await admin.auth.admin.deleteUser(id);
       if (result.error) {

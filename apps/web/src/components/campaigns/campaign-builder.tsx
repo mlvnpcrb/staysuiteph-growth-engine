@@ -2,9 +2,16 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import {
+  campaignCommand,
+  CampaignApiError,
+  uploadCampaignMedia,
+} from "./campaign-api";
+import type { CampaignJob, CampaignSettings } from "@staysuite/validation";
 import { Button } from "@staysuite/ui";
 import {
   campaignApprovalSnapshot,
+  campaignSettingsSchema,
   campaignGroupBlockers,
   campaignPlanSchema,
   categorizeGroupName,
@@ -29,6 +36,19 @@ export function CampaignBuilder() {
   const [mediaError, setMediaError] = useState("");
   const [busy, setBusy] = useState(false);
   const [approved, setApproved] = useState("");
+  const [savedJob, setSavedJob] = useState<CampaignJob | null>(null);
+  const [cloudBusy, setCloudBusy] = useState(false);
+  const [cloudMessage, setCloudMessage] = useState("");
+  const [settings, setSettings] = useState<CampaignSettings>({
+    method: "classic",
+    pauseEvery: 1,
+    pauseMinutes: 2,
+    avoidNight: true,
+    delayAfterFailure: true,
+  });
+  const remotePlan = useRef("");
+  const pendingId = useRef<string | null>(null);
+  const viewer = useRef<string | undefined>(undefined);
   const [confirmed, setConfirmed] = useState(false);
   const previews = useRef(new Set<string>());
   const active = useRef(true);
@@ -49,10 +69,14 @@ export function CampaignBuilder() {
     media: media.map(metadata),
   };
   const parsed = campaignPlanSchema.safeParse(plan);
+  const settingsValid = campaignSettingsSchema.safeParse(settings).success;
+  const liveDraft = useRef("");
+  liveDraft.current = JSON.stringify({ plan, settings });
   let snapshot = "";
   if (parsed.success) {
     try {
-      snapshot = campaignApprovalSnapshot(plan, groups);
+      snapshot =
+        campaignApprovalSnapshot(plan, groups) + JSON.stringify(settings);
     } catch {
       /* A removed target invalidates approval. */
     }
@@ -138,11 +162,143 @@ export function CampaignBuilder() {
       if (active.current) setBusy(false);
     }
   }
+  async function saveCampaign() {
+    if (!parsed.success || !settingsValid || busy || cloudBusy) return;
+    const savingVersion = JSON.stringify({ plan, settings });
+    setCloudBusy(true);
+    setCloudMessage("");
+    try {
+      let current = savedJob;
+      if (!current) {
+        const id = pendingId.current ?? crypto.randomUUID();
+        pendingId.current = id;
+        if (remotePlan.current === "creation-attempted") {
+          try {
+            const recovered = await campaignCommand(
+              { id, revision: 0, command: "inspect", payload: {} },
+              viewer.current,
+            );
+            current = recovered.job;
+            viewer.current = recovered.viewer_id;
+          } catch (error) {
+            if (!(error instanceof CampaignApiError) || error.status !== 403)
+              throw error;
+            const created = await campaignCommand(
+              {
+                id,
+                revision: 0,
+                command: "create",
+                payload: { plan, settings },
+              },
+              viewer.current,
+            );
+            current = created.job;
+            viewer.current = created.viewer_id;
+          }
+        } else {
+          remotePlan.current = "creation-attempted";
+          const created = await campaignCommand(
+            { id, revision: 0, command: "create", payload: { plan, settings } },
+            viewer.current,
+          );
+          current = created.job;
+          viewer.current = created.viewer_id;
+        }
+        setSavedJob(current);
+        remotePlan.current = JSON.stringify({
+          plan: current.plan,
+          settings: current.settings,
+        });
+      }
+      if (!current) throw new Error("Saved campaign could not be recovered.");
+      if (remotePlan.current !== JSON.stringify({ plan, settings })) {
+        const updated = await campaignCommand(
+          {
+            id: current.id,
+            revision: current.revision,
+            command: "edit",
+            payload: { plan, settings },
+          },
+          viewer.current,
+        );
+        current = updated.job;
+        setSavedJob(current);
+        remotePlan.current = JSON.stringify({ plan, settings });
+      }
+      for (let position = 0; position < media.length; position++) {
+        if (current.media.some((m) => m.position === position && m.uploaded))
+          continue;
+        const reserved = await campaignCommand(
+          {
+            id: current.id,
+            revision: current.revision,
+            command: "reserve_media",
+            payload: { position },
+          },
+          viewer.current,
+        );
+        current = reserved.job;
+        setSavedJob(current);
+        const asset = current.media.find((m) => m.position === position);
+        if (!asset || !reserved.upload)
+          throw new Error("Media reservation unavailable.");
+        try {
+          const reconciled = await campaignCommand(
+            {
+              id: current.id,
+              revision: current.revision,
+              command: "media_uploaded",
+              payload: { asset_id: asset.id },
+            },
+            viewer.current,
+          );
+          current = reconciled.job;
+          setSavedJob(current);
+          continue;
+        } catch (error) {
+          if (!(error instanceof CampaignApiError) || error.status !== 400)
+            throw error;
+        }
+        const original = media[position];
+        if (!original)
+          throw new Error("Attachment changed. Review the campaign again.");
+        const bytes = await (await fetch(original.preview)).blob();
+        if (reserved.upload.path !== asset.object_path)
+          throw new Error("Upload target changed. Reload before retrying.");
+        await uploadCampaignMedia(reserved.upload.signedUrl, bytes);
+        const done = await campaignCommand(
+          {
+            id: current.id,
+            revision: current.revision,
+            command: "media_uploaded",
+            payload: { asset_id: asset.id },
+          },
+          viewer.current,
+        );
+        current = done.job;
+        setSavedJob(current);
+      }
+      setCloudMessage(
+        liveDraft.current === savingVersion
+          ? "Campaign and attachments saved privately. Nothing was sent to Facebook."
+          : "The earlier version was saved. Your current edits still need saving.",
+      );
+    } catch (e) {
+      setCloudMessage(
+        e instanceof Error
+          ? e.message
+          : "Campaign could not be saved. Reload before retrying.",
+      );
+    } finally {
+      setCloudBusy(false);
+    }
+  }
   function download() {
     if (!parsed.success || !snapshot) return;
     const payload = {
       kind: "staysuite-campaign-preparation",
       plan,
+      settings,
       targets: targets.map((g) =>
         g
           ? {
@@ -242,11 +398,12 @@ export function CampaignBuilder() {
         <details>
           <summary>Media help</summary>
           <p>
-            Files stay in this browser tab; they are not uploaded to StaySuite
-            or Facebook. Keep your originals. Closing or reloading this page
-            discards this draft and its attachments. Facebook and individual
-            groups may impose different media limits. The downloaded plan
-            contains file names and fingerprints, not the media files.
+            Files stay in this browser tab until you choose Save campaign
+            privately. Saving uploads them to your private StaySuite workspace.
+            Nothing is sent to Facebook. Keep your originals; unsaved edits are
+            lost on reload. Facebook and individual groups may impose different
+            media limits. The downloaded plan contains file names and
+            fingerprints, not the media files.
           </p>
         </details>
         {busy && <p role="status">Checking media and preparing previews…</p>}
@@ -366,6 +523,67 @@ export function CampaignBuilder() {
       </section>
       <section className="panel">
         <h2>4. Review the campaign plan</h2>
+        <div className="finder-fields">
+          <label>
+            Pause after every (posts)
+            <input
+              type="number"
+              min={1}
+              max={50}
+              value={settings.pauseEvery}
+              onChange={(e) => {
+                invalidateApproval();
+                setSettings({
+                  ...settings,
+                  pauseEvery: Number(e.target.value),
+                });
+              }}
+            />
+          </label>
+          <label>
+            Pause length (minutes)
+            <input
+              type="number"
+              min={1}
+              max={1440}
+              value={settings.pauseMinutes}
+              onChange={(e) => {
+                invalidateApproval();
+                setSettings({
+                  ...settings,
+                  pauseMinutes: Number(e.target.value),
+                });
+              }}
+            />
+          </label>
+        </div>
+        <label className="review-confirm">
+          <input
+            type="checkbox"
+            checked={settings.avoidNight}
+            onChange={(e) => {
+              invalidateApproval();
+              setSettings({ ...settings, avoidNight: e.target.checked });
+            }}
+          />
+          Avoid night posting (10 PM–7 AM, Asia/Manila)
+        </label>
+        <label className="review-confirm">
+          <input
+            type="checkbox"
+            checked={settings.delayAfterFailure}
+            onChange={(e) => {
+              invalidateApproval();
+              setSettings({ ...settings, delayAfterFailure: e.target.checked });
+            }}
+          />
+          Keep the extra pause after a failure
+        </label>
+        <p className="muted text-sm">
+          These settings organize waiting times. They cannot guarantee account
+          protection. Refused or uncertain submissions stop the campaign for
+          review.
+        </p>
         <label htmlFor="campaign-interval">
           Minimum interval between targets (minutes)
         </label>
@@ -438,8 +656,45 @@ export function CampaignBuilder() {
         <Button disabled>Start bulk posting — not available yet</Button>
         <p className="muted text-sm">
           Bulk posting is not available in this Preview. You can prepare and
-          download a campaign plan. Nothing is sent to Facebook. Rules and posting
-          permission need checking for every selected group before publishing.
+          download a campaign plan. Nothing is sent to Facebook. Rules and
+          posting permission need checking for every selected group before
+          publishing.
+        </p>
+      </section>
+      <section className="panel" aria-label="Save campaign">
+        <h2>Keep this campaign</h2>
+        <p className="muted">
+          Save text, group order and media to your private StaySuite workspace.
+          This does not approve or start publishing.
+        </p>
+        <div className="group-actions">
+          <Button
+            disabled={
+              !snapshot ||
+              !settingsValid ||
+              busy ||
+              cloudBusy ||
+              loading ||
+              !!error
+            }
+            onClick={() => void saveCampaign()}
+          >
+            {cloudBusy ? "Saving campaign…" : "Save campaign privately"}
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/dashboard/posting-queue">Open Posting Queue</Link>
+          </Button>
+        </div>
+        {savedJob && (
+          <p className="muted text-sm">
+            Saved campaign version {savedJob.revision}.{" "}
+            {savedJob.actor_id
+              ? "Facebook identity selected; live verification still required."
+              : "Connect a Facebook identity before publication approval."}
+          </p>
+        )}
+        <p aria-live="polite" className="campaign-cloud-message">
+          {cloudMessage}
         </p>
       </section>
     </div>
