@@ -107,3 +107,16 @@ ranking, clear/persistence and accessible-theme scenarios. The sample-size
 consistency guard rejects a sample larger than a known observed 7-day post total.
 Native extension installation: BLOCKED by administrator policy. Isolated migration
 and RLS tests passed; no hosted schema change or live authorization claim is made.
+
+## Available-evidence posting recommendations
+
+My Groups now includes “Where to post first” on each card. Without activity data,
+name-based triage distinguishes accommodation groups, host referral communities,
+mixed property/travel audiences and names without an accommodation match. Host
+communities are not represented as guest demand. Mixed sale/long-term groups
+require additional audience review. Explicit unsuitability or fresh promotion
+denial overrides topic fit. These recommendations break ties in marketing ranking
+after permission, score and coverage; they never add marketing score points.
+No location is assumed and no activity, competition, reach or buyer intent is
+invented. Recommendations run on existing saved data without new collection,
+API calls, database writes or migrations.

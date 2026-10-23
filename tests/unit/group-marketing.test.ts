@@ -148,3 +148,16 @@ describe("evidence-based marketing ranking", () => {
     expect(rankGroupMarketing(row, now).score).toBe(30);
   });
 });
+
+describe("available-evidence posting recommendations", () => {
+  it("separates accommodation fit, referrals, mixed interests and unrelated names", async () => {
+    const { assessPostingPriority: assess } = await import("@staysuite/validation");
+    const input = { ...group, destination: "", accommodation: "", audience: "", review_status: "review_required" as const, last_reviewed_at: null };
+    expect(assess({...input, title:"Airbnb Bacolod Staycation"},now).priority).toBe(4);
+    expect(assess({...input, title:"One Regis Airbnb Owners"},now).priority).toBe(2);
+    expect(assess({...input, title:"AIRBNB BACOLOD buy sell houses installment"},now).priority).toBe(1);
+    expect(assess({...input, title:"Computer Club"},now).priority).toBe(0);
+    expect(rankGroupMarketing({...input,title:"Airbnb Bacolod Staycation"},now).score).toBeNull();
+    expect(assess({...input, title:"Airbnb",review_status:"not_suitable"},now).label).toBe("Do not shortlist for posting");
+  });
+});

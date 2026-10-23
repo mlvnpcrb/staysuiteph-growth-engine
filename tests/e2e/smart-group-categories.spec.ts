@@ -13,6 +13,10 @@ test("My Groups categories overlap and combine with existing filters without wri
   await page.goto("/dashboard/my-groups");
   const filters=page.getByRole("group",{name:"Filter groups by category"});
   await expect(page.locator(".saved-group")).toHaveCount(5);
+  const first = page.locator(".saved-group").first();
+  await expect(first).toContainText("Tagaytay Staycation Villas");
+  await expect(first).toContainText("Review first for accommodation posts");
+  await expect(first).toContainText("Visibility, competition and buyer intent are unverified");
   await filters.getByRole("button",{name:/^Staycation 2$/}).click();await expect(page.locator(".saved-group")).toHaveCount(2);
   await page.getByLabel("Filter saved groups").fill("Cebu");await expect(page.locator(".saved-group")).toHaveCount(1);
   await filters.getByRole("button",{name:/^Airbnb 1$/}).click();await expect(page.locator(".saved-group")).toHaveCount(1);

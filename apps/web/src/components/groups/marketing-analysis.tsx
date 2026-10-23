@@ -5,6 +5,7 @@ import type { SavedGroup } from "@staysuite/types";
 import {
   marketingEvidenceSchema,
   rankGroupMarketing,
+  assessPostingPriority,
 } from "@staysuite/validation";
 import { groupRequest } from "./use-groups";
 const fields = [
@@ -24,6 +25,7 @@ export function MarketingAnalysis({
   onMessage: (message: string) => void;
 }) {
   const report = rankGroupMarketing(group);
+  const priority = assessPostingPriority(group);
   const existing = marketingEvidenceSchema.safeParse(
     group.marketing_evidence ?? {},
   );
@@ -63,6 +65,10 @@ export function MarketingAnalysis({
       className="marketing-analysis"
       aria-label={`Marketing analysis for ${group.title}`}
     >
+      <h3>Where to post first</h3>
+      <p><strong>{priority.label}</strong></p>
+      <p className="muted text-sm">{priority.reason}</p>
+      <p className="muted text-sm">{priority.basis}. Visibility, competition and buyer intent are unverified. This recommendation does not confirm permission to post.</p>
       <div className="section-heading">
         <h3>Marketing potential</h3>
         <span className="subtle-badge">

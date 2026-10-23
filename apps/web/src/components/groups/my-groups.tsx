@@ -1,6 +1,6 @@
 "use client";
 import { MarketingAnalysis } from "./marketing-analysis";
-import { categorizeGroupName, groupCategories, type GroupCategoryId, rankGroupMarketing } from "@staysuite/validation";
+import { assessPostingPriority, categorizeGroupName, groupCategories, type GroupCategoryId, rankGroupMarketing } from "@staysuite/validation";
 import { CollectionImport } from "./collection-import";
 import { useState } from "react";
 import Link from "next/link";
@@ -280,6 +280,7 @@ export function MyGroups() {
         priority[right.readiness] - priority[left.readiness] ||
         (right.score ?? -1) - (left.score ?? -1) ||
         right.coverage - left.coverage ||
+        assessPostingPriority(b).priority - assessPostingPriority(a).priority ||
         a.title.localeCompare(b.title)
       );
     });
@@ -338,7 +339,7 @@ export function MyGroups() {
       </div>
       <p className="muted text-sm">
         Marketing priority puts reviewed permission first, blocked groups last,
-        then compares evidence-based scores. Ranking covers the loaded
+        then compares evidence-based scores and name-based posting recommendations. Ranking covers the loaded
         shortlist, not predicted bookings. Unknown evidence never adds points.
       </p>
       {loading && (
