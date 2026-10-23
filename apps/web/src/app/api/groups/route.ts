@@ -40,9 +40,12 @@ async function handle(
     } = await client.auth.getUser();
     if (error || !user || user.is_anonymous)
       return reply({ error: "Please sign in to manage your groups." }, 401);
+    const expectedViewer = request.headers.get("x-staysuite-viewer");
+    if (expectedViewer && expectedViewer !== user.id)
+      return reply({ error: "Your StaySuite account changed. Reconnect before syncing." }, 409);
     const repository = groupRepository(client, user.id);
     if (method === "GET")
-      return reply({ ...(await repository.list()), limit: 500 });
+      return reply({ ...(await repository.list()), limit: 500, viewer_id: user.id });
     const text = await request.text();
     if (text.length > 64000)
       return reply({ error: "This entry is too long." }, 413);

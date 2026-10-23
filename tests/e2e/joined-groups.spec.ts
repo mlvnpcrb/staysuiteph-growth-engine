@@ -67,6 +67,8 @@ test("collector fails closed on other pages, dialogs, challenges and changed lay
   await page.evaluate(() => {
     const dialog = document.createElement("div");
     dialog.setAttribute("role", "dialog");
+    dialog.setAttribute("aria-modal", "true");
+    dialog.textContent = "Visible modal";
     document.body.append(dialog);
   });
   expect(await page.evaluate(collectVisibleGroups)).toHaveProperty("error");
@@ -374,4 +376,12 @@ test("import preview supports filtering, optional reselection and both accessibl
         .violations,
     ).toEqual([]);
   }
+});
+
+test("hidden and non-modal dialogs do not impersonate an account restriction", async ({page}) => {
+  await page.route("https://www.facebook.com/**", route => route.fulfill({contentType:"text/html",body:'<main><a href="/groups/hosts/">Hosts directory</a></main><div role="dialog" hidden aria-modal="true">Hidden dialog</div><div role="dialog">Chat panel</div><iframe title="captcha" hidden></iframe>'}));
+  await page.goto("https://www.facebook.com/groups/joins/");
+  const result=await page.evaluate(collectVisibleGroups);
+  expect(result).toHaveProperty("groups");
+  expect(result).not.toHaveProperty("error");
 });

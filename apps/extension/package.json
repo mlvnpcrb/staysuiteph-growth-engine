@@ -1,9 +1,9 @@
 {
   "name": "@staysuite/extension",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "private": true,
   "displayName": "StaySuite Growth Engine",
-  "description": "Select accessible group links in your own Facebook browser tab and send them to StaySuite for authenticated import. No posting.",
+  "description": "Sync visible joined-group names and links from your Facebook tab into your signed-in StaySuite account. No posting.",
   "author": "StaySuite",
   "scripts": {
     "dev": "plasmo dev --target=chrome-mv3 --serve-host localhost --hmr-host localhost",
@@ -24,15 +24,14 @@
   },
   "manifest": {
     "permissions": [
-      "activeTab",
-      "scripting",
-      "storage"
+      "scripting"
     ],
     "host_permissions": [],
     "content_security_policy": {
       "extension_pages": "script-src 'self'; object-src 'none'; base-uri 'none'"
     },
     "optional_host_permissions": [
+      "https://www.facebook.com/*",
       "https://*.vercel.app/*",
       "http://localhost/*",
       "http://127.0.0.1/*"

@@ -335,3 +335,13 @@ it("rejects mismatched marketing sources, future dates and private fields", asyn
     ).toBe(400);
   expect(mocks.updateMarketing).not.toHaveBeenCalled();
 });
+it("returns the server-verified viewer for extension pairing", async () => {
+  mocks.list.mockResolvedValue({groups:[],stats:{total:0,reviewed:0,needsReview:0}});
+  expect((await (await GET(request("GET"))).json()).viewer_id).toBe(owner);
+});
+it("denies extension saves after the signed-in account changes", async () => {
+  const changed = request("POST", {url:"https://www.facebook.com/groups/hosts/",title:"Hosts"});
+  changed.headers.set("x-staysuite-viewer", "22222222-2222-4222-8222-222222222222");
+  expect((await POST(changed)).status).toBe(409);
+  expect(mocks.repo).not.toHaveBeenCalled();
+});

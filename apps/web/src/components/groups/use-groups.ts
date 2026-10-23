@@ -42,6 +42,9 @@ export function useGroups() {
   }, []);
   useEffect(() => {
     void reload();
+    const synced = () => { void reload(); };
+    window.addEventListener("staysuite:groups-synced", synced);
+    return () => window.removeEventListener("staysuite:groups-synced", synced);
   }, [reload]);
   return { groups, stats, loading, error, reload };
 }

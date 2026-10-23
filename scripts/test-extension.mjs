@@ -2,8 +2,6 @@ import { chromium, expect } from "@playwright/test";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-const dashboardOrigin =
-  process.env.PLASMO_PUBLIC_DASHBOARD_URL || "http://localhost:3000";
 const extensionPath = resolve("apps/extension/build/chrome-mv3-prod");
 const profile = await mkdtemp(join(tmpdir(), "staysuite-extension-test-"));
 let context;
@@ -26,28 +24,12 @@ try {
   const errors = [];
   popup.on("pageerror", (error) => errors.push(error.message));
   await popup.goto(`chrome-extension://${id}/popup.html`);
-  await expect(
-    popup.getByRole("heading", { name: "Bring your groups to StaySuite." }),
-  ).toBeVisible();
-  await expect(
-    popup.getByRole("button", { name: "Collect visible groups" }),
-  ).toBeVisible();
-  await popup.getByText("Connection & privacy").click();
-  await expect(popup.getByText(/Sign in only on your dashboard/)).toBeVisible();
-  // Fulfill the dashboard navigation locally: no real backend or account is contacted.
-  await context.route(`${dashboardOrigin}/**`, (route) =>
-    route.fulfill({
-      contentType: "text/html",
-      body: "<h1>Dashboard navigation fixture</h1>",
-    }),
-  );
+  await expect(popup.getByRole("heading", {name:"Your groups, in one place."})).toBeVisible();
   const opened = context.waitForEvent("page");
-  await popup.getByRole("button", { name: "Open dashboard" }).click();
-  const dashboard = await opened;
-  await expect(dashboard).toHaveURL(`${dashboardOrigin}/dashboard/my-groups`);
-  await expect(
-    dashboard.getByRole("heading", { name: "Dashboard navigation fixture" }),
-  ).toBeVisible();
+  await popup.getByRole("button", {name:"Open Sync workspace"}).click();
+  const workspace = await opened;
+  await expect(workspace.getByRole("heading", {name:"Your groups. Together in StaySuite."})).toBeVisible();
+  await expect(workspace.getByRole("button", {name:"Sync groups",exact:true})).toBeDisabled();
   if (errors.length)
     throw new Error(`Popup runtime errors: ${errors.join("; ")}`);
   console.log(

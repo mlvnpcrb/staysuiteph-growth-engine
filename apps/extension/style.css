@@ -60,3 +60,14 @@ summary { cursor:pointer; padding:6px 0; }
 .has-batch .consent { margin:10px 0; }
 .has-batch .review-panel { margin-top:12px; }
 .has-batch .send-actions { position:static; background:var(--canvas); border-top:1px solid var(--line); padding:10px 0 1px; z-index:1; }
+.workspace { width:100%; max-width:760px; margin:auto; padding:28px; }
+.workspace .intro p { max-width:55ch; }
+.workspace-actions { display:flex; flex-wrap:wrap; gap:14px; align-items:center; }
+.workspace-actions a { font-size:12px; }
+.workspace-error { color:var(--error); border-left:3px solid currentColor; padding-left:12px; }
+.search-label { display:block; margin:20px 0 12px; font-size:12px; }
+.search-label input { display:block; width:100%; margin-top:6px; background:var(--paper); color:var(--ink); padding:10px; border:1px solid var(--line); border-radius:6px; }
+.workspace-list { padding:0; list-style:none; max-height:360px; overflow:auto; }
+.workspace-list li { display:flex; justify-content:space-between; gap:16px; padding:12px 0; border-top:1px solid var(--line); }
+.workspace-list span { color:var(--muted); font-size:11px; flex-shrink:0; }
+@media(max-width:440px) { .workspace { padding:18px; } .workspace-list li { display:block; } .workspace-list span { display:block; } }

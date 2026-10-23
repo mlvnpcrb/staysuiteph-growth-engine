@@ -213,8 +213,9 @@ export function CollectionImport({
         </a>
       </div>
       <p className="muted">
-        Collects groups currently visible on your Facebook page. Scroll to load
-        more.
+        Use Sync groups in the StaySuite extension workspace to scan your visible
+        Facebook directory and save new groups here automatically. File imports
+        below remain available for review.
       </p>
       <details>
         <summary>Setup &amp; connection help</summary>
