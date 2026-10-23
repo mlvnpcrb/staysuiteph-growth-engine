@@ -44,3 +44,12 @@ it("fails closed on malformed replies and discards unknown credential fields",as
 it("accepts a validated empty complete list without keeping old membership records",async()=>{
   const result=await run(async()=>page([]),{initial:{...initial,groups:[group(99)]}});expect(result.complete).toBe(true);expect(result.groups).toEqual([]);
 });
+
+it("preserves numeric application errors without retrying or accepting raw diagnostic fields",async()=>{
+  const diagnostic={stage:"response_errors",httpStatus:200,query:"initial",querySource:"reviewed_fallback",facebookErrorCode:1357004};
+  const read=vi.fn().mockResolvedValue({error:"facebook_error",diagnostic});
+  const result=await run(read);
+  expect(result.error).toBe("facebook_error");expect(result.diagnostic).toEqual(diagnostic);expect(result.complete).toBe(false);expect(result.pages).toBe(0);expect(read).toHaveBeenCalledTimes(1);
+  const unsafe=await run(async()=>({error:"facebook_error",diagnostic:{...diagnostic,errorSummary:"DO_NOT_EXPORT"}}));
+  expect(unsafe.diagnostic).toBeNull();expect(JSON.stringify(unsafe)).not.toContain("DO_NOT_EXPORT");
+});

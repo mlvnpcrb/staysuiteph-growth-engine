@@ -1,5 +1,6 @@
 import { facebookErrorSchema, type FacebookError } from "@staysuite/validation";
 export const facebookMessages: Record<FacebookError, string> = {
+  facebook_error: "Facebook returned an application error. Collection stopped. Download diagnostics for the error code.",
   permission_required: "Allow Facebook site access and local identity-cookie access to connect.",
   signed_out: "Sign in to Facebook in this browser, then connect again.",
   page_profile: "Facebook is acting as a Page. Switch to your personal profile, then reconnect.",

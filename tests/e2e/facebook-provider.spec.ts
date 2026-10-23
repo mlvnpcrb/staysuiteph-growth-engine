@@ -52,7 +52,7 @@ test("rate limiting and unrecognized responses stop without retries or raw error
   let requests=0;
   await page.route("https://www.facebook.com/**",route=>{if(new URL(route.request().url()).pathname==="/api/graphql/"){requests++;return requests===1?route.fulfill({status:429,body:"sensitive response"}):route.fulfill({json:{errors:[{message:csrf}]}});}return route.fulfill({contentType:"text/html",body:markup()});});
   await page.goto("https://www.facebook.com/groups/joins/");expect(await invoke(page)).toMatchObject({error:"rate_limited"});expect(requests).toBe(1);
-  expect(await invoke(page)).toMatchObject({error:"unsupported"});expect(requests).toBe(2);
+  expect(await invoke(page)).toMatchObject({error:"facebook_error"});expect(requests).toBe(2);
 });
 
 test("account probe returns public identity without making a group request or returning request tokens",async({page})=>{
@@ -144,4 +144,18 @@ test("account changes during module loading stop before any group request",async
   });
   await page.goto("https://www.facebook.com/groups/joins/");
   expect(await invoke(page)).toMatchObject({error:"account_changed"});expect(requests).toBe(0);
+});
+
+test("HTTP 200 application errors stop before connection parsing and expose only numeric codes",async({page})=>{
+  let requests=0;
+  await page.route("https://www.facebook.com/**",route=>{
+    if(new URL(route.request().url()).pathname==="/api/graphql/"){
+      requests++;return route.fulfill({json:{__ar:1,error:1357004,errorSummary:csrf,errorDescription:lsd,payload:{privateField:"PRIVATE"}}});
+    }
+    return route.fulfill({contentType:"text/html",body:markup()});
+  });
+  await page.goto("https://www.facebook.com/groups/joins/");
+  const result=await invoke(page);
+  expect(result).toMatchObject({error:"facebook_error",diagnostic:{stage:"response_errors",httpStatus:200,facebookErrorCode:1357004}});
+  expect(requests).toBe(1);expect(JSON.stringify(result)).not.toContain(csrf);expect(JSON.stringify(result)).not.toContain(lsd);expect(JSON.stringify(result)).not.toContain("PRIVATE");
 });

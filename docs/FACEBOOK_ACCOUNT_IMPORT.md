@@ -148,3 +148,36 @@ wrong-name rejection, loader timeout, and an account change during module loadin
 These are concrete compatibility changes, not a verified repair for the owner's
 live Facebook response. Existing fallback IDs are still used if Facebook cannot
 supply the current artifact. All response validation and stop conditions remain.
+
+## Live follow-up and popup layout (0.2.3)
+
+The owner's second diagnostic (0.2.2) still used `reviewed_fallback`, returned HTTP
+200 and had no top-level data object. All structural flags were false. The owner
+also reports that the supplied reference extension currently fails in the same
+Chrome profile. Neither report establishes the exact Facebook application error,
+a universal outage, or that the account is restricted. The earlier query-loading
+changes did not resolve this live failure.
+
+0.2.3 fixes the narrow popup: explicit 640px body/content width avoids viewport
+clamping during Chrome popup sizing, with a 600px scroll area. The separate full
+workspace opens at 960x820. The standalone workspace remains responsive. Buttons
+can share a row, group counts do not wrap, and the privacy explanation is an
+accessible disclosure instead of a permanently expanded paragraph.
+
+Response handling now distinguishes HTTP 200 application errors (`error` or
+nonempty `errors`) from a missing group connection. Only a bounded integer error
+code may cross the page boundary; summaries/descriptions/response contents never
+do. Unknown codes do not infer an account restriction or trigger automatic retries.
+These changes do not repair or establish live group collection. Further protocol
+changes need live evidence rather than more guessed document IDs.
+
+The owner reaffirmed a single **Sync Groups** action and rejected manual file
+imports. No file-import feature is included. The primary action uses that label
+for both initial permission/connection and later refreshes; it still invokes the
+same bounded read-only provider. Relabeling is not evidence of working sync.
+A plain public configuration GET to the reference vendor was attempted without
+vendor identity headers, cookies or credentials. The environment proxy rejected
+the CONNECT with HTTP 403; this is not evidence of the vendor's own HTTP response
+or current service availability. No workaround or vendor configuration dependency
+was added. Further live debugging requires Facebook's actual application error
+or response structure; the agent cannot inspect the owner's signed-in Chrome.

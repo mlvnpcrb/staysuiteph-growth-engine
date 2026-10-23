@@ -20,7 +20,7 @@ try {
   const opened=context.waitForEvent("page");await popup.getByRole("button",{name:"Open full workspace"}).click();
   const workspace=await opened;
   await expect(workspace.getByRole("heading",{name:"Your Facebook groups."})).toBeVisible();
-  await expect(workspace.getByRole("button",{name:"Connect Facebook"})).toBeEnabled();
+  await expect(workspace.getByRole("button",{name:"Sync Groups"})).toBeEnabled();
   await expect(workspace.getByRole("button",{name:"Save groups to My Groups"})).toBeDisabled();
   if(errors.length)throw new Error("Extension launch produced runtime errors.");
   await workspace.close();await popup.close();
@@ -51,7 +51,7 @@ try {
   const facebook=await context.newPage();await facebook.goto("https://www.facebook.com/groups/joins/");
   const installed=await session.send("Extensions.loadUnpacked",{path:fixturePath});
   const connected=await context.newPage();await connected.goto(`chrome-extension://${installed.id}/popup.html`);
-  await connected.getByRole("button",{name:"Refresh groups"}).click();
+  await connected.getByRole("button",{name:"Sync Groups"}).click();
   await expect(connected.getByRole("button",{name:"Stop collection"})).toBeVisible();
   await expect(connected.locator(".workspace-list li")).toHaveCount(6,{timeout:45000});
   await connected.close();releaseSecond();

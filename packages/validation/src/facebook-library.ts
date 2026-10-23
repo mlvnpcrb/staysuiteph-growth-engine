@@ -2,13 +2,14 @@ import { z } from "zod";
 import { collectedGroupSchema } from "./group-collection";
 export const facebookActorSchema = z.string().regex(/^[1-9]\d{0,79}$/);
 export const facebookErrorSchema = z.enum([
-  "permission_required", "signed_out", "page_profile", "account_changed", "challenge",
+  "facebook_error", "permission_required", "signed_out", "page_profile", "account_changed", "challenge",
   "rate_limited", "access_denied", "network", "unsupported", "malformed_response",
   "repeated_cursor", "limit", "cancelled", "interrupted", "storage", "busy",
 ]);
 export type FacebookError = z.infer<typeof facebookErrorSchema>;
 export const facebookDiagnosticSchema = z.object({
   stage: z.enum(["collector_start","page_load","page_injection","checkpoint","input","page_guard","bootstrap_identity","bootstrap_tokens","request","response_json","response_errors","group_connection","group_nodes","pagination","actor_recheck"]),
+  facebookErrorCode: z.number().int().min(1).max(2147483647).nullable().optional(),
   httpStatus: z.number().int().min(100).max(599).nullable(),
   query: z.enum(["not_started","initial","pagination"]),
   querySource: z.enum(["not_started","page_module","reviewed_fallback"]),

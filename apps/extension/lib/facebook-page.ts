@@ -7,8 +7,9 @@
 export async function readFacebookGroupPage(actorId: string, cursor: string | null, probeOnly = false) {
   let stage = "input", httpStatus: number | null = null;
   let querySource = "reviewed_fallback";
+  let facebookErrorCode: number | null = null;
   let structure: {data: boolean; viewer: boolean; groupsTab: boolean; connection: boolean; edges: boolean; pageInfo: boolean; hasNextPage: boolean} | undefined;
-  const failure = (error: string) => ({ error, diagnostic: {stage,httpStatus,query:cursor === null ? "initial" : "pagination",querySource,...(structure ? {structure} : {})} });
+  const failure = (error: string) => ({ error, diagnostic: {stage,httpStatus,query:cursor === null ? "initial" : "pagination",querySource,facebookErrorCode,...(structure ? {structure} : {})} });
   if (!/^[1-9]\d{0,79}$/.test(actorId) || (cursor !== null && (typeof cursor !== "string" || !cursor.length || cursor.length > 4096))) return failure("malformed_response");
   if (location.origin !== "https://www.facebook.com") return failure("access_denied");
   stage = "page_guard";
@@ -109,7 +110,13 @@ export async function readFacebookGroupPage(actorId: string, cursor: string | nu
     const object = (value: unknown): Record<string, unknown> | null => value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
     stage = "response_errors";
     const root = object(payload);
-    if (!root || (Array.isArray(root.errors) && root.errors.length)) return failure("unsupported");
+    if (!root) return failure("unsupported");
+    // HTTP success is not application success. Preserve only a bounded numeric
+    // error code; never return Facebook error text, descriptions or payloads.
+    const errors = Array.isArray(root.errors) ? root.errors : [];
+    const candidateCode = typeof root.error === "number" ? root.error : object(root.error)?.code ?? object(errors[0])?.code;
+    if (typeof candidateCode === "number" && Number.isInteger(candidateCode) && candidateCode > 0 && candidateCode <= 2147483647) facebookErrorCode = candidateCode;
+    if (root.error || errors.length) return failure("facebook_error");
     stage = "group_connection";
     const data = object(root.data);
     const viewer = object(data?.viewer);

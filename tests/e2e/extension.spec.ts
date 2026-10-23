@@ -41,7 +41,7 @@ test("popup launches a workspace with Facebook connection independent of StaySui
 test("denied Facebook permission does not start collection; workspace is accessible in both themes",async({context,page})=>{
   await serve(context);await bridge(context,true);
   await page.goto("http://extension-fixture.test/tabs/groups.html");
-  await page.getByRole("button",{name:"Connect Facebook"}).click();
+  await page.getByRole("button",{name:"Sync Groups"}).click();
   await expect(page.getByRole("alert")).toContainText("No account data was read");
   expect(await page.evaluate(()=>localStorage.getItem("fixture-starts"))).toBeNull();
   for(const colorScheme of ["light","dark"] as const){await page.emulateMedia({colorScheme});expect((await new AxeBuilder({page}).withTags(["wcag2a","wcag2aa","wcag21aa"]).analyze()).violations).toEqual([]);}
@@ -49,7 +49,7 @@ test("denied Facebook permission does not start collection; workspace is accessi
 test("Connect Facebook automatically fills the library and reopening restores it without a second import",async({context,page})=>{
   await serve(context);await bridge(context);
   await page.goto("http://extension-fixture.test/tabs/groups.html");
-  await page.getByRole("button",{name:"Connect Facebook"}).click();
+  await page.getByRole("button",{name:"Sync Groups"}).click();
   await expect(page.locator(".workspace-list li")).toHaveCount(12);
   await expect(page.getByText("Group-list pagination completed.",{exact:false})).toBeVisible();
   await expect(page.getByRole("button",{name:"Save groups to My Groups"})).toBeDisabled();
