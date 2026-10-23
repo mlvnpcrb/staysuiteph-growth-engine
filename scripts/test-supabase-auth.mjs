@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { testNativeCampaign } from "./test-native-campaign.mjs";
 import { testCampaignQueue } from "./test-campaign-queue.mjs";
 import { createRequire } from "node:module";
 import { execFileSync, spawn } from "node:child_process";
@@ -363,6 +364,101 @@ async function main() {
       "PASS: real editor create/title/notes/image upload, signed retrieval after reload, edit, duplicate and delete with private object cleanup; no Facebook requests",
     );
 
+    stage =
+      "isolated live-validation HTTP contract (synthetic receipt; no Facebook requests)";
+    const validationId = randomUUID();
+    let trial = (
+      await (
+        await page.request.post(`${origin}/api/campaigns`, {
+          headers: { Origin: origin },
+          data: {
+            id: validationId,
+            revision: 0,
+            command: "create",
+            payload: {
+              title: "Disposable validation contract",
+              actor_id: "424242",
+              actor_type: "personal",
+              plan: {
+                version: 1,
+                text: "Disposable fixture only",
+                intervalMinutes: 2,
+                groupIds: [campaignChecks.groupId],
+                media: [],
+              },
+              settings: { avoidNight: false },
+            },
+          },
+        })
+      ).json()
+    ).job;
+    const callTrial = async (command, payload) => {
+      const response = await page.request.post(`${origin}/api/campaigns`, {
+        headers: { Origin: origin },
+        data: { id: validationId, revision: trial.revision, command, payload },
+      });
+      assert.equal(
+        response.status(),
+        200,
+        `Validation contract ${command} returned ${response.status()}`,
+      );
+      trial = (await response.json()).job;
+      return trial;
+    };
+    await callTrial("approve", { digest: trial.digest });
+    await callTrial("validate_one", {
+      actor_id: "424242",
+      adapter_version: "0.3.2",
+      reviewed: true,
+      digest: trial.digest,
+      target_id: trial.targets[0].id,
+    });
+    assert.equal(trial.targets.filter((t) => t.state === "claimed").length, 1);
+    const trialStatus = async () =>
+      (
+        await (
+          await page.request.get(
+            `${origin}/api/campaigns/publisher?actor_id=424242`,
+          )
+        ).json()
+      ).classic;
+    assert.equal(await trialStatus(), false);
+    const syntheticReceipt =
+      "https://www.facebook.com/groups/987654321/posts/54321/";
+    await callTrial("report", {
+      attempt_token: trial.targets[0].attempt_token,
+      outcome: "live",
+      post_url: syntheticReceipt,
+      provider_code: "reported_ui_receipt",
+    });
+    assert.equal(await trialStatus(), false);
+    await callTrial("confirm_validation", {
+      actor_id: "424242",
+      adapter_version: "0.3.2",
+      reviewed: true,
+      digest: trial.digest,
+      post_url: syntheticReceipt,
+    });
+    assert.equal(await trialStatus(), true);
+    const removeTrial = await page.request.delete(`${origin}/api/campaigns`, {
+      headers: { Origin: origin },
+      data: { id: validationId, revision: trial.revision },
+    });
+    assert.equal(removeTrial.status(), 200);
+    assert.equal(await trialStatus(), false);
+    console.log(
+      "PASS: isolated HTTP single-validation claim, synthetic receipt, explicit owner confirmation, actor-scoped availability and deletion revocation; no Facebook requests or live posting proof",
+    );
+
+    await testNativeCampaign({
+      context,
+      admin,
+      origin,
+      groupId: campaignChecks.groupId,
+      onStage: (value) => {
+        stage = value;
+      },
+    });
     stage = "automatic SSR refresh";
     const initial = await storedSession();
     assert.ok(

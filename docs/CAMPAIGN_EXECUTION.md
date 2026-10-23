@@ -147,3 +147,44 @@ media downloads/navigation. The page adapter receives the lease deadline and
 checks it during its guarded waits and before submitting. Expiry before a click
 sends nothing; an interrupted/expired dispatched action remains uncertain and is
 never automatically retried.
+
+## Owner-controlled live validation (extension 0.3.2)
+
+The owner requested continuation until publishing works. A fresh, saved and
+backend-approved campaign can now perform ONE explicitly authorized validation
+post to its displayed first group. The UI requires a separate one-post consent
+and a confirmation dialog naming that group, profile and attachment count. This
+is an actual Facebook submission when operated in the owner's browser, not a
+composer-only check. Implementation/CI does not operate that live button.
+
+The transactional validate_one command validates ownership, revision, actor,
+current exact approval/group permissions, media bounds and server eligibility. It
+claims only the first target, allows at most one validation attempt per campaign,
+and uses the same actor-wide submission lock. The normal bulk publisher flags
+remain disabled. All other targets wait after the validation receipt. Unknown or
+restricted outcomes hold the queue; no automatic validation retry is permitted.
+
+Only after a matching reported post receipt exists can the owner inspect the post
+and explicitly confirm_validation. That records owner-attested compatibility for
+this StaySuite account, personal Facebook profile and adapter version 0.3.2. It
+expires after seven days, deletion of its receipt, or a failed/uncertain subsequent
+result. It is not an independent Meta verification or a ban guarantee. Other users,
+profiles, adapter versions and Direct publishing do not inherit it. Confirmation
+does not resume a campaign: exact review and Start are separate explicit actions.
+
+Owner-scoped readiness is read through campaign_publisher_ready. The private
+validation tables deny direct client access and have RLS. Private readiness is
+exposed through an invoker wrapper; no service-role key or Facebook credential is
+exported. The old global publisher flags are not enabled by this migration.
+
+Provider diagnostics store bounded reason codes only. Download posting diagnostics
+omits draft text, media names, account/group IDs, cookies, tokens and post URLs.
+The Classic attachment path can open a uniquely labelled Photo/video control and
+select the appropriate file input; it still stops on ambiguous UI or existing drafts.
+
+CI additionally launches the actual native MV3 campaign workspace against real
+isolated Next.js/Supabase and intercepted synthetic Facebook DOM. It exercises
+private media retrieval, exact approval, one submission/receipt, explicit owner
+confirmation and cleanup. Passing that test establishes integration, not live
+Facebook compatibility. Hosted Google login completion and owner-session Facebook
+posting remain separate, requiring the owner's browser and selected campaign.

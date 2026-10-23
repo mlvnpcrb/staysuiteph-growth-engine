@@ -44,6 +44,19 @@ export async function executeCampaignTarget(port: ExecutorPort, id: string) {
     command: "claim",
     payload: actor,
   });
+  return executeClaimedCampaignTarget(port, job, actor);
+}
+export async function executeClaimedCampaignTarget(
+  port: ExecutorPort,
+  job: CampaignJob,
+  expectedActor?: { actor_id: string; actor_type: "personal" | "page" },
+) {
+  const id = job.id;
+  if (job.state !== "running" || job.settings.method !== "classic")
+    throw new Error("No running Classic submission claim.");
+  const actor = expectedActor ?? (await port.actor());
+  if (job.actor_id !== actor.actor_id || job.actor_type !== actor.actor_type)
+    throw new Error("Facebook identity changed. Nothing was sent.");
   const target = job.targets.find((t) => t.state === "claimed");
   if (!target) return job;
   if (!target.attempt_token) throw new Error("Submission claim missing.");
@@ -95,6 +108,9 @@ export async function executeCampaignTarget(port: ExecutorPort, id: string) {
     payload: {
       attempt_token: target.attempt_token,
       outcome,
+      ...(/^[a-z_]{1,64}$/.test(receipt.code)
+        ? { provider_code: receipt.code }
+        : {}),
       ...(receipt.postUrl ? { post_url: receipt.postUrl } : {}),
     },
   });

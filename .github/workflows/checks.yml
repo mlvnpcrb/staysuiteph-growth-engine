@@ -26,7 +26,7 @@ jobs:
       - run: pnpm build
       - uses: actions/upload-artifact@v4
         with:
-          name: staysuite-extension-0.3.1
+          name: staysuite-extension-0.3.2
           path: apps/extension/build/chrome-mv3-prod/
           retention-days: 14
   browser:
@@ -88,6 +88,7 @@ jobs:
       - name: Check campaign storage and claims before browser installation
         run: pnpm test:supabase:auth --queue-only
       - run: pnpm --filter @staysuite/web build
+      - run: pnpm --filter @staysuite/extension build
       - name: Use runner Chrome for authenticated database checks
         run: |
           staysuite_auth_browser="$(command -v google-chrome)"

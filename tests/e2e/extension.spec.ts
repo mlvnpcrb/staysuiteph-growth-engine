@@ -328,7 +328,10 @@ test("campaign workspace connects the scoped dashboard but never starts an unval
               ];
             const path = args[2],
               command = args[3] as { command: string } | null;
-            if (path === "/api/campaigns/publisher")
+            if (
+              typeof path === "string" &&
+              path.startsWith("/api/campaigns/publisher")
+            )
               return [
                 { result: { data: { viewer_id: owner, classic: false } } },
               ];
@@ -365,11 +368,15 @@ test("campaign workspace connects the scoped dashboard but never starts an unval
   await expect(
     page.getByText("Fixture accommodation offer", { exact: true }),
   ).toBeVisible();
-  await page.getByRole("checkbox").check();
+  await page
+    .getByRole("checkbox", { name: /I reviewed this exact text/ })
+    .check();
   await page
     .getByRole("button", { name: "Approve saved campaign", exact: true })
     .click();
-  await page.getByRole("checkbox").check();
+  await page
+    .getByRole("checkbox", { name: /I reviewed this exact text/ })
+    .check();
   await expect(
     page.getByRole("button", { name: "Start sequential posting" }),
   ).toBeDisabled();

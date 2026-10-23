@@ -17,7 +17,11 @@ export async function campaignDashboardRequest(
     !location.pathname.startsWith("/dashboard/")
   )
     return { error: "Open a signed-in StaySuite dashboard tab first." };
-  if (!/^\/api\/(campaigns(?:\?id=[0-9a-f-]+|\/publisher)?|groups)$/.test(path))
+  if (
+    !/^\/api\/(campaigns(?:\?id=[0-9a-f-]+|\/publisher(?:\?actor_id=[1-9][0-9]{0,79})?)?|groups)$/.test(
+      path,
+    )
+  )
     return { error: "Unsupported campaign request." };
   try {
     const response = await fetch(path, {
@@ -86,6 +90,8 @@ export function campaignDashboard(
       if (
         ![
           "inspect",
+          "validate_one",
+          "confirm_validation",
           "bind_actor",
           "approve",
           "start",

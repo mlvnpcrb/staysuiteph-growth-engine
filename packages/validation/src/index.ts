@@ -76,3 +76,5 @@ export {
   campaignDeleteReplySchema,
   campaignRestoreSchema,
 } from "./campaign-execution";
+
+export { campaignActorIdSchema } from "./campaign-execution";

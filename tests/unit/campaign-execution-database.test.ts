@@ -16,6 +16,7 @@ it("transactional campaign commands isolate owners and fail closed before publis
       "20261023020000_group_marketing_evidence.sql",
       "20261023110003_campaign_execution.sql",
       "20261023145846_campaign_management.sql",
+      "20261023215918_campaign_live_validation.sql",
     ])
       await db.exec(
         await readFile(
@@ -112,6 +113,167 @@ it("transactional campaign commands isolate owners and fail closed before publis
     await expect(cmd("cancel", job.revision)).rejects.toMatchObject({
       code: "42501",
     });
+    await db.exec(
+      `select set_config('request.jwt.claim.sub','${owner}',false)`,
+    );
+    const pilotId = "66666666-6666-4666-8666-666666666666";
+    let pilot = await cmd(
+      "create",
+      0,
+      {
+        actor_id: "54321",
+        actor_type: "personal",
+        plan,
+        settings: { avoidNight: false },
+      },
+      pilotId,
+    );
+    pilot = await cmd(
+      "approve",
+      pilot.revision,
+      { digest: pilot.digest },
+      pilotId,
+    );
+    const validation = {
+      actor_id: "54321",
+      adapter_version: "0.3.2",
+      reviewed: true,
+      digest: pilot.digest,
+      target_id: pilot.targets[0]!.id,
+    };
+    await expect(
+      cmd(
+        "validate_one",
+        pilot.revision,
+        { ...validation, reviewed: false },
+        pilotId,
+      ),
+    ).rejects.toMatchObject({ code: "22023" });
+    await expect(
+      cmd(
+        "validate_one",
+        pilot.revision,
+        { ...validation, target_id: pilot.targets[1]!.id },
+        pilotId,
+      ),
+    ).rejects.toMatchObject({ code: "22023" });
+    await expect(
+      cmd(
+        "validate_one",
+        pilot.revision,
+        { ...validation, adapter_version: "0.3.1" },
+        pilotId,
+      ),
+    ).rejects.toMatchObject({ code: "22023" });
+    await db.exec(
+      `reset role;update public.campaign_jobs set next_eligible_at=now()+interval '1 hour' where id='${pilotId}';set role authenticated`,
+    );
+    pilot = await cmd("validate_one", pilot.revision, validation, pilotId);
+    expect(pilot.state).toBe("ready");
+    expect(pilot.targets.every((t) => t.state === "queued")).toBe(true);
+    await db.exec(
+      `reset role;update public.campaign_jobs set next_eligible_at=now()-interval '1 second' where id='${pilotId}';set role authenticated`,
+    );
+    pilot = await cmd("validate_one", pilot.revision, validation, pilotId);
+    expect(pilot.targets.filter((t) => t.state === "claimed")).toHaveLength(1);
+    expect(pilot.targets[1]!.state).toBe("queued");
+    await expect(
+      cmd("validate_one", pilot.revision, validation, pilotId),
+    ).rejects.toMatchObject({ code: "22023" });
+    pilot = await cmd(
+      "report",
+      0,
+      {
+        attempt_token: pilot.targets[0]!.attempt_token,
+        outcome: "live",
+        post_url: `https://www.facebook.com/groups/${groupIds[0]}/posts/123/`,
+      },
+      pilotId,
+    );
+    expect(pilot.state).toBe("paused");
+    expect(pilot.targets[1]!.state).toBe("queued");
+    const available = async (actor = "54321") =>
+      (
+        await db.query<{ ready: boolean }>(
+          "select public.campaign_publisher_ready($1) ready",
+          [actor],
+        )
+      ).rows[0]!.ready;
+    expect(await available()).toBe(false);
+    await expect(
+      cmd(
+        "resume",
+        pilot.revision,
+        { actor_id: "54321", actor_type: "personal" },
+        pilotId,
+      ),
+    ).rejects.toMatchObject({ code: "55000" });
+    const confirm = {
+      actor_id: "54321",
+      adapter_version: "0.3.2",
+      reviewed: true,
+      digest: pilot.digest,
+      post_url: `https://www.facebook.com/groups/${groupIds[0]}/posts/123/`,
+    };
+    await expect(
+      cmd(
+        "confirm_validation",
+        pilot.revision,
+        {
+          ...confirm,
+          post_url: `https://www.facebook.com/groups/${groupIds[0]}/posts/999/`,
+        },
+        pilotId,
+      ),
+    ).rejects.toMatchObject({ code: "22023" });
+    pilot = await cmd("confirm_validation", pilot.revision, confirm, pilotId);
+    expect(await available()).toBe(true);
+    expect(await available("12345")).toBe(false);
+    await db.exec(
+      `select set_config('request.jwt.claim.sub','${other}',false)`,
+    );
+    expect(await available()).toBe(false);
+    await db.exec(
+      `select set_config('request.jwt.claim.sub','${owner}',false)`,
+    );
+    await db.exec(
+      "reset role;update staysuite_campaign_private.actor_validations set verified_at=now()-interval '8 days';set role authenticated",
+    );
+    expect(await available()).toBe(false);
+    await db.exec(
+      "reset role;update staysuite_campaign_private.actor_validations set verified_at=now();update public.campaign_jobs set next_eligible_at=now()-interval '1 second' where actor_id='54321';set role authenticated",
+    );
+    pilot = await cmd(
+      "resume",
+      pilot.revision,
+      { actor_id: "54321", actor_type: "personal" },
+      pilotId,
+    );
+    pilot = await cmd(
+      "claim",
+      pilot.revision,
+      { actor_id: "54321", actor_type: "personal" },
+      pilotId,
+    );
+    expect(pilot.targets[1]!.state).toBe("claimed");
+    pilot = await cmd(
+      "report",
+      0,
+      { attempt_token: pilot.targets[1]!.attempt_token, outcome: "refused" },
+      pilotId,
+    );
+    expect(pilot.state).toBe("blocked");
+    expect(await available()).toBe(false);
+    const pilotDelete = (
+      await db.query<{ result: Job }>(
+        "select public.campaign_delete($1,$2,false) result",
+        [pilotId, pilot.revision],
+      )
+    ).rows[0]!.result;
+    await db.query("select public.campaign_delete($1,$2,true)", [
+      pilotId,
+      pilotDelete.revision,
+    ]);
     await db.exec(
       `reset role;update public.campaign_publishers set enabled=true,verified_at=now() where method='classic';set role authenticated;select set_config('request.jwt.claim.sub','${owner}',false)`,
     );

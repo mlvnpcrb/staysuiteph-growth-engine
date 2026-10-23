@@ -89,8 +89,9 @@ export function PostingQueue() {
       </div>
       <section className="panel">
         <p className="muted">
-          Publishing is unavailable while the Facebook adapter is unverified. No
-          campaign runs automatically.
+          Run and pause campaigns from your connected Chrome extension. A
+          single-post validation and your explicit result confirmation are
+          required before bulk publishing. Nothing starts from this queue page.
         </p>
         <Button variant="outline" disabled={busy} onClick={() => void load()}>
           Refresh queue

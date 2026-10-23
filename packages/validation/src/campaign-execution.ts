@@ -34,6 +34,29 @@ const payloads = {
       settings: campaignSettingsSchema.optional(),
     })
     .strict(),
+  validate_one: z
+    .object({
+      actor_id: actor.actor_id,
+      adapter_version: z.literal("0.3.2"),
+      reviewed: z.literal(true),
+      digest: z.string().regex(/^[a-f0-9]{64}$/),
+      target_id: z.uuid(),
+    })
+    .strict(),
+  confirm_validation: z
+    .object({
+      actor_id: actor.actor_id,
+      adapter_version: z.literal("0.3.2"),
+      reviewed: z.literal(true),
+      digest: z.string().regex(/^[a-f0-9]{64}$/),
+      post_url: z
+        .string()
+        .max(500)
+        .regex(
+          /^https:\/\/www\.facebook\.com\/groups\/[^/?#]+\/posts\/[0-9]+\/?$/,
+        ),
+    })
+    .strict(),
   inspect: z.object({}).strict(),
   bind_actor: z.object(actor).strict(),
   reserve_media: z
@@ -50,6 +73,10 @@ const payloads = {
   report: z
     .object({
       attempt_token: z.uuid(),
+      provider_code: z
+        .string()
+        .regex(/^[a-z_]{1,64}$/)
+        .optional(),
       outcome: z.enum([
         "live",
         "pending_admin",
@@ -89,6 +116,8 @@ export const campaignCommandSchema = z
       "create",
       "edit",
       "inspect",
+      "validate_one",
+      "confirm_validation",
       "bind_actor",
       "reserve_media",
       "media_uploaded",
@@ -163,6 +192,11 @@ export const campaignJobSchema = z.object({
         )
         .nullable(),
       receipt_source: z.enum(["extension_report", "user_review"]).nullable(),
+      provider_code: z
+        .string()
+        .regex(/^[a-z_]{1,64}$/)
+        .nullable()
+        .optional(),
     }),
   ),
   media: z.array(
@@ -216,3 +250,5 @@ export const campaignRestoreSchema = z.object({
   viewer_id: z.uuid(),
   assets: z.array(z.object({ id: z.uuid(), url: z.url() })),
 });
+
+export const campaignActorIdSchema = actor.actor_id;

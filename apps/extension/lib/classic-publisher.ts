@@ -231,12 +231,34 @@ export async function classicPublisherPage(
     if (normalize(editor.innerText) !== normalize(input.text))
       return result("not_sent", "text_changed");
     if (files.length) {
-      const inputs = Array.from(
-        dialog.querySelectorAll<HTMLInputElement>('input[type="file"]'),
-      ).filter(
-        (node) =>
-          node.accept.includes("image") || node.accept.includes("video"),
-      );
+      const accepts = (node: HTMLInputElement) =>
+        files[0]?.type.startsWith("video/")
+          ? node.accept.includes("video")
+          : node.accept.includes("image");
+      const candidates = () =>
+        Array.from(
+          dialog!.querySelectorAll<HTMLInputElement>('input[type="file"]'),
+        ).filter(accepts);
+      let inputs = candidates();
+      if (inputs.length === 0) {
+        const adders = Array.from(
+          dialog.querySelectorAll<HTMLElement>('button,[role="button"]'),
+        )
+          .filter(visible)
+          .filter((node) =>
+            /^(photo\/video|photo or video|add photos?\/?videos?|larawan\/video)$/i.test(
+              normalize(node.getAttribute("aria-label") || node.innerText),
+            ),
+          );
+        if (adders.length !== 1)
+          return result("not_sent", "media_input_unavailable");
+        adders[0]!.click();
+        for (let i = 0; i < 80 && inputs.length === 0; i++) {
+          await wait();
+          guard();
+          inputs = candidates();
+        }
+      }
       if (inputs.length !== 1)
         return result("not_sent", "media_input_unavailable");
       const transfer = new DataTransfer();

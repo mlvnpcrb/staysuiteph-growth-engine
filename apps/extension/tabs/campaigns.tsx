@@ -17,11 +17,18 @@ import {
 } from "../lib/classic-publisher";
 import {
   executeCampaignTarget,
+  executeClaimedCampaignTarget,
   campaignClaimCurrent,
 } from "../lib/campaign-executor";
+import {
+  postingDiagnostics,
+  postingMessages,
+} from "../lib/posting-diagnostics";
 import "../style.css";
 type Connection = { tabId: number; origin: string; viewer: string };
 export default function CampaignWorkspace() {
+  const [validationReviewed, setValidationReviewed] = useState(false);
+  const [receiptReviewed, setReceiptReviewed] = useState(false);
   const [groups, setGroups] = useState<SavedGroup[]>([]);
   const [url, setUrl] = useState(
     process.env.PLASMO_PUBLIC_DASHBOARD_URL || "http://localhost:3000",
@@ -54,6 +61,8 @@ export default function CampaignWorkspace() {
     : null;
   function clearApproval() {
     setConfirmed(false);
+    setValidationReviewed(false);
+    setReceiptReviewed(false);
   }
   async function readActor() {
     if (activeFacebook.current === null) {
@@ -118,11 +127,13 @@ export default function CampaignWorkspace() {
       const first = campaignDashboard(tab.id, origin, "");
       const campaigns = await first.list();
       const session = { tabId: tab.id, origin, viewer: campaigns.viewer_id };
+      activeFacebook.current = null;
+      const identity = await readActor();
       const publisher = await campaignDashboard(
         tab.id,
         origin,
         session.viewer,
-      ).read("/api/campaigns/publisher");
+      ).read(`/api/campaigns/publisher?actor_id=${identity.actor_id}`);
       if (
         !publisher ||
         typeof publisher !== "object" ||
@@ -132,8 +143,6 @@ export default function CampaignWorkspace() {
         typeof publisher.classic !== "boolean"
       )
         throw new Error("Publisher response did not match your account.");
-      activeFacebook.current = null;
-      const identity = await readActor();
       const savedGroups = groupResponseSchema.parse(
         await campaignDashboard(tab.id, origin, session.viewer).read(
           "/api/groups",
@@ -294,11 +303,12 @@ export default function CampaignWorkspace() {
   async function publish(
     current: CampaignJob,
     target: CampaignJob["targets"][number],
+    validationOnly = false,
   ) {
     if (
       !bridge ||
       !connection ||
-      !enabled ||
+      (!enabled && !validationOnly) ||
       controller.current?.signal.aborted
     )
       throw new Error("Execution stopped.");
@@ -392,6 +402,130 @@ export default function CampaignWorkspace() {
       throw new Error("Facebook submission response was interrupted.");
     return response;
   }
+  async function validateOne() {
+    if (!bridge || !job || !actor || !validationReviewed || pending.current)
+      return;
+    const target = job.targets[0];
+    if (!target) return;
+    const group = groups.find((g) => g.id === target.group_id);
+    if (!group) {
+      setNotice("The first target group is unavailable. Refresh StaySuite.");
+      return;
+    }
+    if (
+      !window.confirm(
+        `Publish ONE real validation post to ${group.title} as profile ${actor.actor_id}? This sends the exact displayed text and ${job.plan.media.length} attachment(s). Other groups will wait.`,
+      )
+    )
+      return;
+    pending.current = true;
+    controller.current = new AbortController();
+    setBusy(true);
+    setRunning(true);
+    clearApproval();
+    try {
+      const identity = await readActor();
+      if (
+        identity.actor_id !== actor.actor_id ||
+        job.actor_id !== identity.actor_id
+      )
+        throw new Error("Facebook profile changed. Reconnect.");
+      const claimed = await bridge.command({
+        id: job.id,
+        revision: job.revision,
+        command: "validate_one",
+        payload: {
+          actor_id: identity.actor_id,
+          adapter_version: "0.3.2",
+          reviewed: true,
+          digest: job.digest,
+          target_id: target.id,
+        },
+      });
+      setJob(claimed);
+      if (!claimed.targets.some((t) => t.state === "claimed")) {
+        setNotice(
+          claimed.stop_reason || "Wait for the displayed eligibility time.",
+        );
+        return;
+      }
+      const result = await executeClaimedCampaignTarget(
+        {
+          command: bridge.command,
+          actor: readActor,
+          publish: (current, held) => publish(current, held, true),
+        },
+        claimed,
+      );
+      setJob(result);
+      setNotice(
+        result.stop_reason ||
+          "The validation attempt finished. Check the exact result in Facebook before continuing.",
+      );
+    } catch (e) {
+      setNotice(
+        e instanceof Error
+          ? e.message
+          : "Validation was interrupted. Review the queue before retrying; nothing is automatically resubmitted.",
+      );
+    } finally {
+      pending.current = false;
+      setBusy(false);
+      setRunning(false);
+    }
+  }
+  async function confirmValidation() {
+    if (!bridge || !job || !actor || !receiptReviewed) return;
+    const target = job.targets[0];
+    if (!target?.post_url) return;
+    setBusy(true);
+    try {
+      const identity = await readActor();
+      if (
+        identity.actor_id !== actor.actor_id ||
+        job.actor_id !== identity.actor_id
+      )
+        throw new Error("Facebook identity changed. Reconnect.");
+      const result = await bridge.command({
+        id: job.id,
+        revision: job.revision,
+        command: "confirm_validation",
+        payload: {
+          actor_id: identity.actor_id,
+          adapter_version: "0.3.2",
+          reviewed: true,
+          digest: job.digest,
+          post_url: target.post_url,
+        },
+      });
+      const status = await bridge.read(
+        `/api/campaigns/publisher?actor_id=${identity.actor_id}`,
+      );
+      if (
+        !status ||
+        typeof status !== "object" ||
+        !("viewer_id" in status) ||
+        status.viewer_id !== connection?.viewer ||
+        !("classic" in status) ||
+        status.classic !== true
+      )
+        throw new Error(
+          "Validation availability was not confirmed. Reconnect before starting.",
+        );
+      setEnabled(true);
+      setJob(result);
+      clearApproval();
+      setNotice(
+        "Validation recorded for this profile and adapter version. Review the remaining campaign and explicitly Start; nothing resumes automatically.",
+      );
+    } catch (e) {
+      setNotice(
+        e instanceof Error ? e.message : "Could not confirm validation.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
   async function start() {
     if (!bridge || !job || !confirmed || !enabled || pending.current) return;
     pending.current = true;
@@ -417,7 +551,9 @@ export default function CampaignWorkspace() {
         !controller.current.signal.aborted &&
         current.state === "running"
       ) {
-        const publishers = await bridge.read("/api/campaigns/publisher");
+        const publishers = await bridge.read(
+          `/api/campaigns/publisher?actor_id=${identity.actor_id}`,
+        );
         if (
           !publishers ||
           typeof publishers !== "object" ||
@@ -609,6 +745,87 @@ export default function CampaignWorkspace() {
           >
             Approve saved campaign
           </button>
+          {!enabled && (
+            <section
+              className="campaign-extension-validation"
+              aria-label="Single live validation"
+            >
+              <h3>Validate with one real post</h3>
+              <p>
+                This publishes only the first group:{" "}
+                <strong>
+                  {groups.find((g) => g.id === job.targets[0]?.group_id)
+                    ?.title || "Unavailable group"}
+                </strong>
+                . All other groups wait. Verify the exact text, attachments,
+                profile and group rules before continuing.
+              </p>
+              <label className="consent">
+                <input
+                  type="checkbox"
+                  checked={validationReviewed}
+                  disabled={busy || running || job.state !== "ready"}
+                  onChange={(e) => setValidationReviewed(e.target.checked)}
+                />
+                I authorize one real validation post to this first group with
+                the exact displayed content.
+              </label>
+              <button
+                disabled={
+                  busy ||
+                  running ||
+                  !validationReviewed ||
+                  job.state !== "ready" ||
+                  !groups.some((g) => g.id === job.targets[0]?.group_id) ||
+                  !job.actor_id ||
+                  job.settings.method !== "classic" ||
+                  job.plan.media.reduce((sum, m) => sum + m.size, 0) >
+                    20 * 1024 * 1024
+                }
+                onClick={() => void validateOne()}
+              >
+                Publish one validation post
+              </button>
+              {job.targets[0]?.post_url &&
+                ["live", "pending_admin"].includes(job.targets[0].state) && (
+                  <div>
+                    <p>
+                      Reported result: {job.targets[0].state}.{" "}
+                      <a
+                        href={job.targets[0].post_url}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Inspect validation post in Facebook
+                      </a>
+                    </p>
+                    <label className="consent">
+                      <input
+                        type="checkbox"
+                        checked={receiptReviewed}
+                        disabled={busy || running}
+                        onChange={(e) => setReceiptReviewed(e.target.checked)}
+                      />
+                      I checked this post in Facebook: the text and attachments
+                      match, the profile and group are correct, and I verified
+                      its displayed result.
+                    </label>
+                    <button
+                      disabled={busy || running || !receiptReviewed}
+                      onClick={() => void confirmValidation()}
+                    >
+                      Confirm validation for this profile
+                    </button>
+                  </div>
+                )}
+              <p>
+                A warning, restriction or uncertain result stops the attempt. It
+                is never automatically retried. Profile validation expires after
+                seven days, an adapter-version change, a failed result or
+                deletion of the validation receipt.
+              </p>
+            </section>
+          )}
           <button
             disabled={
               busy ||
@@ -626,11 +843,36 @@ export default function CampaignWorkspace() {
           </button>
           {!enabled && (
             <p>
-              Automatic publishing is locked: the Facebook adapter has not
-              passed live validation. A composer check does not prove successful
-              posting.
+              Bulk publishing is locked until the single-post validation
+              succeeds and you confirm its result. A composer check alone does
+              not unlock posting.
             </p>
           )}
+          {job.targets
+            .filter((t) => t.provider_code)
+            .map((t) => (
+              <p key={t.id} role="status">
+                Group {t.position + 1}:{" "}
+                {postingMessages[t.provider_code!] || t.provider_code}
+              </p>
+            ))}
+          <button
+            className="secondary"
+            onClick={() => {
+              const file = URL.createObjectURL(
+                new Blob([JSON.stringify(postingDiagnostics(job), null, 2)], {
+                  type: "application/json",
+                }),
+              );
+              const link = document.createElement("a");
+              link.href = file;
+              link.download = "staysuite-posting-diagnostics.json";
+              link.click();
+              setTimeout(() => URL.revokeObjectURL(file), 1000);
+            }}
+          >
+            Download posting diagnostics
+          </button>
           <p>
             Classic dispatch supports up to 20 MB total attachments. Keep this
             workspace and the signed-in StaySuite tab open during a run. Closing

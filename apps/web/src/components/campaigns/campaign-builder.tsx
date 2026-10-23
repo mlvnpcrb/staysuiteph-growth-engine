@@ -499,7 +499,7 @@ export function CampaignBuilder() {
           </p>
         </div>
         <span className="subtle-badge">
-          Preparation workspace · no live publishing
+          Campaign runs use your Chrome extension
         </span>
       </div>
       <aside
@@ -519,7 +519,7 @@ export function CampaignBuilder() {
               "Checking your StaySuite workspace. You can prepare your draft while we check."}
           </p>
         </div>
-        <span className="subtle-badge">Publishing off</span>
+        <span className="subtle-badge">Extension controls publishing</span>
         {storageState === "unavailable" && (
           <Button
             variant="outline"
@@ -913,7 +913,9 @@ export function CampaignBuilder() {
         <p className="muted">
           {blockers.length} selected target(s) need rule or permission review.
         </p>
-        <Button disabled>Start bulk posting — not available yet</Button>
+        <Button disabled>
+          Start bulk posting — use the extension workspace
+        </Button>
         <p className="muted text-sm">
           Bulk posting is not available in this Preview. You can prepare and
           download a campaign plan. Nothing is sent to Facebook. Rules and

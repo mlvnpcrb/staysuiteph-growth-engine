@@ -1,9 +1,14 @@
 import { beforeEach, expect, it, vi } from "vitest";
-const mocks = vi.hoisted(() => ({ user: vi.fn(), select: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+  user: vi.fn(),
+  select: vi.fn(),
+  rpc: vi.fn(),
+}));
 vi.mock("@/lib/supabase", () => ({
   supabaseServer: async () => ({
     auth: { getUser: mocks.user },
     from: () => ({ select: mocks.select }),
+    rpc: mocks.rpc,
   }),
 }));
 import { GET } from "../../apps/web/src/app/api/campaigns/publisher/route";
@@ -43,4 +48,22 @@ it("requires explicit enablement and validation time, failing closed on database
   const failed = await GET();
   expect(failed.status).toBe(503);
   expect(JSON.stringify(await failed.json())).not.toContain("private details");
+});
+
+it("checks actor-scoped validation and rejects invalid profile IDs", async () => {
+  mocks.rpc.mockResolvedValue({ data: true, error: null });
+  const ready = await GET(
+    new Request("http://localhost/api/campaigns/publisher?actor_id=12345"),
+  );
+  expect((await ready.json()).classic).toBe(true);
+  expect(mocks.rpc).toHaveBeenCalledWith("campaign_publisher_ready", {
+    p_actor_id: "12345",
+  });
+  expect(
+    (
+      await GET(
+        new Request("http://localhost/api/campaigns/publisher?actor_id=bad"),
+      )
+    ).status,
+  ).toBe(400);
 });

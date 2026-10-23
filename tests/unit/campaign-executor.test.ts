@@ -113,7 +113,11 @@ it("records transport ambiguity once and does not retry publishing", async () =>
   expect(p.command).toHaveBeenLastCalledWith(
     expect.objectContaining({
       command: "report",
-      payload: { attempt_token: token, outcome: "uncertain" },
+      payload: {
+        attempt_token: token,
+        outcome: "uncertain",
+        provider_code: "interrupted",
+      },
     }),
   );
 });
