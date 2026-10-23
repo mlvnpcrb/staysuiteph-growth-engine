@@ -187,7 +187,11 @@ begin
        update public.campaign_jobs set next_eligible_at=greatest(next_eligible_at,wake_at),stop_reason='Quiet hours until 07:00 Asia/Manila' where id=c.id;
      elsif c.next_eligible_at<=now() then
        select * into t from public.campaign_targets where campaign_id=c.id and state='queued' order by position limit 1 for update;
-       if found then update public.campaign_targets set state='claimed',attempt_token=gen_random_uuid(),claimed_at=now(),lease_until=now()+interval '90 seconds' where id=t.id;
+       if found then
+         update public.campaign_targets set state='claimed',attempt_token=gen_random_uuid(),claimed_at=now(),lease_until=now()+interval '90 seconds' where id=t.id;
+         -- Reserve the interval before dispatch so a lost report/restart cannot erase it.
+         wait_minutes:=(c.plan->>'intervalMinutes')::int;
+         update public.campaign_jobs set next_eligible_at=greatest(next_eligible_at,now()+make_interval(mins=>wait_minutes)) where id=c.id;
        else update public.campaign_jobs set state='completed' where id=c.id; end if;
      end if;
    else

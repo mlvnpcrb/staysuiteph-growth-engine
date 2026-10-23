@@ -243,6 +243,8 @@ it("transactional campaign commands isolate owners and fail closed before publis
       actor_type: "personal",
     });
     expect(job.targets[1]!.state).toBe("claimed");
+    const reservedEligibility = job.next_eligible_at;
+    expect(Date.parse(reservedEligibility)).toBeGreaterThan(Date.now() + 60_000);
     await db.exec(
       `reset role;update public.campaign_targets set lease_until=now()-interval '1 second' where state='claimed';set role authenticated;select set_config('request.jwt.claim.sub','${owner}',false)`,
     );
@@ -256,6 +258,7 @@ it("transactional campaign commands isolate owners and fail closed before publis
     });
     expect(job.state).toBe("completed");
     expect(job.targets[1]!.state).toBe("not_sent");
+    expect(job.next_eligible_at).toBe(reservedEligibility);
     await db.exec("reset role;set role anon");
     await expect(
       db.exec("select * from public.campaign_jobs"),
