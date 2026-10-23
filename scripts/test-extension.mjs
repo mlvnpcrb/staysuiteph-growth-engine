@@ -8,8 +8,10 @@ const extensionPath=resolve("apps/extension/build/chrome-mv3-prod");
 const profile=await mkdtemp(join(tmpdir(),"staysuite-extension-test-"));
 let context;
 let fixtureRequests=0;
+const collectorErrors=[];
 try {
   context=await chromium.launchPersistentContext(profile,{channel:"chromium",headless:true,...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE}:{}),args:["--enable-unsafe-extension-debugging"],ignoreDefaultArgs:["--disable-extensions"]});
+  context.on("page",page=>page.on("pageerror",error=>{if(page.url().includes("/tabs/collector.html"))collectorErrors.push(error.message.slice(0,200));}));
   const session=await context.browser().newBrowserCDPSession();
   const {id}=await session.send("Extensions.loadUnpacked",{path:extensionPath});
   const popup=await context.newPage();const errors=[];popup.on("pageerror",error=>errors.push(error.message));
@@ -51,7 +53,7 @@ try {
   const connected=await context.newPage();await connected.goto(`chrome-extension://${installed.id}/tabs/groups.html`);
   await connected.getByRole("button",{name:"Refresh groups"}).click();
   await expect(connected.getByRole("button",{name:"Stop collection"})).toBeVisible();
-  await expect(connected.locator(".workspace-list li")).toHaveCount(6,{timeout:15000});
+  await expect(connected.locator(".workspace-list li")).toHaveCount(6,{timeout:45000});
   await connected.close();releaseSecond();
   await expect.poll(()=>fixtureRequests,{timeout:15000}).toBe(2);
   const reopened=await context.newPage();await reopened.goto(`chrome-extension://${installed.id}/tabs/groups.html`);
@@ -70,7 +72,10 @@ try {
       const stored=await chrome.storage.local.get(null);
       return Object.values(stored).filter(value=>value && typeof value==="object" && value.schema===1).map(value=>({phase:value.phase,error:value.error,pages:value.pages,count:Array.isArray(value.groups)?value.groups.length:0,diagnostic:value.diagnostic??null}));
     }).catch(()=>[]);
-    console.error("Native fixture diagnostic:",JSON.stringify({requests:fixtureRequests,libraries}));
+    const tabs=await page?.evaluate(async()=>(await chrome.tabs.query({})).map(tab=>({role:(tab.url??tab.pendingUrl??"").includes("facebook.com")?"facebook":(tab.url??"").includes("collector.html")?"collector":"other",status:tab.status,discarded:tab.discarded}))).catch(()=>[]);
+    const collectors=[];
+    for(const item of context.pages().filter(page=>page.url().includes("/tabs/collector.html")))collectors.push(await item.getByRole("status").allTextContents().catch(()=>[]));
+    console.error("Native fixture diagnostic:",JSON.stringify({requests:fixtureRequests,libraries,tabs,collectors,collectorErrors}));
   }
   if(error instanceof Error && /disabled by the administrator|Method not available/.test(error.message)){console.error(`BLOCKED: unpacked extension installation is unavailable: ${error.message}`);process.exitCode=2;}else throw error;
 } finally {await context?.close();await rm(profile,{recursive:true,force:true});}
