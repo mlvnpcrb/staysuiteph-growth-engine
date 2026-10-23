@@ -195,6 +195,30 @@ export async function testCampaignQueue({ admin, a, b, apiUrl, onStage }) {
         }),
       ),
     );
+    console.log(
+      "CHECK: concurrent claim responses",
+      claims.map((result) => ({
+        status: result.status,
+        code: !result.error
+          ? "success"
+          : [
+                "40001",
+                "40P01",
+                "55P03",
+                "57014",
+                "PGRST003",
+                "PGRST000",
+                "PGRST301",
+                "42501",
+                "55000",
+                "22023",
+                "23505",
+                "P0001",
+              ].includes(result.error.code)
+            ? result.error.code
+            : "other",
+      })),
+    );
     assert.equal(claims.filter((r) => !r.error).length, 1);
     assert.equal(claims.filter((r) => r.error?.code === "40001").length, 1);
     job = claims.find((r) => !r.error).data;
