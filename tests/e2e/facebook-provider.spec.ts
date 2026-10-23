@@ -61,3 +61,19 @@ test("account probe returns public identity without making a group request or re
  const result=await page.evaluate(`(${readFacebookGroupPage.toString()})(${JSON.stringify(actor)},null,true)`);
  expect(result).toEqual({actorId:actor,actorName:"Fixture host"});expect(requests).toBe(0);expect(JSON.stringify(result)).not.toContain(csrf);
 });
+
+// Regression for the owner's 0.2.0 report: HTTP 200 without a usable connection.
+test("incompatible fallback responses export only fixed structural flags",async({page})=>{
+  const cases = [
+    {response:{data:{viewer:{privateField:csrf}}},flags:{data:true,viewer:true,groupsTab:false,connection:false,edges:false,pageInfo:false,hasNextPage:false}},
+    {response:{data:{viewer:{groups_tab:{tab_groups_list:{edges:[],page_info:{end_cursor:lsd}}}}}},flags:{data:true,viewer:true,groupsTab:true,connection:true,edges:true,pageInfo:true,hasNextPage:false}},
+  ];
+  let index=0;
+  await page.route("https://www.facebook.com/**",route=>new URL(route.request().url()).pathname==="/api/graphql/"?route.fulfill({json:cases[index++]?.response ?? {}}):route.fulfill({contentType:"text/html",body:markup(true)}));
+  await page.goto("https://www.facebook.com/groups/joins/");
+  for(const item of cases){
+    const result=await invoke(page);
+    expect(result).toMatchObject({error:"unsupported",diagnostic:{stage:"group_connection",httpStatus:200,querySource:"reviewed_fallback",structure:item.flags}});
+    expect(JSON.stringify(result)).not.toContain(csrf);expect(JSON.stringify(result)).not.toContain(lsd);expect(JSON.stringify(result)).not.toContain("privateField");
+  }
+});

@@ -12,6 +12,10 @@ export const facebookDiagnosticSchema = z.object({
   httpStatus: z.number().int().min(100).max(599).nullable(),
   query: z.enum(["not_started","initial","pagination"]),
   querySource: z.enum(["not_started","page_module","reviewed_fallback"]),
+  structure: z.object({
+    data: z.boolean(), viewer: z.boolean(), groupsTab: z.boolean(),
+    connection: z.boolean(), edges: z.boolean(), pageInfo: z.boolean(), hasNextPage: z.boolean(),
+  }).strict().optional(),
 }).strict();
 export const facebookPageSchema = z.object({
   actorId: facebookActorSchema,

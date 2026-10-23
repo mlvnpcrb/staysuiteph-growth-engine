@@ -7,7 +7,8 @@
 export async function readFacebookGroupPage(actorId: string, cursor: string | null, probeOnly = false) {
   let stage = "input", httpStatus: number | null = null;
   let querySource = "reviewed_fallback";
-  const failure = (error: string) => ({ error, diagnostic: {stage,httpStatus,query:cursor === null ? "initial" : "pagination",querySource} });
+  let structure: {data: boolean; viewer: boolean; groupsTab: boolean; connection: boolean; edges: boolean; pageInfo: boolean; hasNextPage: boolean} | undefined;
+  const failure = (error: string) => ({ error, diagnostic: {stage,httpStatus,query:cursor === null ? "initial" : "pagination",querySource,...(structure ? {structure} : {})} });
   if (!/^[1-9]\d{0,79}$/.test(actorId) || (cursor !== null && (typeof cursor !== "string" || !cursor.length || cursor.length > 4096))) return failure("malformed_response");
   if (location.origin !== "https://www.facebook.com") return failure("access_denied");
   stage = "page_guard";
@@ -81,10 +82,13 @@ export async function readFacebookGroupPage(actorId: string, cursor: string | nu
     const root = object(payload);
     if (!root || (Array.isArray(root.errors) && root.errors.length)) return failure("unsupported");
     stage = "group_connection";
-    const viewer = object(object(root.data)?.viewer);
+    const data = object(root.data);
+    const viewer = object(data?.viewer);
     const tab = object(viewer?.groups_tab);
     const connection = object(tab?.tab_groups_list);
     const page = object(connection?.page_info);
+    // Export only fixed boolean presence checks, never payload keys or values.
+    structure = {data: !!data, viewer: !!viewer, groupsTab: !!tab, connection: !!connection, edges: Array.isArray(connection?.edges), pageInfo: !!page, hasNextPage: typeof page?.has_next_page === "boolean"};
     if (!connection || !Array.isArray(connection.edges) || connection.edges.length > 100 || !page || typeof page.has_next_page !== "boolean") return failure("unsupported");
     stage = "group_nodes";
     const groups = new Map<string, {url: string; title: string}>();

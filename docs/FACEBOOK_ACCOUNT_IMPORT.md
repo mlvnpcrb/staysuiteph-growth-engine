@@ -111,3 +111,18 @@ Fixture results must be reported separately from live Facebook compatibility.
 The agent has no connection to the user's authenticated browser. A live test in
 that browser is required before calling this provider working with that account.
 If collection fails, use Download diagnostics; never send cookies or request tokens.
+
+## Live compatibility failure and diagnostic follow-up (0.2.1)
+
+The owner's 0.2.0 report reached `group_connection` with HTTP 200, the initial
+query, and `reviewed_fallback`; zero pages/groups were accepted. This establishes
+that identity/bootstrap/request/JSON checks passed, but not which required
+connection field was absent or invalid. It does not establish that the document ID
+expired, that the account has no groups, or that Facebook denied access.
+
+0.2.1 adds seven strict boolean presence/type checks (`data`, `viewer`, `groupsTab`,
+`connection`, `edges`, `pageInfo`, `hasNextPage`) to downloaded diagnostics. No
+response keys, values, messages, account IDs, group names or request tokens are
+exported. Old diagnostic records remain valid. The UI no longer labels a failed,
+empty initial import as a restored library. This is a diagnostic update, not a
+verified fix for live collection. Query behavior and permissions are unchanged.
