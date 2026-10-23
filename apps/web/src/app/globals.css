@@ -1115,3 +1115,14 @@ h3 {
 .smart-category-filters button:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
 .smart-category-filters span { font-variant-numeric:tabular-nums; }
 .smart-category-labels { display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.75rem; }
+
+.campaign-dropzone { border: 1px dashed var(--line); border-radius: 12px; padding: 1.25rem; margin-block: 1rem; }
+.campaign-media-list { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 1rem; }
+.campaign-media-list li { display: flex; flex-direction: column; gap: .5rem; max-width: 100%; overflow-wrap: anywhere; }
+.campaign-media-list img, .campaign-media-list video { width: 160px; height: 120px; object-fit: contain; border-radius: 8px; background: var(--bg); }
+.campaign-targets { max-height: 360px; overflow: auto; margin-block: 1rem; }
+.campaign-target { display: flex; align-items: start; gap: .75rem; border-bottom: 1px solid var(--line); padding: .8rem .25rem; }
+.campaign-target input { width: auto; flex: none; margin-top: .3rem; }
+.campaign-target span span { display: block; margin-top: .3rem; }
+.campaign-post-preview { white-space: pre-wrap; overflow-wrap: anywhere; padding: 1rem; border: 1px solid var(--line); border-radius: 12px; }
+.campaign-target > span { min-width: 0; overflow-wrap: anywhere; }

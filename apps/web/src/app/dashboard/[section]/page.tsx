@@ -1,3 +1,4 @@
+import { CampaignBuilder } from "@/components/campaigns/campaign-builder";
 import { GroupFinder } from "@/components/groups/finder";
 import { MyGroups } from "@/components/groups/my-groups";
 import { notFound } from "next/navigation";
@@ -14,6 +15,7 @@ export default async function SectionPage({
   if (!item) notFound();
   if (item.slug === "group-finder") return <GroupFinder />;
   if (item.slug === "my-groups") return <MyGroups />;
+  if (item.slug === "campaigns") return <CampaignBuilder />;
   return item.slug === "overview" ? (
     <Overview />
   ) : (
