@@ -98,7 +98,10 @@ chrome.runtime.onMessage.addListener((message: unknown,sender,reply) => {
     if (message.type === "FACEBOOK_STOP") await stop();
     if (message.type === "FACEBOOK_FORGET") { await stop(); const actorId = await facebookIdentity(); await chrome.storage.local.remove([libraryKey(actorId),FACEBOOK_ACTIVE]); return {actorId,library:null}; }
     return message.type === "FACEBOOK_START" ? start() : state();
-  }).then(value=>reply({ok:true,...value})).catch(error=>reply({ok:false,error:facebookCode(error),...(error instanceof CollectorRefusal?{refusal:error.refusal}:{})}));
+  }).then(value=>reply({ok:true,...value})).catch(async error=>{
+    if(error instanceof CollectorRefusal) await chrome.storage.session.set({"staysuite-facebook-refusal-v1":error.refusal});
+    reply({ok:false,error:facebookCode(error),...(error instanceof CollectorRefusal?{refusal:error.refusal}:{})});
+  });
   return true;
 });
 let observingCookies = false;

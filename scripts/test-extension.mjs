@@ -75,7 +75,8 @@ try {
     const tabs=await page?.evaluate(async()=>(await chrome.tabs.query({})).map(tab=>({role:(tab.url??tab.pendingUrl??"").includes("facebook.com")?"facebook":(tab.url??"").includes("collector.html")?"collector":"other",status:tab.status,discarded:tab.discarded}))).catch(()=>[]);
     const collectors=[];
     for(const item of context.pages().filter(page=>page.url().includes("/tabs/collector.html")))collectors.push(await item.getByRole("status").allTextContents().catch(()=>[]));
-    console.error("Native fixture diagnostic:",JSON.stringify({requests:fixtureRequests,libraries,tabs,collectors,collectorErrors}));
+    const refusal=await page?.evaluate(async()=>(await chrome.storage.session.get("staysuite-facebook-refusal-v1"))["staysuite-facebook-refusal-v1"]??null).catch(()=>null);
+    console.error("Native fixture diagnostic:",JSON.stringify({requests:fixtureRequests,libraries,tabs,collectors,collectorErrors,refusal}));
   }
   if(error instanceof Error && /disabled by the administrator|Method not available/.test(error.message)){console.error(`BLOCKED: unpacked extension installation is unavailable: ${error.message}`);process.exitCode=2;}else throw error;
 } finally {await context?.close();await rm(profile,{recursive:true,force:true});}

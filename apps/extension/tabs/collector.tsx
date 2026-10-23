@@ -66,7 +66,7 @@ export default function FacebookCollector() {
         if(alive)setStatus(`Collection stopped during ${stage}${refusal}. Open the workspace for details.`);
       }finally{
         await chrome.runtime.sendMessage({type:"FACEBOOK_COLLECTOR_FINISH"}).catch(()=>{});
-        if(job?.ownFacebookTab && !reviewFacebook){
+        if(closeCollector && job?.ownFacebookTab && !reviewFacebook){
           const tab=await chrome.tabs.get(job.tabId).catch(()=>null);
           if(tab && !tab.active)await chrome.tabs.remove(job.tabId).catch(()=>{});
         }
