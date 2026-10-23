@@ -10,42 +10,50 @@ async function serve(context:BrowserContext) {
     await route.fulfill({body:await readFile(`${directory}${path}`),contentType:({".html":"text/html",".js":"text/javascript",".css":"text/css",".png":"image/png"} as Record<string,string>)[extname(path)]??"application/octet-stream",headers:{"Content-Security-Policy":"script-src 'self'; object-src 'none'; base-uri 'none'"}});
   });
 }
-test("popup launches a persistent workspace without collecting data",async({context,page})=>{
-  await serve(context);
-  await page.addInitScript(()=>{Object.assign(window,{chrome:{runtime:{getURL:(path:string)=>`http://extension-fixture.test/${path}`},windows:{create:async({url}:{url:string})=>{window.open(url);}}}});});
+async function bridge(context:BrowserContext,denied=false){
+  await context.addInitScript(({denied})=>{
+    const listeners:((changes:Record<string,unknown>)=>void)[]=[];
+    const cached=localStorage.getItem("fixture-library");
+    let library=cached?JSON.parse(cached):null;
+    const make=(count:number,phase:string)=>({schema:1,actorId:"123456789",actorName:"Fixture host",groups:Array.from({length:count},(_,i)=>({title:`Hosts ${i+1}`,url:`https://www.facebook.com/groups/${i+1}/`})),phase,pages:phase==="ready"?2:1,complete:phase==="ready",updatedAt:new Date().toISOString(),syncedAt:phase==="ready"?new Date().toISOString():null,error:null,runId:phase==="ready"?null:"11111111-1111-4111-8111-111111111111"});
+    Object.assign(window,{chrome:{
+      runtime:{getURL:(path:string)=>`http://extension-fixture.test/${path}`,getManifest:()=>({version:"0.2.0"}),sendMessage:async({type}:{type:string})=>{
+        if(type==="FACEBOOK_START"){
+          localStorage.setItem("fixture-starts",String(Number(localStorage.getItem("fixture-starts")??0)+1));
+          library=make(6,"fetching");setTimeout(()=>{library=make(12,"ready");localStorage.setItem("fixture-library",JSON.stringify(library));listeners.forEach(listener=>listener({"staysuite-facebook-library-v1:123456789":{newValue:library}}));},100);
+        }
+        if(type==="FACEBOOK_FORGET"){library=null;localStorage.removeItem("fixture-library");return {ok:true,actorId:"123456789",library:null};}
+        return library?{ok:true,actorId:"123456789",library}:{ok:false,error:"permission_required"};
+      }},
+      windows:{create:async({url}:{url:string})=>{window.open(url);}},
+      permissions:{request:async()=>!denied},
+      storage:{onChanged:{addListener:(listener:(changes:Record<string,unknown>)=>void)=>listeners.push(listener),removeListener:()=>{}}},
+    }});
+  },{denied});
+}
+test("popup launches a workspace with Facebook connection independent of StaySuite",async({context,page})=>{
+  await serve(context);await bridge(context);
   await page.goto("http://extension-fixture.test/popup.html");
   await expect(page.getByRole("heading",{name:"Your groups, in one place."})).toBeVisible();
   const opened=context.waitForEvent("page");await page.getByRole("button",{name:"Open Sync workspace"}).click();
-  await expect((await opened).getByRole("heading",{name:"Your groups. Together in StaySuite."})).toBeVisible();
+  await expect((await opened).getByRole("heading",{name:"Your Facebook groups."})).toBeVisible();
 });
-test("workspace requires connection and explicit save consent; denied access does not read tabs",async({context,page})=>{
-  await serve(context);
-  await page.addInitScript(()=>{Object.assign(window,{chrome:{permissions:{request:async()=>false},tabs:{query:()=>{throw new Error("Unexpected tab access");}}}});});
+test("denied Facebook permission does not start collection; workspace is accessible in both themes",async({context,page})=>{
+  await serve(context);await bridge(context,true);
   await page.goto("http://extension-fixture.test/tabs/groups.html");
-  await expect(page.getByRole("button",{name:"Sync groups",exact:true})).toBeDisabled();
-  await page.getByRole("button",{name:"Connect workspace"}).click();
-  await expect(page.getByRole("alert")).toContainText("Site access was declined");
+  await page.getByRole("button",{name:"Connect Facebook"}).click();
+  await expect(page.getByRole("alert")).toContainText("No account data was read");
+  expect(await page.evaluate(()=>localStorage.getItem("fixture-starts"))).toBeNull();
   for(const colorScheme of ["light","dark"] as const){await page.emulateMedia({colorScheme});expect((await new AxeBuilder({page}).withTags(["wcag2a","wcag2aa","wcag21aa"]).analyze()).violations).toEqual([]);}
 });
-test("workspace connects, collects multiple viewports and confirms saves in its library (mock Chrome)",async({context,page})=>{
-  await serve(context);
-  await page.addInitScript(()=>{
-    let reads=0;const saved:{url:string;title:string}[]=[];
-    Object.assign(window,{chrome:{permissions:{request:async()=>true},tabs:{query:async({url}:{url:string})=>url.includes("facebook")?[{id:2,url:"https://www.facebook.com/groups/joins/",windowId:1}]:[{id:1,url:"http://localhost:3000/dashboard/my-groups"}],update:async()=>{}},windows:{update:async()=>{}},scripting:{executeScript:async({func,args}:{func: (...args: never[]) => unknown;args:unknown[]})=>{
-      if(func.toString().includes("/api/groups")){
-        const group=args[2] as {url:string;title:string}|null;
-        if(group){saved.push(group);return [{result:{saved:true}}];}
-        return [{result:{viewer:"viewer-a",groups:saved}}];
-      }
-      if(func.toString().includes("directory_unavailable"))return [{result:{moved:reads<2,atEnd:reads>=2}}];
-      reads++;return [{result:{format:"staysuite-visible-groups-v1",collected_at:new Date().toISOString(),groups:Array.from({length:6},(_,i)=>({url:`https://www.facebook.com/groups/hosts${i+(reads===1?0:6)}/`,title:`Hosts ${i+(reads===1?0:6)}`}))}}];
-    }}}});
-  });
+test("Connect Facebook automatically fills the library and reopening restores it without a second import",async({context,page})=>{
+  await serve(context);await bridge(context);
   await page.goto("http://extension-fixture.test/tabs/groups.html");
-  await page.getByRole("button",{name:"Connect workspace"}).click();
-  await expect(page.getByText("StaySuite account verified for this session.")).toBeVisible();
-  await page.getByRole("checkbox").check();await page.getByRole("button",{name:"Sync groups",exact:true}).click();
-  await expect(page.getByRole("status")).toContainText("12 groups confirmed",{timeout:15000});
+  await page.getByRole("button",{name:"Connect Facebook"}).click();
   await expect(page.locator(".workspace-list li")).toHaveCount(12);
-  await page.getByRole("searchbox").fill("Hosts 11");await expect(page.locator(".workspace-list li")).toHaveCount(1);
+  await expect(page.getByText("Group-list pagination completed.",{exact:false})).toBeVisible();
+  await expect(page.getByRole("button",{name:"Save groups to My Groups"})).toBeDisabled();
+  await page.reload();await expect(page.locator(".workspace-list li")).toHaveCount(12);
+  expect(await page.evaluate(()=>localStorage.getItem("fixture-starts"))).toBe("1");
+  await page.getByRole("searchbox").fill("Hosts 12");await expect(page.locator(".workspace-list li")).toHaveCount(1);
 });

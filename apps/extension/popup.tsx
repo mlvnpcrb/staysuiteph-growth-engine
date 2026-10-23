@@ -7,5 +7,5 @@ export default function Popup() {
     try { await chrome.windows.create({url:chrome.runtime.getURL("tabs/groups.html"), type:"popup", width:620, height:820}); window.close(); }
     catch { setError("Could not open the workspace. Reload the extension and try again."); }
   }
-  return <main><header className="brand"><span className="brand-icon" aria-hidden="true">S</span><div className="wordmark">StaySuite<small>Group companion</small></div></header><div className="intro"><h1>Your groups, in one place.</h1><p>Open your workspace to sync Facebook group names and links into StaySuite.</p></div><button onClick={() => void open()}>Open Sync workspace</button><p>The workspace stays open while you use Facebook. No posting or Facebook credentials collected.</p>{error && <p role="alert">{error}</p>}</main>;
+  return <main><header className="brand"><span className="brand-icon" aria-hidden="true">S</span><div className="wordmark">StaySuite<small>Group companion</small></div></header><div className="intro"><h1>Your groups, in one place.</h1><p>Connect Facebook in your workspace. Your group library loads automatically.</p></div><button onClick={() => void open()}>Open Sync workspace</button><p>Your group library is saved locally. Session cookies and request tokens stay out of StaySuite. No posting.</p>{error && <p role="alert">{error}</p>}</main>;
 }

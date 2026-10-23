@@ -84,3 +84,17 @@ coordinated override/patch pairs. Do not expose the affected Plasmo/Parcel devel
 server to untrusted networks or browse unrelated websites in its testing profile.
 Run `pnpm test:extension` where native unpacked Chrome installation is permitted;
 report administrator policy blocks rather than changing policy or counting skips as passes.
+
+## Scoped Facebook group-import authorization (2026-10-23)
+
+The owner explicitly approved local Facebook identity-cookie reads and temporary
+page request/CSRF tokens solely for read-only group import, after reviewing the
+reference-extension investigation. This overrides the cookie prohibition above
+only for that provider. Read only c_user/i_user identity values; never read session
+credential cookie values, passwords or OAuth access tokens. Request tokens stay
+inside the Facebook page request function and must never be returned to extension
+storage, logs, diagnostics, messages, or StaySuite. Persist public account identity
+and group names/links only. No challenge bypass or publishing is authorized by this
+exception. Treat the internal Facebook provider as experimental and verify its
+response shape and actor continuity on every page; report live compatibility
+separately from fixture checks.
