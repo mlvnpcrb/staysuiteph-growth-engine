@@ -71,23 +71,26 @@ test("campaign preparation validates attachments, binds approval and never publi
   await expect(
     page.getByRole("img", { name: "Attachment 1: demo.png" }),
   ).toBeVisible();
-  await page.screenshot({path:testInfo.outputPath("campaign-preparation.png"),fullPage:true});
-  await page
-    .getByLabel("Choose media or drop files here")
-    .setInputFiles({
-      name: "pretend.png",
-      mimeType: "image/png",
-      buffer: Buffer.from("<svg/>"),
-    });
-  await expect(page.locator(".group-error[role=alert]")).toContainText("recognized signature");
-  await page
-    .getByLabel("Choose media or drop files here")
-    .setInputFiles({
-      name: "duplicate.png",
-      mimeType: "image/png",
-      buffer: png,
-    });
-  await expect(page.locator(".group-error[role=alert]")).toContainText("already attached");
+  await page.screenshot({
+    path: testInfo.outputPath("campaign-preparation.png"),
+    fullPage: true,
+  });
+  await page.getByLabel("Choose media or drop files here").setInputFiles({
+    name: "pretend.png",
+    mimeType: "image/png",
+    buffer: Buffer.from("<svg/>"),
+  });
+  await expect(page.locator(".group-error[role=alert]")).toContainText(
+    "recognized signature",
+  );
+  await page.getByLabel("Choose media or drop files here").setInputFiles({
+    name: "duplicate.png",
+    mimeType: "image/png",
+    buffer: png,
+  });
+  await expect(page.locator(".group-error[role=alert]")).toContainText(
+    "already attached",
+  );
   await page.getByRole("button", { name: "Remove demo.png" }).click();
   await expect(
     page.getByRole("img", { name: "Attachment 1: demo.png" }),
@@ -110,4 +113,25 @@ test("campaign preparation validates attachments, binds approval and never publi
     ).toEqual([]);
   }
   expect(writes).toBe(0);
+});
+test("real API accepts the requested loopback origin and rejects foreign origins", async ({
+  request,
+}) => {
+  const url = "http://127.0.0.1:3001/api/campaigns";
+  const local = await request.post(url, {
+    headers: { Origin: "http://127.0.0.1:3001" },
+    data: {},
+  });
+  expect(local.status()).toBe(503);
+  expect(await local.json()).toEqual({
+    error: "Campaign storage is not connected.",
+  });
+  expect(
+    (
+      await request.post(url, {
+        headers: { Origin: "https://foreign.example" },
+        data: {},
+      })
+    ).status(),
+  ).toBe(403);
 });

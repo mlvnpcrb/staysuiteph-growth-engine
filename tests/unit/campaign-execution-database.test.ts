@@ -1,5 +1,6 @@
 import { it, expect } from "vitest";
 import { PGlite } from "@electric-sql/pglite";
+import { campaignJobSchema } from "@staysuite/validation";
 import { readFile } from "node:fs/promises";
 const owner = "11111111-1111-4111-8111-111111111111",
   other = "22222222-2222-4222-8222-222222222222";
@@ -60,12 +61,14 @@ it("transactional campaign commands isolate owners and fail closed before publis
       payload: unknown = {},
       campaign = id,
     ): Promise<Job> {
-      return (
+      const result = (
         await db.query<{ result: Job }>(
           "select public.campaign_command($1,$2,$3,$4::jsonb) result",
           [campaign, revision, command, JSON.stringify(payload)],
         )
       ).rows[0]!.result;
+      campaignJobSchema.parse(result);
+      return result;
     }
     const plan = {
       version: 1,
@@ -244,7 +247,9 @@ it("transactional campaign commands isolate owners and fail closed before publis
     });
     expect(job.targets[1]!.state).toBe("claimed");
     const reservedEligibility = job.next_eligible_at;
-    expect(Date.parse(reservedEligibility)).toBeGreaterThan(Date.now() + 60_000);
+    expect(Date.parse(reservedEligibility)).toBeGreaterThan(
+      Date.now() + 60_000,
+    );
     await db.exec(
       `reset role;update public.campaign_targets set lease_until=now()-interval '1 second' where state='claimed';set role authenticated;select set_config('request.jwt.claim.sub','${owner}',false)`,
     );

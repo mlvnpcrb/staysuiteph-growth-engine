@@ -3,13 +3,14 @@ import { campaignRepository } from "@staysuite/database";
 import { campaignCommandSchema } from "@staysuite/validation";
 import { supabaseServer } from "@/lib/supabase";
 import { environment } from "@/lib/env";
+import { hasSameRequestOrigin } from "@/lib/request-origin";
 const reply = (body: unknown, status = 200) =>
   NextResponse.json(body, {
     status,
     headers: { "Cache-Control": "private, no-store" },
   });
 async function handle(request: Request, mutation: boolean) {
-  if (mutation && request.headers.get("origin") !== new URL(request.url).origin)
+  if (mutation && !hasSameRequestOrigin(request))
     return reply({ error: "Request origin was not accepted." }, 403);
   if (!environment().configured)
     return reply({ error: "Campaign storage is not connected." }, 503);

@@ -10,6 +10,7 @@ import {
 } from "@staysuite/validation";
 import { supabaseServer } from "@/lib/supabase";
 import { environment } from "@/lib/env";
+import { hasSameRequestOrigin } from "@/lib/request-origin";
 const reply = (body: unknown, status = 200) =>
   NextResponse.json(body, {
     status,
@@ -19,10 +20,7 @@ async function handle(
   request: Request,
   method: "GET" | "POST" | "PATCH" | "DELETE",
 ) {
-  if (
-    method !== "GET" &&
-    request.headers.get("origin") !== new URL(request.url).origin
-  )
+  if (method !== "GET" && !hasSameRequestOrigin(request))
     return reply({ error: "Request origin was not accepted." }, 403);
   if (!environment().configured)
     return reply(
@@ -42,10 +40,17 @@ async function handle(
       return reply({ error: "Please sign in to manage your groups." }, 401);
     const expectedViewer = request.headers.get("x-staysuite-viewer");
     if (expectedViewer && expectedViewer !== user.id)
-      return reply({ error: "Your StaySuite account changed. Reconnect before syncing." }, 409);
+      return reply(
+        { error: "Your StaySuite account changed. Reconnect before syncing." },
+        409,
+      );
     const repository = groupRepository(client, user.id);
     if (method === "GET")
-      return reply({ ...(await repository.list()), limit: 500, viewer_id: user.id });
+      return reply({
+        ...(await repository.list()),
+        limit: 500,
+        viewer_id: user.id,
+      });
     const text = await request.text();
     if (text.length > 64000)
       return reply({ error: "This entry is too long." }, 413);
