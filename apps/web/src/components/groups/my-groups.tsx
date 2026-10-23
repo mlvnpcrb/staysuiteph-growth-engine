@@ -1,6 +1,6 @@
 "use client";
 import { MarketingAnalysis } from "./marketing-analysis";
-import { rankGroupMarketing } from "@staysuite/validation";
+import { categorizeGroupName, groupCategories, type GroupCategoryId, rankGroupMarketing } from "@staysuite/validation";
 import { CollectionImport } from "./collection-import";
 import { useState } from "react";
 import Link from "next/link";
@@ -50,6 +50,7 @@ function GroupEntry({
           <ExternalLink size={19} />
         </a>
       </div>
+      <div className="smart-category-labels" aria-label="Suggested categories">{categorizeGroupName(group.title).map(match=><span className="subtle-badge" key={match.id} title={match.matchedTerms.length?`Name contains: ${match.matchedTerms.join(", ")}`:"No category keyword matched this name"}>{match.label}</span>)}</div>
       <p className="muted">
         {[group.destination, group.accommodation, group.audience]
           .filter(Boolean)
@@ -250,9 +251,14 @@ export function MyGroups() {
   const [filter, setFilter] = useState("");
   const [review, setReview] = useState("all");
   const [sort, setSort] = useState("marketing");
+  const [category, setCategory] = useState<GroupCategoryId|"all">("all");
+  const categories = new Map(groups.map(group=>[group.id,categorizeGroupName(group.title)]));
+  const categoryCounts = new Map<GroupCategoryId,number>();
+  for(const matches of categories.values())for(const match of matches)categoryCounts.set(match.id,(categoryCounts.get(match.id)??0)+1);
   const [permission, setPermission] = useState("all");
   const reports = new Map(groups.map((g) => [g.id, rankGroupMarketing(g)]));
   const visible = groups
+    .filter(group=>category==="all"||categories.get(group.id)?.some(match=>match.id===category))
     .filter(
       (g) =>
         `${g.title} ${g.destination}`
@@ -290,6 +296,7 @@ export function MyGroups() {
         </Button>
       </div>
       <CollectionImport onImported={reload} />
+      <section className="panel smart-group-categories" aria-label="Smart group categories"><div role="group" aria-label="Filter groups by category" className="smart-category-filters"><button type="button" aria-pressed={category==="all"} onClick={()=>setCategory("all")}>All <span>{groups.length}</span></button>{groupCategories.map(item=><button type="button" key={item.id} aria-pressed={category===item.id} onClick={()=>setCategory(item.id)}>{item.label} <span>{categoryCounts.get(item.id)??0}</span></button>)}</div><p className="muted text-sm">Suggested from group names. Groups can appear in multiple categories. These labels do not verify rules or permission to post.</p></section>
       <div id="saved-groups" className="panel finder-fields">
         <label>
           Filter saved groups
@@ -382,7 +389,7 @@ export function MyGroups() {
             </h2>
             <p className="muted">
               {groups.length
-                ? "Try another destination or review status."
+                ? "Try another category, search, or review status."
                 : "Search for communities and save a real group link in Group Finder."}
             </p>
             <Button asChild>

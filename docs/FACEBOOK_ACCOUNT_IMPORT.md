@@ -265,3 +265,13 @@ changes names. No Facebook requests, credentials or external AI are needed for
 classification, and no schema/data rewrite is performed. These suggestions do not
 verify rules or posting eligibility. The cloud action explicitly says Save all
 groups to My Groups; a filter does not silently change the save target.
+
+## Deployed My Groups categories (0.2.7)
+
+My Groups uses the same pure category rules as the extension through the shared
+validation package. Counts describe the loaded saved shortlist; category, text,
+rule-review and marketing-readiness filters compose without changing ranking,
+notes, rule evidence or ownership. Category controls and labels do not write to
+the database. Categories are derived from names, so no migration is required.
+The extension collector is unchanged. Groups must first be saved to My Groups
+through the existing authenticated extension save flow to appear in the web app.

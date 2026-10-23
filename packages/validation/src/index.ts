@@ -45,3 +45,5 @@ export * from "./group-assessment";
 export * from "./group-collection";
 export * from "./group-marketing";
 export * from "./facebook-library";
+
+export * from "./group-categories";

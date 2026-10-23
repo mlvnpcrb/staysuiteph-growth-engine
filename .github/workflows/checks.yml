@@ -52,6 +52,10 @@ jobs:
   database:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    env:
+      # The pinned CLI supports the original public image registry. Its default
+      # public ECR endpoint has repeatedly throttled isolated CI startup.
+      SUPABASE_INTERNAL_IMAGE_REGISTRY: docker.io
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

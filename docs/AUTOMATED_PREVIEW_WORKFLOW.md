@@ -81,3 +81,15 @@ passed. Native extension loading is BLOCKED by Chrome administrator policy.
 running. The live deploy script fails closed with missing VERCEL_TOKEN. Build
 results reused unchanged application task caches; the pipeline itself is tested
 by the new script tests, not by those cached application builds.
+
+## Isolated CI registry selection
+
+The database job sets SUPABASE_INTERNAL_IMAGE_REGISTRY=docker.io. The pinned CLI
+2.75.0's GetRegistry/GetRegistryImageUrl implementation supports this original
+registry selection; its public.ecr.aws default repeatedly failed CI image pulls
+with rate-limit annotations. This changes only image acquisition for the isolated
+runner. Database, auth/persistence, validation and Preview smoke gates still run.
+No live database configuration or migration is changed.
+
+Reference: https://github.com/supabase/cli/blob/v2.75.0/internal/utils/docker.go
+and cmd/root.go (SUPABASE env prefix / INTERNAL_IMAGE_REGISTRY).

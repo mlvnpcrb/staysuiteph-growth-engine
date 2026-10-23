@@ -1108,3 +1108,10 @@ h3 {
 .marketing-analysis .finder-fields {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
 }
+
+.smart-category-filters { display:flex; flex-wrap:wrap; gap:.5rem; }
+.smart-category-filters button { display:inline-flex; align-items:center; gap:.45rem; min-height:40px; padding:.5rem .85rem; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--text); cursor:pointer; font:inherit; font-size:.85rem; }
+.smart-category-filters button[aria-pressed="true"] { background:var(--text); color:var(--bg); }
+.smart-category-filters button:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
+.smart-category-filters span { font-variant-numeric:tabular-nums; }
+.smart-category-labels { display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.75rem; }
