@@ -28,7 +28,7 @@ export async function collectFacebookLibrary(options: {
       await checked();
       if (raw && typeof raw === "object" && "error" in raw) {
         // Only the known error vocabulary crosses the page boundary.
-        const codes: FacebookError[] = ["facebook_error","signed_out","page_profile","account_changed","challenge","rate_limited","access_denied","network","unsupported","malformed_response"];
+        const codes: FacebookError[] = ["session_context","facebook_error","signed_out","page_profile","account_changed","challenge","rate_limited","access_denied","network","unsupported","malformed_response"];
         const diagnostic = facebookDiagnosticSchema.safeParse("diagnostic" in raw ? raw.diagnostic : null);
         library = {...library,diagnostic:diagnostic.success?diagnostic.data:null};
         throw new FacebookFailure(codes.includes(raw.error as FacebookError) ? raw.error as FacebookError : "malformed_response");

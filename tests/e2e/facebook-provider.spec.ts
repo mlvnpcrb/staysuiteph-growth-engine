@@ -4,7 +4,7 @@ const actor="123456789";
 const csrf="fixture-csrf-never-export", lsd="fixture-lsd-never-export";
 function markup(bootstrap=false){
   const data={CurrentUserInitialData:{USER_ID:actor,NAME:"Fixture host"},DTSGInitialData:{token:csrf},LSD:{token:lsd}};
-  const jsonScript=`<script type="application/json">${JSON.stringify({require:Object.entries(data).map(([name,value])=>[name,[],value])})}</script>`;
+  const jsonScript=`<script type="application/json">${JSON.stringify({define:Object.entries(data).map(([name,value])=>[name,[],value])})}</script>`;
   const script=bootstrap?jsonScript:jsonScript+`<script>window.fixtureModules=${JSON.stringify(data)};window.require=function(name){if(name.endsWith('.graphql'))return {params:{id:'11111111111111',operationKind:'query'}};return window.fixtureModules[name]};</script>`;
   return `<!doctype html><html lang="en"><head><title>Facebook fixture</title></head><body>${script}<main>Joined groups fixture</main></body></html>`;
 }
@@ -199,8 +199,8 @@ test("fresh context from another actor, login, missing tokens or duplicate token
   await page.goto("https://www.facebook.com/groups/joins/");
   expect(await invoke(page)).toMatchObject({error:"account_changed"});
   expect(await invoke(page)).toMatchObject({error:"signed_out"});
-  expect(await invoke(page)).toMatchObject({error:"unsupported",diagnostic:{stage:"bootstrap_tokens",contextSource:"fresh_settings"}});
-  expect(await invoke(page)).toMatchObject({error:"malformed_response"});
+  expect(await invoke(page)).toMatchObject({error:"session_context",diagnostic:{stage:"bootstrap_tokens",contextSource:"fresh_settings",bootstrapReason:"missing_tokens"}});
+  expect(await invoke(page)).toMatchObject({error:"session_context",diagnostic:{bootstrapReason:"equal_tokens"}});
   expect(groupRequests).toBe(0);
 });
 test("settings denial or rate limit stops without falling back to old page context",async({page})=>{
@@ -214,4 +214,58 @@ test("settings denial or rate limit stops without falling back to old page conte
   await page.goto("https://www.facebook.com/groups/joins/");
   expect(await invoke(page)).toMatchObject({error:"access_denied",diagnostic:{stage:"session_bootstrap",httpStatus:403}});
   expect(await invoke(page)).toMatchObject({error:"rate_limited"});expect(settings).toBe(2);expect(groupRequests).toBe(0);
+});
+
+test("ServerJS parsing ignores module references and large unrelated renderer payloads",async({page})=>{
+  const renderer={require:[["Renderer","mount",null,[{rows:Array.from({length:81_000},(_,i)=>({i})),references:[["DTSGInitialData","use",{token:"not-a-definition"}],["CurrentUserInitialData","use",{USER_ID:"999"}]]}]]]};
+  const body=freshMarkup().replace("</body>",`<script type="application/json">${JSON.stringify(renderer)}</script></body>`);
+  await page.route("https://www.facebook.com/**",route=>{
+    const path=new URL(route.request().url()).pathname;
+    if(path==="/settings")return route.fulfill({contentType:"text/html",body});
+    if(path==="/api/graphql/")return route.fulfill({json:payload([1])});
+    return route.fulfill({contentType:"text/html",body:markup()});
+  });
+  await page.goto("https://www.facebook.com/groups/joins/");
+  expect(await invoke(page)).toHaveProperty("groups");
+});
+
+test("conflicting credential definitions still stop before group requests",async({page})=>{
+  let requests=0;
+  const conflict=`<script type="application/json">${JSON.stringify({define:[["DTSGInitialData",[],{token:"conflicting-token"}]]})}</script>`;
+  await page.route("https://www.facebook.com/**",route=>{
+    const path=new URL(route.request().url()).pathname;
+    if(path==="/settings")return route.fulfill({contentType:"text/html",body:freshMarkup()+conflict});
+    if(path==="/api/graphql/"){requests++;return route.fulfill({json:payload([1])});}
+    return route.fulfill({contentType:"text/html",body:markup()});
+  });
+  await page.goto("https://www.facebook.com/groups/joins/");
+  const result=await invoke(page);
+  expect(result).toMatchObject({error:"session_context",diagnostic:{stage:"session_bootstrap",bootstrapReason:"conflicting_tokens"}});
+  expect(requests).toBe(0);expect(JSON.stringify(result)).not.toContain("conflicting-token");
+});
+test("conflicting optional SiteData is omitted without invalidating matching actor and tokens",async({page})=>{
+  const conflict=`<script type="application/json">${JSON.stringify({define:[["SiteData",[],{client_revision:99999999,haste_session:"other-session"}]]})}</script>`;
+  await page.route("https://www.facebook.com/**",route=>{
+    const path=new URL(route.request().url()).pathname;
+    if(path==="/settings")return route.fulfill({contentType:"text/html",body:freshMarkup()+conflict});
+    if(path==="/api/graphql/"){
+      const body=new URLSearchParams(route.request().postData()??"");expect(body.has("__rev")).toBe(false);expect(body.has("__hs")).toBe(false);
+      expect(body.get("fb_dtsg")).toBe("fresh-csrf-context");return route.fulfill({json:payload([1])});
+    }
+    return route.fulfill({contentType:"text/html",body:markup()});
+  });
+  await page.goto("https://www.facebook.com/groups/joins/");expect(await invoke(page)).toHaveProperty("groups");
+});
+test("larger settings HTML is streamed within a hard limit and oversized responses stop",async({page})=>{
+  let settings=0,groupRequests=0;
+  await page.route("https://www.facebook.com/**",route=>{
+    const path=new URL(route.request().url()).pathname;
+    if(path==="/settings")return settings++?route.fulfill({contentType:"text/html",headers:{"content-length":"16000001"},body:""}):route.fulfill({contentType:"text/html",body:freshMarkup()+" ".repeat(8_100_000)});
+    if(path==="/api/graphql/"){groupRequests++;return route.fulfill({json:payload([1])});}
+    return route.fulfill({contentType:"text/html",body:markup()});
+  });
+  await page.goto("https://www.facebook.com/groups/joins/");
+  expect(await invoke(page)).toHaveProperty("groups");
+  expect(await invoke(page)).toMatchObject({error:"session_context",diagnostic:{bootstrapReason:"response_size"}});
+  expect(groupRequests).toBe(1);
 });

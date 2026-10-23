@@ -9,8 +9,9 @@ export async function readFacebookGroupPage(actorId: string, cursor: string | nu
   let querySource = "reviewed_fallback";
   let contextSource = "page_bootstrap";
   let facebookErrorCode: number | null = null;
+  let bootstrapReason: string | null = null;
   let structure: {data: boolean; viewer: boolean; groupsTab: boolean; connection: boolean; edges: boolean; pageInfo: boolean; hasNextPage: boolean} | undefined;
-  const failure = (error: string) => ({ error, diagnostic: {stage,httpStatus,query:cursor === null ? "initial" : "pagination",querySource,contextSource,facebookErrorCode,...(structure ? {structure} : {})} });
+  const failure = (error: string) => ({ error, diagnostic: {stage,httpStatus,query:cursor === null ? "initial" : "pagination",querySource,contextSource,facebookErrorCode,bootstrapReason,...(structure ? {structure} : {})} });
   if (!/^[1-9]\d{0,79}$/.test(actorId) || (cursor !== null && (typeof cursor !== "string" || !cursor.length || cursor.length > 4096))) return failure("malformed_response");
   if (location.origin !== "https://www.facebook.com") return failure("access_denied");
   stage = "page_guard";
@@ -56,6 +57,7 @@ export async function readFacebookGroupPage(actorId: string, cursor: string | nu
   // from an already-open SPA may not be the current request context. Fetch one
   // fresh same-origin settings response, with no spoofed navigation headers.
   stage = "session_bootstrap";
+  contextSource = "fresh_settings";
   const fresh = new Map<string, Record<string, unknown>>();
   try {
     const response = await fetch("/settings", {headers:{accept:"text/html"},credentials:"same-origin",cache:"no-store",redirect:"follow",signal:AbortSignal.timeout(20_000)});
@@ -68,41 +70,81 @@ export async function readFacebookGroupPage(actorId: string, cursor: string | nu
     if (destination.origin !== location.origin) return failure("access_denied");
     if (/\/(?:checkpoint|recover|disabled)(?:[/.]|$)/.test(destination.pathname)) return failure("challenge");
     if (/\/login(?:[/.]|$)/.test(destination.pathname)) return failure("signed_out");
-    if (Number(response.headers.get("content-length")) > 8_000_000) return failure("malformed_response");
-    const html = await response.text();
-    if (html.length > 8_000_000) return failure("malformed_response");
+    const limit = 16_000_000;
+    if (Number(response.headers.get("content-length")) > limit) {
+      bootstrapReason = "response_size"; await response.body?.cancel().catch(() => {}); return failure("session_context");
+    }
+    // Bound decoded bytes too: Content-Length can describe compressed content.
+    const reader = response.body?.getReader();
+    if (!reader) { bootstrapReason = "invalid_definition"; return failure("session_context"); }
+    const decoder = new TextDecoder(), chunks: string[] = [];
+    let bytesRead = 0;
+    while (true) {
+      const part = await reader.read();
+      if (part.done) break;
+      bytesRead += part.value.byteLength;
+      if (bytesRead > limit) { bootstrapReason = "response_size"; await reader.cancel().catch(() => {}); return failure("session_context"); }
+      chunks.push(decoder.decode(part.value,{stream:true}));
+    }
+    const html = chunks.join("") + decoder.decode();
     if (/<form\b[^>]*\bid\s*=\s*["']login_form["']/i.test(html)) return failure("signed_out");
     if (/<form\b[^>]*\baction\s*=\s*["'][^"']*\/checkpoint(?:[/?"'])/i.test(html)) return failure("challenge");
     const freshNames = ["CurrentUserInitialData","DTSGInitialData","LSD","SiteData"];
-    let remaining = 80_000, scriptCount = 0, ambiguous = false;
-    // Extract JSON script text only. Do not create a document that could load
-    // images, execute script, or expose settings HTML outside this function.
+    let remaining = 150_000, scriptCount = 0, siteConflict = false;
+    const object = (value: unknown): Record<string,unknown> | null => value && typeof value === "object" && !Array.isArray(value) ? value as Record<string,unknown> : null;
+    // Only define tables contain module definitions. Renderer arguments and
+    // module invocation/reference tuples are not credential sources.
     for (const match of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)) {
-      if (++scriptCount > 250) break;
+      if (++scriptCount > 2000) { bootstrapReason = "script_limit"; return failure("session_context"); }
       if (!/\btype\s*=\s*["']application\/json["']/i.test(match[1] ?? "")) continue;
       const text = match[2] ?? "";
-      if (text.length > 2_000_000 || !freshNames.some(name => text.includes(name))) continue;
-      let value: unknown;
-      try { value = JSON.parse(text); } catch { continue; }
-      const stack = [{value,depth:0}];
-      while (stack.length && remaining-- > 0) {
+      if (!freshNames.some(name => text.includes(name))) continue;
+      let root: unknown;
+      try { root = JSON.parse(text); } catch { bootstrapReason = "invalid_json"; return failure("session_context"); }
+      const stack = [{value:root,depth:0}];
+      while (stack.length) {
+        if (--remaining <= 0) { bootstrapReason = "traversal_limit"; return failure("session_context"); }
         const item = stack.pop();
-        if (!item || item.depth > 40 || !item.value || typeof item.value !== "object") continue;
-        const candidate = item.value;
-        if (Array.isArray(candidate) && typeof candidate[0] === "string" && freshNames.includes(candidate[0]) && candidate[2] && typeof candidate[2] === "object" && !Array.isArray(candidate[2])) {
-          const name = candidate[0], data = candidate[2] as Record<string,unknown>;
-          const previous = fresh.get(name), field = name === "CurrentUserInitialData" ? "USER_ID" : name === "SiteData" ? "client_revision" : "token";
-          if (previous && previous[field] !== data[field]) ambiguous = true;
-          else fresh.set(name,data);
+        if (!item || item.depth > 40) { bootstrapReason = "traversal_limit"; return failure("session_context"); }
+        const container = object(item.value);
+        if (!container) continue;
+        if (object(container.__bbox)) stack.push({value:container.__bbox,depth:item.depth+1});
+        if (Array.isArray(container.define)) for (const definition of container.define) {
+          if (--remaining <= 0) { bootstrapReason = "traversal_limit"; return failure("session_context"); }
+          if (!Array.isArray(definition) || typeof definition[0] !== "string" || !freshNames.includes(definition[0])) continue;
+          const name = definition[0], data = object(definition[2]);
+          if (!Array.isArray(definition[1]) || !data) { bootstrapReason = "invalid_definition"; return failure("session_context"); }
+          const previous = fresh.get(name);
+          if (name === "SiteData") {
+            // Optional metadata must not invalidate unambiguous credentials.
+            // If it conflicts, omit it instead of guessing a revision/session.
+            if (siteConflict) continue;
+            if (previous && ["client_revision","haste_session","__spin_r","__spin_b","__spin_t"].some(key => previous[key] !== data[key])) { fresh.delete(name); siteConflict = true; }
+            else fresh.set(name,data);
+            continue;
+          }
+          const field = name === "CurrentUserInitialData" ? "USER_ID" : "token";
+          if (previous && previous[field] !== data[field]) {
+            bootstrapReason = name === "CurrentUserInitialData" ? "conflicting_identity" : "conflicting_tokens";
+            return failure("session_context");
+          }
+          fresh.set(name,data);
         }
-        for (const child of Object.values(candidate)) if (child && typeof child === "object") stack.push({value:child,depth:item.depth+1});
+        if (Array.isArray(container.require)) for (const invocation of container.require) {
+          if (--remaining <= 0) { bootstrapReason = "traversal_limit"; return failure("session_context"); }
+          if (!Array.isArray(invocation) || invocation[0] !== "ScheduledServerJS" || invocation[1] !== "handle" || !Array.isArray(invocation[3])) continue;
+          for (const argument of invocation[3]) {
+            if (--remaining <= 0) { bootstrapReason = "traversal_limit"; return failure("session_context"); }
+            const bbox = object(object(argument)?.__bbox);
+            if (bbox) stack.push({value:bbox,depth:item.depth+1});
+          }
+        }
       }
     }
-    if (ambiguous || remaining <= 0) return failure("malformed_response");
   } catch { return failure("network"); }
   stage = "bootstrap_identity";
   const freshIdentity = fresh.get("CurrentUserInitialData");
-  if (!freshIdentity || typeof freshIdentity.USER_ID !== "string") return failure("unsupported");
+  if (!freshIdentity || typeof freshIdentity.USER_ID !== "string") { bootstrapReason = "missing_identity"; return failure("session_context"); }
   if (freshIdentity.USER_ID === "0") return failure("signed_out");
   if (freshIdentity.USER_ID !== actorId) return failure("account_changed");
   identity = freshIdentity;
@@ -110,8 +152,8 @@ export async function readFacebookGroupPage(actorId: string, cursor: string | nu
   stage = "bootstrap_tokens";
   const token = fresh.get("DTSGInitialData")?.token;
   const lsd = fresh.get("LSD")?.token;
-  if (typeof token !== "string" || !token || token.length > 2048 || typeof lsd !== "string" || !lsd || lsd.length > 2048) return failure("unsupported");
-  if (token === lsd) return failure("malformed_response");
+  if (typeof token !== "string" || !token || token.length > 2048 || typeof lsd !== "string" || !lsd || lsd.length > 2048) { bootstrapReason = "missing_tokens"; return failure("session_context"); }
+  if (token === lsd) { bootstrapReason = "equal_tokens"; return failure("session_context"); }
   const friendlyName = cursor === null ? "GroupsCometPinnedGroupsDialogQuery" : "GroupsCometUnpinnedGroupsPaginationListPaginatedQuery";
   let documentId = cursor === null ? "7740459739385247" : "7218669964900608";
   const queryId = (value: unknown): string | null => {

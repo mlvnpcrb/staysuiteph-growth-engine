@@ -216,3 +216,34 @@ fixture now supplies stale tab tokens and fresh settings tokens, requiring the
 compiled extension to use the latter. These checks do not establish that this
 change resolves 1357004 in the owner's live session. No new query IDs, permissions,
 file imports, publishing or database changes are included.
+
+## ServerJS parser regression correction (0.2.5)
+
+The owner's 0.2.4 diagnostic is `session_bootstrap`, HTTP 200,
+`malformed_response`, with zero pages. The group API was not reached. The old
+diagnostic cannot distinguish body size, traversal exhaustion or ambiguous module
+records, so no single live cause is asserted from that file.
+
+A regression fixture with valid ServerJS definitions plus renderer arguments
+containing module references and 81,000 unrelated rows reproduces exactly the
+old stage/error. The old parser recursively inspected arbitrary objects and
+interpreted matching tuples outside definition tables as module definitions.
+The new parser follows only ServerJS definition tables, explicit __bbox wrappers,
+and ScheduledServerJS.handle batches, matching the reference's structured parsing
+strategy. Unrelated renderer arguments are ignored. Real identity/token conflicts
+still stop before group access. Conflicting optional SiteData is omitted rather
+than invalidating otherwise unambiguous credentials or guessing metadata.
+
+The session response is streamed under a 16 MB decoded-byte limit (including
+when compressed Content-Length is smaller), with bounded control-record traversal
+and script counts. Individual script size no longer silently excludes otherwise
+bounded valid definitions. Known parser failure reasons are exported as a strict
+enum; no response fragments, names, identifiers, tokens or raw error text are added.
+A session_context error now correctly describes a failure before group access.
+
+Tests were corrected to represent actual define tables instead of treating module
+records inside require as definitions. The original regression was observed failing
+on 0.2.4 and passing with this correction. Tests also preserve credential conflict
+stops, reject oversized responses and accept bounded responses above the old cap.
+This establishes parser correctness for those cases, not live Facebook success.
+No query identifiers, permissions, posting, file imports or database changes.
