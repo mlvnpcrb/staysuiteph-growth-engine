@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/lib/env", () => ({ environment: mocks.env }));
 vi.mock("@/lib/supabase", () => ({ supabaseServer: mocks.client }));
 vi.mock("@staysuite/database", () => ({ campaignRepository: mocks.repo }));
-import { GET, POST } from "../../apps/web/src/app/api/campaigns/route";
+import { GET, POST, DELETE } from "../../apps/web/src/app/api/campaigns/route";
 const owner = "11111111-1111-4111-8111-111111111111",
   id = "22222222-2222-4222-8222-222222222222";
 const req = (body: unknown, origin = "http://localhost", viewer?: string) =>
@@ -124,4 +124,20 @@ it("signs uploads only for the reserved asset from the owned command result", as
   );
   expect(response.status).toBe(200);
   expect(mocks.signed).toHaveBeenCalledWith(`${owner}/${id}/asset`);
+});
+
+it("rejects malformed deletion payloads without touching storage", async () => {
+  const response = await DELETE(
+    new Request("http://localhost/api/campaigns", {
+      method: "DELETE",
+      headers: {
+        origin: "http://localhost",
+        "content-type": "application/json",
+      },
+      body: "{",
+    }),
+  );
+  expect(response.status).toBe(400);
+  expect(mocks.command).not.toHaveBeenCalled();
+  expect((await DELETE(req({}, "https://foreign.test"))).status).toBe(403);
 });

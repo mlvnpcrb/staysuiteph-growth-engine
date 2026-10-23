@@ -38,7 +38,13 @@ async function handle(request: Request, mutation: boolean, removal = false) {
       const raw = await request.text();
       if (raw.length > 64000)
         return reply({ error: "Campaign command too large." }, 413);
-      const input = campaignDeleteInputSchema.safeParse(JSON.parse(raw));
+      let body: unknown;
+      try {
+        body = JSON.parse(raw);
+      } catch {
+        return reply({ error: "Enter a valid deletion request." }, 400);
+      }
+      const input = campaignDeleteInputSchema.safeParse(body);
       if (!input.success)
         return reply({ error: "Check the campaign and version." }, 400);
       const prepared = await client.rpc("campaign_delete", {
@@ -158,8 +164,9 @@ async function handle(request: Request, mutation: boolean, removal = false) {
     if (code === "55000")
       return reply(
         {
-          error:
-            "Publishing is unavailable or an earlier submission needs review. Nothing new was sent.",
+          error: removal
+            ? "Stop and resolve outstanding submissions before deleting this campaign."
+            : "Publishing is unavailable or an earlier submission needs review. Nothing new was sent.",
         },
         409,
       );

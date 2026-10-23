@@ -117,3 +117,27 @@ CI now exercises real editor create/title/notes/image save, reload, signed image
 retrieval, edit, duplication and deletion against disposable Supabase. Hosted
 Google completion and installed-owner-extension execution are separate evidence
 boundaries; do not relabel these CI results as deployed OAuth/posting proof.
+
+Hosted evidence: project kqjqcahysbmsaxlaipub now records campaign_execution
+(20261023145734) and campaign_management (20261023152634) via the official
+connected migration tool. These generated hosted versions map to the reviewed
+local files 20261023110003 and 20261023145846 respectively. Earlier group-schema
+history is still absent and has not been fabricated or replayed. The initial
+management apply returned invalid_request_state; schema/history inspection
+confirmed it had not applied before one successful retry.
+
+Hosted verification ran role-scoped create/edit/inspect/delete, wrong-owner denial
+and direct publisher-write denial inside a rolled-back transaction. It left zero
+campaigns, 180 groups and the existing profile count unchanged. This tests actual
+hosted Postgres commands/RLS, not Google OAuth, browser cookies or Storage uploads.
+The full signed upload/CRUD browser flow passed against disposable CI Supabase.
+
+The security advisor reports two intentional authenticated SECURITY DEFINER RPCs:
+campaign_command and campaign_delete. They use an empty search_path, validate
+non-anonymous auth.uid ownership and revisions, deny direct client table writes,
+and expose neither anonymous execution nor private helpers. Wrong-owner/anonymous
+access is tested. The advisory is tracked rather than removing the command-only
+write boundary. Reference:
+https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable
+The pre-existing leaked-password protection warning remains; Auth configuration
+was not changed.
