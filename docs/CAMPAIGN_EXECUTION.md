@@ -193,3 +193,23 @@ Blocking account alert dialogs stop the Classic adapter regardless of their text
 Immediately before clicking Post, it verifies that the visible control is the
 actual topmost element at its center. An overlay cannot be bypassed by calling a
 covered element's click handler. No submit is recorded until that check passes.
+
+Native integration testing exposed a first-navigation race for browser-created
+Facebook tabs. Execution now reuses a fully loaded exact target-group tab without
+navigating it; otherwise it initializes a blank tab, navigates separately and waits
+for both the correct target URL and completion before verifying identity. Existing
+drafts are still preserved. The native fixture covers the one-post pause and the
+next group after explicit owner confirmation/Start; only its isolated eligibility
+clock is advanced to avoid waiting a real campaign interval in CI.
+
+Publishing connections are restricted to this named StaySuite Preview project/team
+or local development, rather than arbitrary Vercel sites. If the live-validation
+RPC is not installed, the dashboard connection remains readable but the validation
+and publishing controls stay disabled with an explicit setup-pending state.
+
+Applying 20261023215918_campaign_live_validation.sql to the hosted project was
+rejected by automatic approval review: it judged broad continuation approval
+insufficient for this exact persistent schema/RLS/publishing-readiness migration
+against the earlier migration safeguard. It has NOT been applied or retried via a
+workaround. Code, isolated tests and the reviewable SQL are prepared independently;
+explicit approval of this named live migration is required before that live step.

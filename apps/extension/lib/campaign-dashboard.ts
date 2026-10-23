@@ -1,10 +1,26 @@
 import {
+  safeDashboardUrl,
   campaignCommandSchema,
   campaignCommandReplySchema,
   campaignListSchema,
   campaignRestoreSchema,
   type CampaignCommand,
 } from "@staysuite/validation";
+export function campaignDashboardOrigin(value: string) {
+  const origin = safeDashboardUrl(value),
+    url = new URL(origin);
+  if (
+    !["localhost", "127.0.0.1"].includes(url.hostname) &&
+    !(
+      url.hostname.startsWith("staysuiteph-growth-engine-") &&
+      url.hostname.endsWith("-mlvnpcrbs-projects.vercel.app")
+    )
+  )
+    throw new Error(
+      "Use your StaySuite Preview URL or local development workspace.",
+    );
+  return origin;
+}
 /** ISOLATED dashboard execution. Session cookies never leave this origin. */
 export async function campaignDashboardRequest(
   origin: string,
@@ -61,6 +77,8 @@ export function campaignDashboard(
   origin: string,
   viewer: string,
 ) {
+  if (campaignDashboardOrigin(origin) !== origin)
+    throw new Error("Invalid campaign workspace origin.");
   const read = async (path: string, command: CampaignCommand | null = null) => {
     const response = (
       await chrome.scripting.executeScript({

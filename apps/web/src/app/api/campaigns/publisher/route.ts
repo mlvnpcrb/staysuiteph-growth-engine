@@ -25,11 +25,21 @@ export async function GET(request?: Request) {
       const available = await client.rpc("campaign_publisher_ready", {
         p_actor_id: actor.data,
       });
-      if (available.error) throw available.error;
+      if (available.error) {
+        if (["PGRST202", "42883"].includes(available.error.code))
+          return reply({
+            viewer_id: user.id,
+            classic: false,
+            adapter_version: "0.3.2",
+            validation_available: false,
+          });
+        throw available.error;
+      }
       return reply({
         viewer_id: user.id,
         classic: available.data === true,
         adapter_version: "0.3.2",
+        validation_available: true,
       });
     }
     const publishers = await client

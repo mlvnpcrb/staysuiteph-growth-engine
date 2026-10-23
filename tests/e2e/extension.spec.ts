@@ -333,7 +333,15 @@ test("campaign workspace connects the scoped dashboard but never starts an unval
               path.startsWith("/api/campaigns/publisher")
             )
               return [
-                { result: { data: { viewer_id: owner, classic: false } } },
+                {
+                  result: {
+                    data: {
+                      viewer_id: owner,
+                      classic: false,
+                      validation_available: true,
+                    },
+                  },
+                },
               ];
             if (path === "/api/groups")
               return [{ result: { data: { viewer_id: owner, groups: [] } } }];

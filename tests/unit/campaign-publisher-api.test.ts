@@ -67,3 +67,15 @@ it("checks actor-scoped validation and rejects invalid profile IDs", async () =>
     ).status,
   ).toBe(400);
 });
+
+it("keeps the connection readable and publishing disabled until validation migration exists", async () => {
+  mocks.rpc.mockResolvedValue({ data: null, error: { code: "PGRST202" } });
+  const response = await GET(
+    new Request("http://localhost/api/campaigns/publisher?actor_id=12345"),
+  );
+  expect(response.status).toBe(200);
+  expect(await response.json()).toMatchObject({
+    classic: false,
+    validation_available: false,
+  });
+});

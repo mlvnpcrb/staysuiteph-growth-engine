@@ -3,11 +3,11 @@ import { useEffect, useRef, useState } from "react";
 import {
   campaignListSchema,
   groupResponseSchema,
-  safeDashboardUrl,
   type CampaignJob,
   type CampaignList,
 } from "@staysuite/validation";
 import {
+  campaignDashboardOrigin,
   campaignDashboard,
   campaignFacebookActor,
 } from "../lib/campaign-dashboard";
@@ -27,6 +27,7 @@ import {
 import "../style.css";
 type Connection = { tabId: number; origin: string; viewer: string };
 export default function CampaignWorkspace() {
+  const [validationAvailable, setValidationAvailable] = useState(false);
   const [validationReviewed, setValidationReviewed] = useState(false);
   const [receiptReviewed, setReceiptReviewed] = useState(false);
   const [groups, setGroups] = useState<SavedGroup[]>([]);
@@ -98,9 +99,10 @@ export default function CampaignWorkspace() {
     setJob(null);
     setActor(null);
     setEnabled(false);
+    setValidationAvailable(false);
     clearApproval();
     try {
-      const origin = safeDashboardUrl(url),
+      const origin = campaignDashboardOrigin(url),
         host = new URL(origin);
       const pattern = `${host.protocol}//${host.hostname}/*`;
       if (
@@ -155,10 +157,16 @@ export default function CampaignWorkspace() {
       setConnection(session);
       setList(campaignListSchema.parse(campaigns));
       setEnabled(publisher.classic);
+      const available =
+        "validation_available" in publisher &&
+        publisher.validation_available === true;
+      setValidationAvailable(available);
       setNotice(
         publisher.classic
           ? "Connected. Review one exact campaign before starting."
-          : "Connected. Automatic submission is disabled until this Facebook adapter passes live validation. You can inspect the composer without filling or publishing it.",
+          : !available
+            ? "Connected. Live validation setup is pending for this workspace. You can save campaigns; publishing remains disabled."
+            : "Connected. Automatic submission is disabled until this Facebook adapter passes live validation. You can inspect the composer without filling or publishing it.",
       );
     } catch (e) {
       setNotice(e instanceof Error ? e.message : "Could not connect.");
@@ -234,14 +242,43 @@ export default function CampaignWorkspace() {
       throw new Error(
         "The target group is unavailable or has an unsupported URL.",
       );
-    const tab = await chrome.tabs.create({ url: group.url, active: true });
+    const targetUrl = new URL(group.url);
+    const matches = (value: string | undefined) => {
+      try {
+        const url = new URL(value || "");
+        return (
+          url.origin === targetUrl.origin && url.pathname === targetUrl.pathname
+        );
+      } catch {
+        return false;
+      }
+    };
+    const existing = (
+      await chrome.tabs.query({ url: "https://www.facebook.com/*" })
+    ).find(
+      (tab) =>
+        tab.id !== undefined && tab.status === "complete" && matches(tab.url),
+    );
+    // Reuse only this exact group without navigating or replacing a user's draft.
+    // A new target is initialized separately before navigation, avoiding a first-load/identity race.
+    const tab =
+      existing ??
+      (await chrome.tabs.create({ url: "about:blank", active: true }));
     if (tab.id === undefined) throw new Error("Facebook tab unavailable.");
     activeFacebook.current = tab.id;
+    await chrome.tabs.update(
+      tab.id,
+      existing ? { active: true } : { url: group.url, active: true },
+    );
     const end = Date.now() + 20000;
-    while ((await chrome.tabs.get(tab.id)).status !== "complete") {
+    for (;;) {
+      const current = await chrome.tabs.get(tab.id);
+      if (current.status === "complete" && matches(current.url)) break;
       if (Date.now() > end || controller.current?.signal.aborted)
-        throw new Error("Facebook page did not become ready.");
-      await new Promise((r) => setTimeout(r, 250));
+        throw new Error(
+          "Facebook page did not become ready. Resolve any account check in Facebook.",
+        );
+      await new Promise((resolve) => setTimeout(resolve, 250));
     }
     const identity = await readActor();
     if (
@@ -763,6 +800,12 @@ export default function CampaignWorkspace() {
               aria-label="Single live validation"
             >
               <h3>Validate with one real post</h3>
+              {!validationAvailable && (
+                <p role="status">
+                  Live validation setup is pending. Publishing remains disabled
+                  for this workspace.
+                </p>
+              )}
               <p>
                 This publishes only the first group:{" "}
                 <strong>
@@ -776,7 +819,12 @@ export default function CampaignWorkspace() {
                 <input
                   type="checkbox"
                   checked={validationReviewed}
-                  disabled={busy || running || job.state !== "ready"}
+                  disabled={
+                    busy ||
+                    running ||
+                    !validationAvailable ||
+                    job.state !== "ready"
+                  }
                   onChange={(e) => setValidationReviewed(e.target.checked)}
                 />
                 I authorize one real validation post to this first group with
@@ -787,6 +835,7 @@ export default function CampaignWorkspace() {
                   busy ||
                   running ||
                   !validationReviewed ||
+                  !validationAvailable ||
                   job.state !== "ready" ||
                   !groups.some((g) => g.id === job.targets[0]?.group_id) ||
                   !job.actor_id ||

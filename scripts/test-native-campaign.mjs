@@ -20,6 +20,7 @@ export async function testNativeCampaign({
   assert.ok(["127.0.0.1", "localhost"].includes(new URL(origin).hostname));
   const profile = await mkdtemp(join(tmpdir(), "staysuite-native-campaign-"));
   let native;
+  const secondGroupId = randomUUID();
   let job;
   let clicks = 0;
   let blockedMutations = 0;
@@ -48,6 +49,29 @@ export async function testNativeCampaign({
       "base64",
     );
     onStage("native campaign fixture/private media");
+    const viewer = (
+      await (await context.request.get(`${origin}/api/groups`)).json()
+    ).viewer_id;
+    const secondGroupUrl = "https://www.facebook.com/groups/987654322/";
+    const inserted = await admin.from("saved_groups").insert({
+      id: secondGroupId,
+      user_id: viewer,
+      identity: "987654322",
+      url: secondGroupUrl,
+      title: "Native second group fixture",
+      destination: "",
+      accommodation: "",
+      audience: "",
+      review_status: "reviewed",
+      rule_evidence: "Disposable fixture permission",
+      last_reviewed_at: new Date().toISOString(),
+      marketing_evidence: {
+        observed_at: new Date().toISOString(),
+        source_url: secondGroupUrl,
+        promotion_allowed: true,
+      },
+    });
+    assert.equal(inserted.error, null);
     await api("create", {
       title: "Native extension validation fixture",
       actor_id: actor,
@@ -56,7 +80,7 @@ export async function testNativeCampaign({
         version: 1,
         text: "Native fixture offer — no live Facebook traffic",
         intervalMinutes: 1,
-        groupIds: [groupId],
+        groupIds: [groupId, secondGroupId],
         media: [
           {
             name: "fixture.png",
@@ -123,13 +147,15 @@ export async function testNativeCampaign({
         );
         return route.abort();
       }
-      if (route.request().url() !== groupUrl) return route.abort();
+      const currentGroup = route.request().url();
+      if (![groupUrl, secondGroupUrl].includes(currentGroup))
+        return route.abort();
       return route.fulfill({
         contentType: "text/html",
         body: `<!doctype html><html><body><div role="dialog"><div role="textbox" contenteditable="true"></div><button id="media" aria-label="Photo/video">Photo/video</button><button id="publish">Post</button></div><script>
-    window.fixturePage=true;window.require=name=>name==='CurrentUser'?{getID:()=>'${actor}'}:{USER_ID:'${actor}',PROFILE_ID:'${actor}'};
+    window.fixturePage=true;window.fixtureClicks=0;window.require=name=>name==='CurrentUser'?{getID:()=>'${actor}'}:{USER_ID:'${actor}',PROFILE_ID:'${actor}'};
     document.getElementById('media').onclick=()=>{const input=document.createElement('input');input.type='file';input.accept='image/*';input.multiple=true;input.onchange=()=>{const preview=document.createElement('button');preview.setAttribute('aria-label','Remove photo');document.querySelector('[role=dialog]').append(preview)};document.querySelector('[role=dialog]').append(input)};
-    document.getElementById('publish').onclick=()=>{const status=document.createElement('div');status.setAttribute('role','status');status.innerHTML='Your post was published. <a href="${groupUrl}posts/54321/">View post</a>';document.body.append(status);window.fixturePublished=true;};
+    document.getElementById('publish').onclick=()=>{window.fixtureClicks++;const status=document.createElement('div');status.setAttribute('role','status');status.innerHTML='Your post was published. <a href="${currentGroup}posts/54321/">View post</a>';document.body.append(status);window.fixturePublished=true;};
    </script></body></html>`,
       });
     });
@@ -206,10 +232,43 @@ export async function testNativeCampaign({
     );
     await context.addCookies(await native.cookies(origin));
     await api("inspect", {});
+    assert.equal(job.state, "paused");
+    assert.equal(job.targets[1].state, "queued");
+    onStage("native sequential continuation after owner confirmation");
+    await admin
+      .from("campaign_jobs")
+      .update({ next_eligible_at: new Date(Date.now() - 1000).toISOString() })
+      .eq("id", id);
+    await workspace
+      .getByRole("checkbox", { name: /I reviewed this exact text/ })
+      .check();
+    await workspace
+      .getByRole("button", { name: "Start sequential posting", exact: true })
+      .click();
+    await expect(workspace.getByRole("status").first()).toContainText(
+      "completed",
+      { timeout: 60000 },
+    );
+    let totalClicks = 0;
+    for (const page of native.pages())
+      if (page.url().startsWith("https://www.facebook.com/"))
+        totalClicks += await page.evaluate(() => globalThis.fixtureClicks || 0);
+    assert.equal(totalClicks, 2);
+    assert.equal(blockedMutations, 0);
+    for (const page of native.pages())
+      if (page.url().startsWith("https://www.facebook.com/"))
+        assert.equal(
+          await page.evaluate(() => globalThis.fixturePage === true),
+          true,
+          "All Facebook pages must be synthetic fixtures",
+        );
+    await context.addCookies(await native.cookies(origin));
+    await api("inspect", {});
+    assert.equal(job.targets[1].state, "live");
     assert.equal(job.targets[0].state, "live");
     assert.equal(job.targets[0].provider_code, "reported_ui_receipt");
     console.log(
-      "PASS: real native MV3 campaign UI, signed media retrieval, actor binding, exact approval, single DOM submission/receipt and owner confirmation through authenticated dashboard/real disposable Supabase; all Facebook responses intercepted, not live compatibility proof",
+      "PASS: real native MV3 campaign UI, signed media retrieval, actor binding, exact approval, single DOM submission/receipt, owner confirmation and sequential next-group submission through authenticated dashboard/real disposable Supabase; all Facebook responses intercepted, not live compatibility proof",
     );
   } catch (error) {
     const result = await admin
@@ -225,7 +284,9 @@ export async function testNativeCampaign({
               .evaluate(() => ({
                 fixture: globalThis.fixturePage === true,
                 published: globalThis.fixturePublished === true,
-                editors: globalThis.document.querySelectorAll('[role="textbox"]').length,
+                editors:
+                  globalThis.document.querySelectorAll('[role="textbox"]')
+                    .length,
               }))
               .catch(() => ({ unavailable: true })),
           );
@@ -265,6 +326,7 @@ export async function testNativeCampaign({
       await admin.from("campaign_media").delete().eq("campaign_id", id);
       await admin.from("campaign_targets").delete().eq("campaign_id", id);
       await admin.from("campaign_jobs").delete().eq("id", id);
+      await admin.from("saved_groups").delete().eq("id", secondGroupId);
     } finally {
       await rm(profile, { recursive: true, force: true });
     }
