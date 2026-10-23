@@ -10,8 +10,8 @@ create table public.campaign_publishers (
 insert into public.campaign_publishers(method) values('classic'),('direct');
 alter table public.campaign_publishers enable row level security;
 create policy publisher_status on public.campaign_publishers for select to authenticated using(true);
+revoke all on public.campaign_publishers from public, anon, authenticated;
 grant select on public.campaign_publishers to authenticated;
-revoke all on public.campaign_publishers from anon;
 create table public.campaign_jobs (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id),
