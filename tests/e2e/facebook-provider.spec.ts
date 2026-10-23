@@ -16,7 +16,7 @@ test("Facebook page provider follows the read-only request contract and returns 
   await page.route("https://www.facebook.com/**",async route=>{
     if(new URL(route.request().url()).pathname==="/api/graphql/"){
       const body=new URLSearchParams(route.request().postData()??"");
-      expect(body.get("fb_dtsg")).toBe(csrf);expect(body.get("lsd")).toBe(lsd);expect(body.get("doc_id")).toBe("11111111111111");
+      expect(body.get("fb_dtsg")).toBe(csrf);expect(body.get("jazoest")).toMatch(/^2\d+$/);expect(body.get("lsd")).toBe(lsd);expect(body.get("doc_id")).toBe("11111111111111");
       const variables=JSON.parse(body.get("variables")??"{}");cursors.push(variables.cursor??null);
       expect(body.get("fb_api_req_friendly_name")).toBe(variables.cursor?"GroupsCometUnpinnedGroupsPaginationListPaginatedQuery":"GroupsCometPinnedGroupsDialogQuery");
       await route.fulfill({json:variables.cursor?payload([7,8,9,10,11,12]):payload([1,2,3,4,5,6],true)});

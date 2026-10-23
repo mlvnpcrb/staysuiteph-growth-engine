@@ -39,8 +39,10 @@ jobs:
       - run: pnpm --filter @staysuite/extension build
       - name: Install supported Chromium and OS dependencies
         run: pnpm exec playwright install --with-deps chromium
+      - name: Native Facebook collection boundary
+        run: pnpm test:extension
+        timeout-minutes: 3
       - run: pnpm test:e2e
-      - run: pnpm test:extension
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

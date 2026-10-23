@@ -26,7 +26,6 @@ assert.equal(
 );
 assert.ok(existsSync(`${directory}/${manifest.action.default_popup}`));
 assert.ok(existsSync(`${directory}/tabs/groups.html`));
-assert.ok(existsSync(`${directory}/tabs/collector.html`));
 console.log(
-  "PASS: built Chrome MV3 manifest, popup, and account-scoped library and dedicated collector; zero permanent host/content-script permissions; optional cookies and scoped site grants",
+  "PASS: built Chrome MV3 manifest, popup, and account-scoped library and bounded background collector; zero permanent host/content-script permissions; optional cookies and scoped site grants",
 );

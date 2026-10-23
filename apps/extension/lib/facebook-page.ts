@@ -59,7 +59,7 @@ export async function readFacebookGroupPage(actorId: string, cursor: string | nu
     if (current?.params?.operationKind === "query" && typeof current.params.id === "string" && /^\d{10,25}$/.test(current.params.id)) { documentId = current.params.id; querySource = "page_module"; }
   } catch { /* The reviewed fallback ID must still pass live response validation. */ }
   const variables = cursor === null ? {ordering:["viewer_added"],scale:1} : {count:50,cursor,ordering:["viewer_added"],scale:1};
-  const body = new URLSearchParams({__user:actorId,av:actorId,__a:"1",fb_dtsg:token,lsd,doc_id:documentId,fb_api_caller_class:"RelayModern",fb_api_req_friendly_name:friendlyName,variables:JSON.stringify(variables),server_timestamps:"true"});
+  const body = new URLSearchParams({__user:actorId,av:actorId,__a:"1",fb_dtsg:token,jazoest:`2${Array.from(token).reduce((sum,char)=>sum+char.charCodeAt(0),0)}`,lsd,doc_id:documentId,fb_api_caller_class:"RelayModern",fb_api_req_friendly_name:friendlyName,variables:JSON.stringify(variables),server_timestamps:"true"});
   try {
     stage = "request";
     const response = await fetch("/api/graphql/", {method:"POST",credentials:"same-origin",redirect:"error",cache:"no-store",headers:{"content-type":"application/x-www-form-urlencoded","x-fb-lsd":lsd,"x-fb-friendly-name":friendlyName},body:body.toString(),signal:AbortSignal.timeout(20_000)});

@@ -1,20 +1,20 @@
-import { facebookLibrarySchema, facebookDiagnosticSchema, facebookErrorSchema } from "@staysuite/validation";
+import { collectFacebookLibrary } from "./lib/facebook-collector";
+import { readFacebookGroupPage } from "./lib/facebook-page";
+import type { FacebookJob } from "./lib/facebook-store";
 import { FacebookFailure, facebookCode } from "./lib/facebook-model";
 import { FACEBOOK_ACTIVE, FACEBOOK_JOB, assertFacebookJob, facebookIdentity, libraryKey, loadFacebookLibrary, readFacebookJob, writeFacebookLibrary } from "./lib/facebook-store";
-class CollectorRefusal extends FacebookFailure {
-  constructor(public readonly refusal: "job" | "nonce" | "sender_tab" | "owned_tab") { super("cancelled"); }
-}
 let operations: Promise<unknown> = Promise.resolve();
+const running = new Map<string, AbortController>();
 function serialized<T>(operation: () => Promise<T>) {
   const next = operations.then(operation,operation); operations = next.catch(() => {}); return next;
 }
 async function stop(error: "cancelled" | "account_changed" | "permission_required" | "interrupted" = "cancelled") {
   const job = await readFacebookJob();
+  if (job) running.get(job.runId)?.abort();
   await chrome.storage.session.remove(FACEBOOK_JOB);
   if (job) {
     const library = await loadFacebookLibrary(job.actorId);
     if (library?.runId === job.runId) await writeFacebookLibrary({...library,phase:error === "cancelled" ? "cancelled" : "partial",complete:false,error,runId:null,updatedAt:new Date().toISOString()});
-    if (job.collectorTabId !== undefined) await chrome.tabs.remove(job.collectorTabId).catch(() => {});
     if (job.ownFacebookTab) await chrome.tabs.remove(job.tabId).catch(() => {});
   }
   if (error !== "cancelled") await chrome.storage.local.remove(FACEBOOK_ACTIVE);
@@ -22,7 +22,7 @@ async function stop(error: "cancelled" | "account_changed" | "permission_require
 async function state() {
   const actorId = await facebookIdentity();
   const job = await readFacebookJob();
-  if (job && (job.actorId !== actorId || Date.now()-job.startedAt>180_000)) await stop(job.actorId !== actorId ? "account_changed" : "interrupted");
+  if (job && (job.actorId !== actorId || Date.now()-job.startedAt>180_000 || !running.has(job.runId))) await stop(job.actorId !== actorId ? "account_changed" : "interrupted");
   let library = await loadFacebookLibrary(actorId);
   if (library?.phase === "fetching" && !(await readFacebookJob())) {
     library = {...library,phase:"partial",complete:false,error:"interrupted",runId:null};
@@ -44,64 +44,70 @@ async function start() {
   await chrome.storage.session.set({[FACEBOOK_JOB]:job});
   await chrome.storage.local.set({[FACEBOOK_ACTIVE]:actorId});
   await writeFacebookLibrary({schema:1,actorId,actorName:prior?.actorName??"Facebook profile",groups:prior?.groups??[],phase:"fetching",pages:0,complete:false,updatedAt:new Date().toISOString(),syncedAt:prior?.syncedAt??null,error:null,runId:job.runId});
-  try {
-    const collector = await chrome.tabs.create({url:`${chrome.runtime.getURL("tabs/collector.html")}?run=${job.runId}`,active:false});
-    await assertFacebookJob(job);
-    // Preserve the collector's tab binding even if the page starts immediately.
-    await chrome.storage.session.set({[FACEBOOK_JOB]:{...job,collectorTabId:collector.id}});
-  } catch { await stop("interrupted"); throw new FacebookFailure("network"); }
+  const controller = new AbortController();
+  running.set(job.runId,controller);
+  void runFacebookJob(job,controller);
   return state();
 }
-chrome.runtime.onMessage.addListener((message: unknown,sender,reply) => {
-  const url = sender.url ?? "";
-  if (sender.id !== chrome.runtime.id || (sender.frameId !== undefined && sender.frameId !== 0)) return false;
-  const collector = url.split("?")[0] === chrome.runtime.getURL("tabs/collector.html");
-  const workspace = [chrome.runtime.getURL("tabs/groups.html"),chrome.runtime.getURL("popup.html")].includes(url.split("?")[0]??"");
-  if (!collector && !workspace) return false;
-  if (!message || typeof message !== "object" || !("type" in message)) return false;
-  if (collector && !["FACEBOOK_COLLECTOR_INIT","FACEBOOK_COLLECTOR_GUARD","FACEBOOK_CHECKPOINT","FACEBOOK_COLLECTOR_FAILED","FACEBOOK_COLLECTOR_FINISH"].includes(String(message.type))) return false;
-  if (workspace && !["FACEBOOK_STATE","FACEBOOK_START","FACEBOOK_STOP","FACEBOOK_FORGET"].includes(String(message.type))) return false;
-  void serialized(async () => {
-    if (collector) {
-      const job = await readFacebookJob();
-      if (!job || job.collectorTabId === undefined) throw new CollectorRefusal("job");
-      if (new URL(url).searchParams.get("run") !== job.runId) throw new CollectorRefusal("nonce");
-      if (sender.tab && sender.tab.id !== job.collectorTabId) throw new CollectorRefusal("sender_tab");
-      // Extension-page messages do not always populate sender.tab. In that case
-      // the exact extension URL + per-run nonce must match the live owned tab.
-      const ownedTab = await chrome.tabs.get(job.collectorTabId);
-      if (ownedTab.id !== job.collectorTabId || (ownedTab.url !== undefined && ownedTab.url !== url)) throw new CollectorRefusal("owned_tab");
-      await assertFacebookJob(job);
-      const library = await loadFacebookLibrary(job.actorId);
-      if (message.type === "FACEBOOK_COLLECTOR_INIT") {
-        if (!library || library.runId !== job.runId) throw new FacebookFailure("cancelled");
-        return {job,library};
-      }
-      if (message.type === "FACEBOOK_COLLECTOR_GUARD") return {};
-      if (message.type === "FACEBOOK_COLLECTOR_FINISH") {
-        if (library?.phase === "fetching") await writeFacebookLibrary({...library,phase:"error",error:"interrupted",complete:false,runId:null,updatedAt:new Date().toISOString()});
-        await chrome.storage.session.remove(FACEBOOK_JOB);
-        return {};
-      }
-      if (message.type === "FACEBOOK_COLLECTOR_FAILED") {
-        const diagnostic=facebookDiagnosticSchema.safeParse({stage:"stage" in message?message.stage:null,httpStatus:null,query:"not_started",querySource:"not_started"});
-        const code=facebookErrorSchema.safeParse("code" in message?message.code:null);
-        if (library?.runId === job.runId) await writeFacebookLibrary({...library,phase:library.groups.length?"partial":"error",error:code.success?code.data:"interrupted",diagnostic:diagnostic.success?diagnostic.data:null,complete:false,runId:null,updatedAt:new Date().toISOString()});
-        return {};
-      }
-      const next = facebookLibrarySchema.parse("library" in message ? message.library : null);
-      if (next.actorId !== job.actorId || (next.runId !== null && next.runId !== job.runId)) throw new FacebookFailure("account_changed");
-      if (library?.runId !== job.runId) throw new FacebookFailure("cancelled");
-      await writeFacebookLibrary(next);
-      return {};
+async function runFacebookJob(job: FacebookJob, controller: AbortController) {
+  let reviewFacebook = false;
+  let stage: "page_load" | "page_injection" | "checkpoint" = "page_load";
+  const guard = () => serialized(() => assertFacebookJob(job));
+  try {
+    const initial = await loadFacebookLibrary(job.actorId);
+    if (!initial || initial.runId !== job.runId) throw new FacebookFailure("interrupted");
+    const deadline = Date.now()+20000;
+    let loaded = false;
+    while(Date.now()<deadline) {
+      await guard();
+      if((await chrome.tabs.get(job.tabId)).status === "complete") {loaded=true;break;}
+      await new Promise(resolve=>setTimeout(resolve,250));
     }
-    if (message.type === "FACEBOOK_STOP") await stop();
-    if (message.type === "FACEBOOK_FORGET") { await stop(); const actorId = await facebookIdentity(); await chrome.storage.local.remove([libraryKey(actorId),FACEBOOK_ACTIVE]); return {actorId,library:null}; }
+    if(!loaded)throw new FacebookFailure("network");
+    const library=await collectFacebookLibrary({initial,signal:controller.signal,guard,
+      read:async cursor=>{
+        stage="page_injection";
+        try {
+          const results=await chrome.scripting.executeScript({target:{tabId:job.tabId},world:"MAIN",func:readFacebookGroupPage,args:[job.actorId,cursor]});
+          return results[0]?.result;
+        }catch{return {error:"network",diagnostic:{stage:"page_injection",httpStatus:null,query:cursor===null?"initial":"pagination",querySource:"not_started"}};}
+      },
+      write:next=>serialized(async()=>{
+        stage="checkpoint";
+        await assertFacebookJob(job);
+        if((await loadFacebookLibrary(job.actorId))?.runId !== job.runId)throw new FacebookFailure("cancelled");
+        await writeFacebookLibrary(next);
+      }),
+      wait:()=>new Promise(resolve=>setTimeout(resolve,1000)),
+    });
+    reviewFacebook=library.error === "challenge" || library.error === "access_denied";
+    if(reviewFacebook)await chrome.tabs.update(job.tabId,{active:true});
+  }catch(error){
+    await serialized(async()=>{
+      if((await readFacebookJob())?.runId !== job.runId)return;
+      const library=await loadFacebookLibrary(job.actorId);
+      if(library?.runId === job.runId)await writeFacebookLibrary({...library,phase:library.groups.length?"partial":"error",error:facebookCode(error),complete:false,runId:null,updatedAt:new Date().toISOString(),diagnostic:{stage,httpStatus:null,query:"not_started",querySource:"not_started"}});
+    }).catch(()=>{});
+  }finally{
+    await serialized(async()=>{
+      if((await readFacebookJob())?.runId === job.runId)await chrome.storage.session.remove(FACEBOOK_JOB);
+    }).catch(()=>{});
+    running.delete(job.runId);
+    if(job.ownFacebookTab && !reviewFacebook){
+      const tab=await chrome.tabs.get(job.tabId).catch(()=>null);
+      if(tab && !tab.active)await chrome.tabs.remove(job.tabId).catch(()=>{});
+    }
+  }
+}
+chrome.runtime.onMessage.addListener((message: unknown,sender,reply) => {
+  const url=sender.url??"";
+  if(sender.id !== chrome.runtime.id || (sender.frameId !== undefined && sender.frameId !== 0) || ![chrome.runtime.getURL("tabs/groups.html"),chrome.runtime.getURL("popup.html")].includes(url.split("?")[0]??""))return false;
+  if(!message || typeof message !== "object" || !("type" in message) || !["FACEBOOK_STATE","FACEBOOK_START","FACEBOOK_STOP","FACEBOOK_FORGET"].includes(String(message.type)))return false;
+  void serialized(async()=>{
+    if(message.type === "FACEBOOK_STOP")await stop();
+    if(message.type === "FACEBOOK_FORGET"){await stop();const actorId=await facebookIdentity();await chrome.storage.local.remove([libraryKey(actorId),FACEBOOK_ACTIVE]);return {actorId,library:null};}
     return message.type === "FACEBOOK_START" ? start() : state();
-  }).then(value=>reply({ok:true,...value})).catch(async error=>{
-    if(error instanceof CollectorRefusal) await chrome.storage.session.set({"staysuite-facebook-refusal-v1":error.refusal});
-    reply({ok:false,error:facebookCode(error),...(error instanceof CollectorRefusal?{refusal:error.refusal}:{})});
-  });
+  }).then(value=>reply({ok:true,...value})).catch(error=>reply({ok:false,error:facebookCode(error)}));
   return true;
 });
 let observingCookies = false;
@@ -139,5 +145,5 @@ chrome.permissions.onRemoved.addListener(permissions => {
   if (permissions.permissions?.includes("cookies") || permissions.origins?.some(origin=>origin.includes("facebook.com"))) void serialized(()=>stop("permission_required")).catch(()=>{});
 });
 chrome.tabs.onRemoved.addListener(tabId => {
-  void serialized(async()=>{const job=await readFacebookJob();if(job && (job.tabId===tabId || job.collectorTabId===tabId)) await stop("interrupted");}).catch(()=>{});
+  void serialized(async()=>{const job=await readFacebookJob();if(job && job.tabId===tabId) await stop("interrupted");}).catch(()=>{});
 });

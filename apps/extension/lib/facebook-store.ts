@@ -4,7 +4,7 @@ export const FACEBOOK_ORIGIN = "https://www.facebook.com/*";
 export const FACEBOOK_JOB = "staysuite-facebook-job-v1";
 export const FACEBOOK_ACTIVE = "staysuite-facebook-active-v1";
 export const libraryKey = (actorId: string) => `staysuite-facebook-library-v1:${facebookActorSchema.parse(actorId)}`;
-export type FacebookJob = {runId: string; actorId: string; tabId: number; startedAt: number; ownFacebookTab?: boolean; collectorTabId?: number};
+export type FacebookJob = {runId: string; actorId: string; tabId: number; startedAt: number; ownFacebookTab?: boolean};
 export async function facebookIdentity() {
   if (!await chrome.permissions.contains({permissions:["cookies"],origins:[FACEBOOK_ORIGIN]})) throw new FacebookFailure("permission_required");
   const [personal, acting] = await Promise.all([

@@ -21,10 +21,9 @@ Click the extension button to open its Facebook connection and saved library
 directly. A full workspace is also available. Click Connect Facebook. Grant optional cookies
 and www.facebook.com access. Only c_user and i_user identity values are read. A Page
 acting session is refused in this version; switch to the personal profile first.
-Connection starts a background-owned job and a dedicated inactive collector tab.
-It opens a fresh inactive Facebook joined-groups tab for current page context,
-without reloading or navigating any existing Facebook tabs.
-Leave Facebook and the collector tab open; the workspace and popup may be closed.
+Connection starts a background-owned job. It opens a fresh inactive Facebook
+joined-groups tab for current page context without navigating existing user tabs.
+The popup/workspace may be closed while the background collector works.
 
 The collector invokes an original self-contained function in Facebook's MAIN world.
 Known bootstrap modules provide current actor identity and page request/CSRF context.
@@ -57,21 +56,23 @@ starting another import. Expired libraries are removed on access after 30 days;
 this is access-time expiry, not a scheduled deletion guarantee.
 
 Job bindings live in chrome.storage.session. Background operations serialize starts,
-stop/cancel and checkpoint commits. Only the owned collector URL and run ID can commit validated metadata. Sender tab
-bindings are checked when Chrome supplies them; otherwise the trusted extension URL
-and per-run nonce are matched to the owned live tab. Collector startup, guards and
-finish use an explicit background handshake, rather than reading a half-initialized
-job directly from another context. Startup failure cannot leave a fetching state. Explicit session-cookie removal (without reading its value), account changes,
-revoked permissions and relevant tab closure
-invalidate the job. Same-account cookie expiry refreshes do not create false
-account-change errors. Cookie observers are registered when optional access becomes
-available. Stopping prevents late responses from being committed.
+stop/cancel and internal checkpoint commits. The UI has no checkpoint endpoint.
+Collection runs directly in the background worker; startup does not depend on an
+extension-tab handshake. The bounded job is under Chrome's five-minute operation
+limit, and actual Chrome API activity occurs between page requests. There are no
+artificial keep-awake calls. A worker/browser restart can interrupt the job; reopening
+reports that state honestly and permits retry from the saved library.
 
-The collector and its inactive Facebook tab close after completion; existing user
-tabs and any Facebook tab the user activated are preserved. A challenge/denied
-Facebook tab stays open for direct user review. Browser restart/extension reload can
-interrupt work; stale fetching states become partial/interrupted when reopened.
-Clear local library affects the current extension account cache only, never My Groups.
+Explicit session-cookie removal (without reading its value), account changes,
+revoked permissions and closure of the owned Facebook tab invalidate collection.
+Same-account cookie expiry refreshes do not create false account-change errors.
+Cookie observers register when optional access becomes available. Late responses
+cannot commit after job invalidation.
+
+The inactive Facebook tab closes after completion. Existing user tabs and any
+Facebook tab the user activated are preserved on normal completion. Challenge or
+denied-access tabs remain open for direct review. Clear local library affects only
+the current extension account cache, never My Groups.
 
 ## StaySuite synchronization
 
@@ -97,7 +98,7 @@ Unit checks cover page aggregation, cursor failure, cancellation, account change
 strict storage, sender ownership, cookie-read scope and session invalidation without
 credential-value reads. Browser tests execute the page function with intercepted
 responses, including bootstrap fallbacks and request-token return-boundary checks.
-The native test also launches the real background/collector and MAIN-world Chrome
+The native test also launches the real background collector and MAIN-world Chrome
 injection against intercepted Facebook fixtures, closes the workspace mid-import,
 reopens the saved library and switches accounts. Its test-only manifest clone models
 permissions already granted; the shipped optional permissions remain unchanged.
