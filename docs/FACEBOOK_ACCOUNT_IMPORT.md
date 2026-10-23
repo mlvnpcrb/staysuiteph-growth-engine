@@ -56,8 +56,11 @@ starting another import. Expired libraries are removed on access after 30 days;
 this is access-time expiry, not a scheduled deletion guarantee.
 
 Job bindings live in chrome.storage.session. Background operations serialize starts,
-stop/cancel and checkpoint commits. Only the bound collector tab and run ID can
-commit validated metadata. Explicit session-cookie removal (without reading its value), account changes,
+stop/cancel and checkpoint commits. Only the owned collector URL and run ID can commit validated metadata. Sender tab
+bindings are checked when Chrome supplies them; otherwise the trusted extension URL
+and per-run nonce are matched to the owned live tab. Collector startup, guards and
+finish use an explicit background handshake, rather than reading a half-initialized
+job directly from another context. Startup failure cannot leave a fetching state. Explicit session-cookie removal (without reading its value), account changes,
 revoked permissions and relevant tab closure
 invalidate the job. Same-account cookie expiry refreshes do not create false
 account-change errors. Cookie observers are registered when optional access becomes

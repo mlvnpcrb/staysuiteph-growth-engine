@@ -1,6 +1,6 @@
 import { beforeEach, afterEach, expect, it, vi } from "vitest";
 import type { FacebookJob } from "../../apps/extension/lib/facebook-store";
-type Listener=(message:unknown,sender:{id:string;url:string;frameId:number;tab:{id:number}},reply:(value:unknown)=>void)=>boolean;
+type Listener=(message:unknown,sender:{id:string;url:string;frameId:number;tab?:{id:number}},reply:(value:unknown)=>void)=>boolean;
 let listener:Listener;
 let cookieChange:(change:{cookie:{name:string;domain:string};removed?:boolean;cause?:string})=>void;
 let actor:string;
@@ -13,8 +13,8 @@ const area=(data:Record<string,unknown>)=>({
   set:async(values:Record<string,unknown>)=>{Object.assign(data,structuredClone(values));},
   remove:async(keys:string|string[])=>{for(const key of Array.isArray(keys)?keys:[keys])delete data[key];},
 });
-async function request(type:string,extra:Record<string,unknown>={},collector=false,tabId=2):Promise<{ok:boolean;error?:string;library?:unknown;actorId?:string}>{
- return new Promise(resolve=>{const job=session['staysuite-facebook-job-v1'] as FacebookJob|undefined;const url=collector?`${prefix}tabs/collector.html?run=${job?.runId??"stale"}`:`${prefix}tabs/groups.html`;listener({type,...extra},{id:"fixture",url,frameId:0,tab:{id:tabId}},value=>resolve(value as Awaited<ReturnType<typeof request>>));});
+async function request(type:string,extra:Record<string,unknown>={},collector=false,tabId:number|null=2):Promise<{ok:boolean;error?:string;library?:unknown;actorId?:string}>{
+ return new Promise(resolve=>{const job=session['staysuite-facebook-job-v1'] as FacebookJob|undefined;const url=collector?`${prefix}tabs/collector.html?run=${job?.runId??"stale"}`:`${prefix}tabs/groups.html`;listener({type,...extra},{id:"fixture",url,frameId:0,...(tabId===null?{}:{tab:{id:tabId}})},value=>resolve(value as Awaited<ReturnType<typeof request>>));});
 }
 beforeEach(async()=>{
  vi.resetModules();actor="123456789";local={};session={};removeTab.mockReset().mockResolvedValue(undefined);getCookie.mockReset().mockImplementation(async({name}:{name:string})=>name==="c_user"?{value:actor}:null);
@@ -23,7 +23,7 @@ beforeEach(async()=>{
   storage:{local:area(local),session:area(session)},
   permissions:{contains:async()=>true,onAdded:{addListener:()=>{}},onRemoved:{addListener:()=>{}}},
   cookies:{get:getCookie,onChanged:{addListener:(value:typeof cookieChange)=>{cookieChange=value;}}},
-  tabs:{query:async()=>[{id:1,url:"https://www.facebook.com/groups/joins/"}],create:async({url}:{url:string})=>({id:url.startsWith("https:")?1:2}),remove:removeTab,onRemoved:{addListener:()=>{}}},
+  tabs:{query:async()=>[{id:1,url:"https://www.facebook.com/groups/joins/"}],create:async({url}:{url:string})=>({id:url.startsWith("https:")?1:2}),get:async(id:number)=>({id,url:id===2?`${prefix}tabs/collector.html?run=${(session["staysuite-facebook-job-v1"] as FacebookJob)?.runId}`:"https://www.facebook.com/groups/joins/"}),remove:removeTab,onRemoved:{addListener:()=>{}}},
  });
  await import("../../apps/extension/background");
 });
@@ -67,4 +67,14 @@ it("ordinary same-identity cookie refresh does not stop collection",async()=>{
  cookieChange({cookie:{name:"c_user",domain:".facebook.com"},removed:true,cause:"overwrite"});
  cookieChange({cookie:{name:"c_user",domain:".facebook.com"},removed:false,cause:"explicit"});
  await request("FACEBOOK_STATE");expect(session['staysuite-facebook-job-v1']).toBeDefined();
+});
+
+it("background handshake supports extension pages without sender.tab while retaining URL and nonce checks",async()=>{
+ await request("FACEBOOK_START");
+ const initialized=await request("FACEBOOK_COLLECTOR_INIT",{},true,null);expect(initialized.ok).toBe(true);
+ const stored=local[`staysuite-facebook-library-v1:${actor}`] as Record<string,unknown>;
+ expect((await request("FACEBOOK_CHECKPOINT",{library:{...stored,pages:1}},true,null)).ok).toBe(true);
+ expect((await request("FACEBOOK_COLLECTOR_FINISH",{},true,null)).ok).toBe(true);
+ expect(session['staysuite-facebook-job-v1']).toBeUndefined();
+ expect((local[`staysuite-facebook-library-v1:${actor}`] as {error:string}).error).toBe("interrupted");
 });

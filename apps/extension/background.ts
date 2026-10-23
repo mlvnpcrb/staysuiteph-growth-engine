@@ -42,7 +42,7 @@ async function start() {
   await chrome.storage.local.set({[FACEBOOK_ACTIVE]:actorId});
   await writeFacebookLibrary({schema:1,actorId,actorName:prior?.actorName??"Facebook profile",groups:prior?.groups??[],phase:"fetching",pages:0,complete:false,updatedAt:new Date().toISOString(),syncedAt:prior?.syncedAt??null,error:null,runId:job.runId});
   try {
-    const collector = await chrome.tabs.create({url:chrome.runtime.getURL(`tabs/collector.html?run=${job.runId}`),active:false});
+    const collector = await chrome.tabs.create({url:`${chrome.runtime.getURL("tabs/collector.html")}?run=${job.runId}`,active:false});
     await assertFacebookJob(job);
     // Preserve the collector's tab binding even if the page starts immediately.
     await chrome.storage.session.set({[FACEBOOK_JOB]:{...job,collectorTabId:collector.id}});
@@ -56,17 +56,36 @@ chrome.runtime.onMessage.addListener((message: unknown,sender,reply) => {
   const workspace = [chrome.runtime.getURL("tabs/groups.html"),chrome.runtime.getURL("popup.html")].includes(url.split("?")[0]??"");
   if (!collector && !workspace) return false;
   if (!message || typeof message !== "object" || !("type" in message)) return false;
-  if (collector && message.type !== "FACEBOOK_CHECKPOINT") return false;
+  if (collector && !["FACEBOOK_COLLECTOR_INIT","FACEBOOK_COLLECTOR_GUARD","FACEBOOK_CHECKPOINT","FACEBOOK_COLLECTOR_FAILED","FACEBOOK_COLLECTOR_FINISH"].includes(String(message.type))) return false;
   if (workspace && !["FACEBOOK_STATE","FACEBOOK_START","FACEBOOK_STOP","FACEBOOK_FORGET"].includes(String(message.type))) return false;
   void serialized(async () => {
-    if (message.type === "FACEBOOK_CHECKPOINT") {
+    if (collector) {
       const job = await readFacebookJob();
-      if (!job || sender.tab?.id !== job.collectorTabId || new URL(url).searchParams.get("run") !== job.runId) throw new FacebookFailure("cancelled");
+      if (!job || job.collectorTabId === undefined || new URL(url).searchParams.get("run") !== job.runId || (sender.tab && sender.tab.id !== job.collectorTabId)) throw new FacebookFailure("cancelled");
+      // Extension-page messages do not always populate sender.tab. In that case
+      // the exact extension URL + per-run nonce must match the live owned tab.
+      const ownedTab = await chrome.tabs.get(job.collectorTabId);
+      if (ownedTab.id !== job.collectorTabId || (ownedTab.url !== undefined && ownedTab.url !== url)) throw new FacebookFailure("cancelled");
       await assertFacebookJob(job);
-      const library = facebookLibrarySchema.parse("library" in message ? message.library : null);
-      if (library.actorId !== job.actorId || (library.runId !== null && library.runId !== job.runId)) throw new FacebookFailure("account_changed");
-      if ((await loadFacebookLibrary(job.actorId))?.runId !== job.runId) throw new FacebookFailure("cancelled");
-      await writeFacebookLibrary(library);
+      const library = await loadFacebookLibrary(job.actorId);
+      if (message.type === "FACEBOOK_COLLECTOR_INIT") {
+        if (!library || library.runId !== job.runId) throw new FacebookFailure("cancelled");
+        return {job,library};
+      }
+      if (message.type === "FACEBOOK_COLLECTOR_GUARD") return {};
+      if (message.type === "FACEBOOK_COLLECTOR_FINISH") {
+        if (library?.phase === "fetching") await writeFacebookLibrary({...library,phase:"error",error:"interrupted",complete:false,runId:null,updatedAt:new Date().toISOString()});
+        await chrome.storage.session.remove(FACEBOOK_JOB);
+        return {};
+      }
+      if (message.type === "FACEBOOK_COLLECTOR_FAILED") {
+        if (library?.runId === job.runId) await writeFacebookLibrary({...library,phase:library.groups.length?"partial":"error",error:"interrupted",complete:false,runId:null,updatedAt:new Date().toISOString()});
+        return {};
+      }
+      const next = facebookLibrarySchema.parse("library" in message ? message.library : null);
+      if (next.actorId !== job.actorId || (next.runId !== null && next.runId !== job.runId)) throw new FacebookFailure("account_changed");
+      if (library?.runId !== job.runId) throw new FacebookFailure("cancelled");
+      await writeFacebookLibrary(next);
       return {};
     }
     if (message.type === "FACEBOOK_STOP") await stop();
