@@ -1,3 +1,4 @@
+import { settleTheme } from "./helpers/settle-theme";
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import type { SavedGroup } from "../../packages/types/src";
@@ -169,6 +170,7 @@ test("finder forms are accessible in both themes", async ({ page }) => {
   for (const theme of ["light", "dark"]) {
     if (theme === "dark")
       await page.getByRole("button", { name: "Toggle color theme" }).click();
+    await settleTheme(page, theme);
     const result = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa"])
       .analyze();

@@ -1,3 +1,4 @@
+import { settleTheme } from "./helpers/settle-theme";
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import type { SavedGroup } from "@staysuite/types";
@@ -177,6 +178,7 @@ test("permission filters and marketing sorting remain separate from score and ac
   for (const theme of ["light", "dark"]) {
     if (theme === "dark")
       await page.getByRole("button", { name: "Toggle color theme" }).click();
+    await settleTheme(page, theme);
     expect(
       (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze())
         .violations,

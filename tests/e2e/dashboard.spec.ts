@@ -1,3 +1,4 @@
+import { settleTheme } from "./helpers/settle-theme";
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { navigation } from "../../packages/types/src";
@@ -163,6 +164,7 @@ test("overview has no automated WCAG A/AA violations in either theme", async ({
       await page.getByRole("button", { name: "Toggle color theme" }).click();
       await expect(page.locator("html")).toHaveClass(/dark/);
     }
+    await settleTheme(page, theme);
     const result = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
       .analyze();
