@@ -343,7 +343,7 @@ export function CampaignBuilder() {
                       .join(" · ")}{" "}
                     ·{" "}
                     {campaignGroupBlockers(g).join("; ") ||
-                      "Permission reviewed; recheck eligibility before dispatch"}
+                      "Permission reviewed; recheck eligibility before posting"}
                   </span>
                 </span>
               </label>
@@ -384,10 +384,10 @@ export function CampaignBuilder() {
         <details>
           <summary>Interval help</summary>
           <p>
-            This is a planning setting, not a ban-safe interval. A future
-            executor must respect stricter group rules, persist waiting times
-            and stop on restrictions. No account rotation, warning bypass or
-            automatic retry of uncertain submissions.
+            Waiting between posts cannot guarantee that your account will avoid
+            restrictions. Group rules may require longer waits. Stop when
+            Facebook shows a warning, restriction or access denial, and check
+            uncertain results before posting again.
           </p>
         </details>
         <h3>Post preview</h3>
@@ -435,12 +435,11 @@ export function CampaignBuilder() {
         <p className="muted">
           {blockers.length} selected target(s) need rule or permission review.
         </p>
-        <Button disabled>Start bulk posting — adapter not validated</Button>
+        <Button disabled>Start bulk posting — not available yet</Button>
         <p className="muted text-sm">
-          Automatic posting is not connected. A validated Facebook adapter,
-          current account and group eligibility checks, and durable duplicate
-          protection are required before dispatch. Approval here is only a local
-          plan review, not server authorization or proof of publication.
+          Bulk posting is not available in this Preview. You can prepare and
+          download a campaign plan. Nothing is sent to Facebook. Rules and posting
+          permission need checking for every selected group before publishing.
         </p>
       </section>
     </div>
