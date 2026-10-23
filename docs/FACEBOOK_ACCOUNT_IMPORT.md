@@ -67,7 +67,10 @@ reports that state honestly and permits retry from the saved library.
 Explicit session-cookie removal (without reading its value), account changes,
 revoked permissions and closure of the owned Facebook tab invalidate collection.
 Same-account cookie expiry refreshes do not create false account-change errors.
-Cookie observers register when optional access becomes available. Late responses
+Cookie observers register when optional access becomes available. A visible popup
+also checks current identity every two seconds, without fetching groups or returning
+cached data, so missed cookie events cannot leave another account’s library shown.
+Late responses
 cannot commit after job invalidation.
 
 The inactive Facebook tab closes after completion. Existing user tabs and any

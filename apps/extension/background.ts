@@ -112,8 +112,9 @@ async function runFacebookJob(job: FacebookJob, controller: AbortController) {
 chrome.runtime.onMessage.addListener((message: unknown,sender,reply) => {
   const url=sender.url??"";
   if(sender.id !== chrome.runtime.id || (sender.frameId !== undefined && sender.frameId !== 0) || ![chrome.runtime.getURL("tabs/groups.html"),chrome.runtime.getURL("popup.html")].includes(url.split("?")[0]??""))return false;
-  if(!message || typeof message !== "object" || !("type" in message) || !["FACEBOOK_STATE","FACEBOOK_START","FACEBOOK_STOP","FACEBOOK_FORGET"].includes(String(message.type)))return false;
+  if(!message || typeof message !== "object" || !("type" in message) || !["FACEBOOK_STATE","FACEBOOK_IDENTITY","FACEBOOK_START","FACEBOOK_STOP","FACEBOOK_FORGET"].includes(String(message.type)))return false;
   void serialized(async()=>{
+    if(message.type === "FACEBOOK_IDENTITY")return {actorId:await facebookIdentity()};
     if(message.type === "FACEBOOK_STOP")await stop();
     if(message.type === "FACEBOOK_FORGET"){await stop();const actorId=await facebookIdentity();await chrome.storage.local.remove([libraryKey(actorId),FACEBOOK_ACTIVE]);return {actorId,library:null};}
     return message.type === "FACEBOOK_START" ? start() : state();

@@ -62,7 +62,7 @@ try {
   const snapshot=await reopened.evaluate(async()=>JSON.stringify(await chrome.storage.local.get(null)));
   if(snapshot.includes(csrf)||snapshot.includes(lsd)||snapshot.includes('"c_user"'))throw new Error("Fixture credentials crossed into persisted extension data.");
   if(fixtureRequests!==2)throw new Error("Restoring the library unexpectedly started another import.");
-  await context.addCookies([{name:"c_user",value:"987654321",domain:".facebook.com",path:"/",secure:true,sameSite:"Lax"}]);
+  await reopened.evaluate(async()=>{await chrome.cookies.set({url:"https://www.facebook.com/",name:"c_user",value:"987654321",domain:".facebook.com",path:"/",secure:true,sameSite:"lax"});});
   await expect(reopened.locator(".workspace-list li")).toHaveCount(0,{timeout:15000});
   console.log("PASS: native MV3 launch; real background/collector/MAIN-world injection against intercepted Facebook fixtures; two pages and 12 groups; popup closure persistence; local restoration; account-switch isolation; no request tokens in persisted data. Live Facebook compatibility is unverified.");
 } catch(error){

@@ -37,3 +37,8 @@ it("same-identity refresh does not stop collection, but an account switch hides 
  actor="987654321";const result=await request("FACEBOOK_STATE");expect(result.actorId).toBe(actor);expect(result.library).toBeNull();
 });
 it("does not expose a client checkpoint endpoint",async()=>{expect((await request("FACEBOOK_CHECKPOINT")).ok).toBe(false);});
+
+it("identity checks return no cached groups and observe the current account independently of events",async()=>{
+ expect(await request("FACEBOOK_IDENTITY")).toEqual({ok:true,actorId:actor});
+ actor="987654321";expect(await request("FACEBOOK_IDENTITY")).toEqual({ok:true,actorId:actor});
+});

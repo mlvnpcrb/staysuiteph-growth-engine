@@ -41,6 +41,17 @@ export default function GroupsWorkspace() {
     chrome.storage.onChanged.addListener(changed);
     return()=>{loadSequence.current++;chrome.storage.onChanged.removeListener(changed);saveController.current?.abort();};
   },[reload]);
+  useEffect(()=>{
+    let active=true;
+    const timer=setInterval(()=>{
+      if(document.visibilityState!=="visible")return;
+      void chrome.runtime.sendMessage({type:"FACEBOOK_IDENTITY"}).then(result=>{
+        if(!active)return;
+        if((result?.ok && result.actorId!==actorId) || (!result?.ok && actorId!==null))void reload();
+      }).catch(()=>{});
+    },2000);
+    return()=>{active=false;clearInterval(timer);};
+  },[actorId,reload]);
   async function connectFacebook() {
     setPending(true);setError("");
     try {
