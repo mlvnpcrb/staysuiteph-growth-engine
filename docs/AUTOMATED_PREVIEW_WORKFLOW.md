@@ -62,7 +62,7 @@ reconciliation separately before introducing a gated migration workflow. Future
 destructive changes require explicit approval and a protected GitHub Environment
 with a required reviewer; do not assume writing an environment name enables review.
 
-## Current evidence and limitations
+## Historical evidence and limitations (initial workflow)
 
 The deployment script is exercised with mocked platform responses, including wrong
 project/root/branch, Production targets, mismatched commits, failed builds, protected
@@ -93,3 +93,28 @@ No live database configuration or migration is changed.
 
 Reference: https://github.com/supabase/cli/blob/v2.75.0/internal/utils/docker.go
 and cmd/root.go (SUPABASE env prefix / INTERNAL_IMAGE_REGISTRY).
+
+## Real hosted browser audit
+
+After the tested commit reaches Preview, `live-audit` runs real Chrome against
+the original requested Preview and the newly deployed URL. The existing protected
+Preview secret seeds an origin-scoped cookie in one request without redirects; it
+is never forwarded to Google, placed in a URL, or saved in artifacts. Reports and
+desktop/mobile screenshots are retained in `real-preview-verification` for seven
+days. No response mocks, account credentials, database mutations or Facebook
+publishing are used.
+
+This verifies public login rendering, protected routing, anonymous API denial,
+layout overflow, console/network health and the Google authorization handoff.
+It cannot prove Google login completion, logout, authenticated persistence or the
+Campaign Manager UI without an authorized authenticated browser. A protection
+cookie is not an application session. Report those checks as BLOCKED rather than
+inferring success from fixture tests or deployment readiness.
+
+The campaign editor now provides keyboard-accessible text-tool tips, Unicode
+bold/italic, lists, emoji and Undo. Heading-size controls explicitly indicate
+that they are unavailable. Random variations preview a user-editable opening
+followed by the unchanged offer; applying it requires a click and invalidates
+existing draft approval. It does not rewrite offers with AI or rotate published
+posts. Campaign saving remains disabled when the live storage API is unavailable,
+with a retry control and an explicit warning that the draft is tab-local.

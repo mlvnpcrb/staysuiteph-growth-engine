@@ -75,6 +75,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   try {
     const result = await deployPreview(process.env);
     console.log(`Preview ready; login smoke passed: ${result.url}`);
+    if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `preview_url=${result.url}\n`);
     if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY,
       `## Preview verified\n\nCommit: \`${result.sha}\`\n\n${result.url}\n\nLogin page smoke: PASS. Live Google login and database persistence are NOT VERIFIED. No migrations executed.\n`);
   } catch (error) {

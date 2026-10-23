@@ -1126,3 +1126,48 @@ h3 {
 .campaign-target span span { display: block; margin-top: .3rem; }
 .campaign-post-preview { white-space: pre-wrap; overflow-wrap: anywhere; padding: 1rem; border: 1px solid var(--line); border-radius: 12px; }
 .campaign-target > span { min-width: 0; overflow-wrap: anywhere; }
+
+/* Campaign workbench: content beside audience, then one deliberate review/save flow. */
+.campaign-workspace { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(17rem, .85fr); gap: 1.2rem; grid-template-areas: "heading heading" "availability availability" "compose audience" "assets audience" "review review" "save save"; align-items: start; }
+.campaign-workspace > .page-heading { grid-area: heading; margin: 0; }
+.campaign-workspace > .panel { margin: 0; min-width: 0; }
+.campaign-availability { grid-area: availability; display: flex; align-items: center; gap: 1rem; padding: 1rem 1.25rem; border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 10px; background: var(--surface); }
+.campaign-availability > div { flex: 1; min-width: 0; }
+.campaign-availability p { margin: .35rem 0 0; }
+.campaign-compose { grid-area: compose; }
+.campaign-assets { grid-area: assets; }
+.campaign-audience { grid-area: audience; }
+.campaign-review { grid-area: review; }
+.campaign-save { grid-area: save; }
+.campaign-workspace h2 { font-size: 1.15rem; margin: 0 0 1.1rem; }
+.campaign-workspace .campaign-targets { max-height: 570px; }
+.campaign-editor-toolbar { position: relative; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem; padding: .65rem 0; border-block: 1px solid var(--line); margin-bottom: 1rem; }
+.campaign-text-tools { display: flex; align-items: center; flex-wrap: wrap; gap: .15rem; }
+.campaign-tool { display: inline-flex; }
+.campaign-tool > button, .campaign-emoji-picker button { display: inline-flex; align-items: center; justify-content: center; min-width: 36px; min-height: 40px; border: 0; border-radius: 6px; color: var(--text); background: transparent; cursor: pointer; }
+.campaign-tool > button:hover, .campaign-tool > button:focus-visible, .campaign-emoji-picker button:hover { background: var(--bg); }
+.campaign-tool > button[aria-disabled="true"] { color: var(--muted); cursor: help; }
+.campaign-tooltip { display: none; position: absolute; z-index: 30; bottom: calc(100% + .5rem); left: 0; width: min(330px, 100%); padding: .7rem .9rem; background: var(--text); color: var(--surface); border-radius: 8px; font-size: .8rem; line-height: 1.5; box-shadow: 0 5px 20px #0002; pointer-events: none; }
+.campaign-tool:hover > .campaign-tooltip, .campaign-tool:focus-within > .campaign-tooltip { display: block; }
+.campaign-variation-toggle { display: inline-flex; align-items: center; gap: .45rem; color: var(--accent); padding: .5rem; border: 1px solid transparent; background: transparent; border-radius: 6px; cursor: pointer; font: inherit; font-size: .85rem; font-weight: 650; }
+.campaign-variation-toggle:hover { border-color: var(--line); background: var(--bg); }
+.campaign-post-editor { resize: vertical; min-height: 230px; line-height: 1.75; }
+.campaign-editor-meta { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .5rem; font-size: .75rem; color: var(--muted); margin-top: .6rem; }
+.campaign-emoji-picker { display: flex; flex-wrap: wrap; gap: .25rem; padding: .5rem; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 1rem; }
+.campaign-emoji-picker button { font-size: 1.4rem; min-width: 40px; }
+.campaign-variations { display: grid; gap: .75rem; margin-top: 1rem; padding: 1rem; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; }
+.campaign-variations h3, .campaign-variations h4 { margin: 0; }
+.campaign-variations .campaign-post-preview { margin: 0; background: var(--surface); }
+.campaign-variations > button { justify-self: start; }
+.campaign-text-notice, .campaign-save-hint, .campaign-empty { font-size: .85rem; line-height: 1.6; color: var(--muted); }
+.campaign-workspace details { margin-top: 1rem; }
+@media (max-width: 1050px) {
+  .campaign-workspace { grid-template-columns: minmax(0, 1fr); grid-template-areas: "heading" "availability" "compose" "assets" "audience" "review" "save"; }
+  .campaign-workspace .campaign-targets { max-height: 360px; }
+}
+@media (max-width: 600px) {
+  .campaign-availability { flex-wrap: wrap; padding: 1rem; }
+  .campaign-availability > div { flex-basis: 100%; }
+  .campaign-tool > button { min-width: 38px; min-height: 44px; }
+  .campaign-variation-toggle { min-height: 44px; }
+}

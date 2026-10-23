@@ -113,6 +113,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     environment: preview
+    outputs:
+      url: ${{ steps.deploy.outputs.preview_url }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -121,6 +123,7 @@ jobs:
         with:
           node-version: 22
       - name: Deploy tested commit to Preview and smoke test
+        id: deploy
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
@@ -130,3 +133,44 @@ jobs:
           DEPLOY_BRANCH: ${{ github.ref_name }}
           REPOSITORY_ID: ${{ github.repository_id }}
         run: node scripts/deploy-preview.mjs
+
+  live-audit:
+    name: Real deployed Preview verification
+    needs: preview
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: preview
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Select runner Chrome
+        run: |
+          staysuite_audit_browser="$(command -v google-chrome)"
+          test -x "$staysuite_audit_browser"
+          printf 'PLAYWRIGHT_CHROMIUM_EXECUTABLE=%s\n' "$staysuite_audit_browser" >> "$GITHUB_ENV"
+      - name: Audit the requested original Preview (real browser, no mocks)
+        env:
+          PREVIEW_AUDIT_URL: https://staysuiteph-growth-engine-jbx1kj0ri-mlvnpcrbs-projects.vercel.app
+          PREVIEW_AUDIT_OUTPUT: preview-audit/requested
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: node scripts/audit-live-preview.mjs
+      - name: Audit the updated Preview (real browser, no mocks)
+        if: always()
+        env:
+          PREVIEW_AUDIT_URL: ${{ needs.preview.outputs.url }}
+          PREVIEW_AUDIT_OUTPUT: preview-audit/updated
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: node scripts/audit-live-preview.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: real-preview-verification
+          path: preview-audit/
+          retention-days: 7

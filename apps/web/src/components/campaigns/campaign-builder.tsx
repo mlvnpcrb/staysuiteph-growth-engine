@@ -11,6 +11,7 @@ import type { CampaignJob, CampaignSettings } from "@staysuite/validation";
 import { Button } from "@staysuite/ui";
 import {
   campaignApprovalSnapshot,
+  campaignListSchema,
   campaignSettingsSchema,
   campaignGroupBlockers,
   campaignPlanSchema,
@@ -19,6 +20,7 @@ import {
   type CampaignPlan,
 } from "@staysuite/validation";
 import { useGroups } from "../groups/use-groups";
+import { CampaignTextEditor } from "./campaign-text-editor";
 type Media = CampaignPlan["media"][number] & { preview: string };
 const metadata = (item: Media): CampaignPlan["media"][number] => ({
   name: item.name,
@@ -39,6 +41,46 @@ export function CampaignBuilder() {
   const [savedJob, setSavedJob] = useState<CampaignJob | null>(null);
   const [cloudBusy, setCloudBusy] = useState(false);
   const [cloudMessage, setCloudMessage] = useState("");
+  const [storageState, setStorageState] = useState<
+    "checking" | "ready" | "unavailable"
+  >("checking");
+  const [storageMessage, setStorageMessage] = useState("");
+  const [storageCheck, setStorageCheck] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController();
+    setStorageState("checking");
+    void fetch("/api/campaigns", {
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        const body: unknown = await response.json();
+        if (controller.signal.aborted) return;
+        if (response.ok && campaignListSchema.safeParse(body).success) {
+          setStorageState("ready");
+          setStorageMessage("Private campaign saving is connected.");
+        } else {
+          setStorageState("unavailable");
+          setStorageMessage(
+            typeof body === "object" &&
+              body &&
+              "error" in body &&
+              typeof body.error === "string"
+              ? body.error
+              : "Private saving is unavailable. Your draft stays in this tab.",
+          );
+        }
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setStorageState("unavailable");
+          setStorageMessage(
+            "Private saving could not be reached. Your draft stays in this tab.",
+          );
+        }
+      });
+    return () => controller.abort();
+  }, [storageCheck]);
   const [settings, setSettings] = useState<CampaignSettings>({
     method: "classic",
     pauseEvery: 1,
@@ -163,7 +205,14 @@ export function CampaignBuilder() {
     }
   }
   async function saveCampaign() {
-    if (!parsed.success || !settingsValid || busy || cloudBusy) return;
+    if (
+      !parsed.success ||
+      !settingsValid ||
+      busy ||
+      cloudBusy ||
+      storageState !== "ready"
+    )
+      return;
     const savingVersion = JSON.stringify({ plan, settings });
     setCloudBusy(true);
     setCloudMessage("");
@@ -326,7 +375,7 @@ export function CampaignBuilder() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   return (
-    <div className="page group-workspace">
+    <div className="page group-workspace campaign-workspace">
       <div className="page-heading">
         <div>
           <span className="eyebrow">Group campaigns</span>
@@ -339,24 +388,42 @@ export function CampaignBuilder() {
           Preparation workspace · no live publishing
         </span>
       </div>
-      <section className="panel">
+      <aside
+        className="campaign-availability"
+        aria-label="Campaign availability"
+      >
+        <div>
+          <strong>
+            {storageState === "ready"
+              ? "Private saving connected"
+              : storageState === "checking"
+                ? "Checking private saving…"
+                : "Private saving needs attention"}
+          </strong>
+          <p className="muted text-sm">
+            {storageMessage ||
+              "Checking your StaySuite workspace. You can prepare your draft while we check."}
+          </p>
+        </div>
+        <span className="subtle-badge">Publishing off</span>
+        {storageState === "unavailable" && (
+          <Button
+            variant="outline"
+            onClick={() => setStorageCheck((value) => value + 1)}
+          >
+            Retry connection
+          </Button>
+        )}
+      </aside>
+      <section className="panel campaign-compose">
         <h2>1. Write your post</h2>
-        <label htmlFor="campaign-text">Post text</label>
-        <textarea
-          id="campaign-text"
-          rows={7}
-          maxLength={10000}
+        <CampaignTextEditor
           value={text}
-          onChange={(e) => {
+          onChange={(next) => {
             invalidateApproval();
-            setText(e.target.value);
+            setText(next);
           }}
-          placeholder="Describe your accommodation, location, dates and offer."
         />
-        <p className="muted text-sm">
-          {text.length}/10,000 characters · No generated claims or automatic
-          text variations.
-        </p>
         <details>
           <summary>Post text help</summary>
           <p>
@@ -367,7 +434,7 @@ export function CampaignBuilder() {
           </p>
         </details>
       </section>
-      <section className="panel">
+      <section className="panel campaign-assets">
         <h2>2. Add photos or a video</h2>
         <div
           className="campaign-dropzone"
@@ -451,7 +518,7 @@ export function CampaignBuilder() {
           ))}
         </ul>
       </section>
-      <section className="panel">
+      <section className="panel campaign-audience">
         <h2>3. Select groups</h2>
         <p className="muted">
           {selected.length}/50 selected. Selection order determines queue order.
@@ -472,6 +539,22 @@ export function CampaignBuilder() {
             </Button>
           </div>
         )}
+        {!loading && !error && !groups.length && (
+          <p className="campaign-empty">
+            Your saved group library is empty. Import or add groups in My
+            Groups, then return to select your audience.
+          </p>
+        )}
+        {!!groups.length &&
+          !groups.some((group) =>
+            group.title
+              .toLocaleLowerCase()
+              .includes(filter.toLocaleLowerCase()),
+          ) && (
+            <p className="campaign-empty">
+              No groups match this search. Try another name.
+            </p>
+          )}
         <div className="campaign-targets">
           {groups
             .filter((g) =>
@@ -521,7 +604,7 @@ export function CampaignBuilder() {
           </Link>
         </p>
       </section>
-      <section className="panel">
+      <section className="panel campaign-review">
         <h2>4. Review the campaign plan</h2>
         <div className="finder-fields">
           <label>
@@ -661,7 +744,7 @@ export function CampaignBuilder() {
           publishing.
         </p>
       </section>
-      <section className="panel" aria-label="Save campaign">
+      <section className="panel campaign-save" aria-label="Save campaign">
         <h2>Keep this campaign</h2>
         <p className="muted">
           Save text, group order and media to your private StaySuite workspace.
@@ -672,6 +755,7 @@ export function CampaignBuilder() {
             disabled={
               !snapshot ||
               !settingsValid ||
+              storageState !== "ready" ||
               busy ||
               cloudBusy ||
               loading ||
@@ -685,6 +769,14 @@ export function CampaignBuilder() {
             <Link href="/dashboard/posting-queue">Open Posting Queue</Link>
           </Button>
         </div>
+        {storageState !== "ready" && (
+          <p className="campaign-save-hint">
+            Saving is{" "}
+            {storageState === "checking" ? "being checked" : "unavailable"}.
+            Unsaved text and attachments stay in this tab and are lost on
+            reload. You can download the plan metadata from the review section.
+          </p>
+        )}
         {savedJob && (
           <p className="muted text-sm">
             Saved campaign version {savedJob.revision}.{" "}

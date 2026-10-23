@@ -135,3 +135,77 @@ test("real API accepts the requested loopback origin and rejects foreign origins
     ).status(),
   ).toBe(403);
 });
+test("text tools, accessible help and reviewed variations work without enabling cloud saving", async ({
+  page,
+}, testInfo) => {
+  await page.route("**/api/groups", (route) =>
+    route.fulfill({
+      json: { groups: [], stats: { total: 0, reviewed: 0, needsReview: 0 } },
+    }),
+  );
+  await page.route("**/api/campaigns", (route) =>
+    route.fulfill({
+      status: 503,
+      json: { error: "Campaign storage activation is pending." },
+    }),
+  );
+  await page.goto("/dashboard/campaigns");
+  const field = page.getByLabel("Post text", { exact: true });
+  const offer = "Weekend in Makati\n₱2,500/night · 2 guests.";
+  await field.fill(offer);
+  await page
+    .getByRole("button", { name: "Bold lettering", exact: true })
+    .focus();
+  await expect(
+    page
+      .getByRole("tooltip")
+      .filter({ hasText: "Style selected letters using" }),
+  ).toBeVisible();
+  await field.focus();
+  await field.press("Control+Home");
+  await field.press("Shift+End");
+  await page
+    .getByRole("button", { name: "Bold lettering", exact: true })
+    .click();
+  await expect(field).toHaveValue(
+    "𝐖𝐞𝐞𝐤𝐞𝐧𝐝 𝐢𝐧 𝐌𝐚𝐤𝐚𝐭𝐢\n₱2,500/night · 2 guests.",
+  );
+  await page.getByRole("button", { name: "Undo text tool" }).click();
+  await expect(field).toHaveValue(offer);
+  await page
+    .getByRole("button", { name: "Random variations", exact: true })
+    .click();
+  await page
+    .getByLabel("Alternative opening lines, one per line")
+    .fill("Hello accommodation seekers!");
+  await page
+    .getByRole("button", { name: "Generate variation", exact: true })
+    .click();
+  await expect(field).toHaveValue(offer);
+  await page
+    .getByRole("button", { name: "Use this variation", exact: true })
+    .click();
+  await expect(field).toHaveValue("Hello accommodation seekers!\n\n" + offer);
+  await page
+    .getByRole("button", { name: "Random variations", exact: true })
+    .click();
+  await field.fill("New draft");
+  await expect(
+    page.getByRole("button", { name: "Use this variation", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Save campaign privately", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: /Start bulk posting/ }),
+  ).toBeDisabled();
+  await page.screenshot({
+    path: testInfo.outputPath("campaign-text-tools.png"),
+    fullPage: true,
+  });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth > innerWidth + 1,
+    ),
+  ).toBe(false);
+});
