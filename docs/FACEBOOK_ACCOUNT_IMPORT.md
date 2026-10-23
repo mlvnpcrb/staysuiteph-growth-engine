@@ -126,3 +126,25 @@ response keys, values, messages, account IDs, group names or request tokens are
 exported. Old diagnostic records remain valid. The UI no longer labels a failed,
 empty initial import as a restored library. This is a diagnostic update, not a
 verified fix for live collection. Query behavior and permissions are unchanged.
+
+## Query loading compatibility changes (0.2.2)
+
+0.2.0/0.2.1 tried synchronous `require(queryName + ".graphql")` only. When the
+artifact was lazy, this selected the old package ID without asking Facebook's
+loader for the current artifact. The live report confirms the fallback path was
+used, but does not prove which missing response field caused rejection.
+
+0.2.2 asks Facebook's own `Bootloader.loadModules` for the exact initial or
+pagination query artifact when synchronous lookup fails. It accepts only numeric
+IDs from read-only query artifacts with a matching operation name when present.
+The loader has a 2.5-second bound; late callbacks cannot change the selected ID.
+No arbitrary module names, asset URLs, vendor config servers or mutations are used.
+Actor continuity and challenge checks run again after the asynchronous module load,
+before any group request. The request includes `__comet_req=15`, matching the
+reference's Comet request mode instead of omitting it.
+
+Regression fixtures cover lazy current-ID selection for both pages, mutation and
+wrong-name rejection, loader timeout, and an account change during module loading.
+These are concrete compatibility changes, not a verified repair for the owner's
+live Facebook response. Existing fallback IDs are still used if Facebook cannot
+supply the current artifact. All response validation and stop conditions remain.

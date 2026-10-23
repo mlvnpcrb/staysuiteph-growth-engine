@@ -56,12 +56,41 @@ export async function readFacebookGroupPage(actorId: string, cursor: string | nu
   if (typeof token !== "string" || !token || token.length > 2048 || typeof lsd !== "string" || !lsd || lsd.length > 2048) return failure("unsupported");
   const friendlyName = cursor === null ? "GroupsCometPinnedGroupsDialogQuery" : "GroupsCometUnpinnedGroupsPaginationListPaginatedQuery";
   let documentId = cursor === null ? "7740459739385247" : "7218669964900608";
+  const queryId = (value: unknown): string | null => {
+    if (!value || typeof value !== "object") return null;
+    const candidate = value as {params?: {id?: unknown; operationKind?: unknown; name?: unknown}};
+    const params = candidate.params;
+    // Never accept a mutation, a different operation, or arbitrary asset URLs.
+    return params?.operationKind === "query" && (params.name === undefined || params.name === friendlyName) &&
+      typeof params.id === "string" && /^\d{10,25}$/.test(params.id) ? params.id : null;
+  };
+  let currentId: string | null = null;
+  if (typeof pageRequire === "function") {
+    try { currentId = queryId(pageRequire(`${friendlyName}.graphql`)); } catch { /* May be registered but not loaded yet. */ }
+    if (!currentId) {
+      // Facebook lazily loads Relay artifacts. A synchronous require alone often
+      // misses the current ID even on a signed-in page. Ask only its own module
+      // loader for this exact, allowlisted query; bound missing-module waits.
+      currentId = await new Promise<string | null>(resolve => {
+        let settled = false;
+        const finish = (id: string | null) => { if (!settled) { settled = true; clearTimeout(timer); resolve(id); } };
+        const timer = setTimeout(() => finish(null), 2500);
+        try {
+          const loader = pageRequire("Bootloader") as {loadModules?: unknown} | null;
+          if (typeof loader?.loadModules !== "function") { finish(null); return; }
+          loader.loadModules([`${friendlyName}.graphql`], (artifact: unknown) => finish(queryId(artifact)), "StaySuiteReadOnlyGroupImport");
+        } catch { finish(null); }
+      });
+    }
+  }
+  if (currentId) { documentId = currentId; querySource = "page_module"; }
+  // Loading an artifact can yield to an account change or a challenge.
+  if (blocked()) return failure("challenge");
   if (typeof pageRequire === "function") try {
-    const current = pageRequire(`${friendlyName}.graphql`) as {params?: {id?: unknown; operationKind?: unknown}} | null;
-    if (current?.params?.operationKind === "query" && typeof current.params.id === "string" && /^\d{10,25}$/.test(current.params.id)) { documentId = current.params.id; querySource = "page_module"; }
-  } catch { /* The reviewed fallback ID must still pass live response validation. */ }
+    if (String((pageRequire("CurrentUserInitialData") as {USER_ID?: unknown})?.USER_ID) !== actorId) return failure("account_changed");
+  } catch { return failure("account_changed"); }
   const variables = cursor === null ? {ordering:["viewer_added"],scale:1} : {count:50,cursor,ordering:["viewer_added"],scale:1};
-  const body = new URLSearchParams({__user:actorId,av:actorId,__a:"1",fb_dtsg:token,jazoest:`2${Array.from(token).reduce((sum,char)=>sum+char.charCodeAt(0),0)}`,lsd,doc_id:documentId,fb_api_caller_class:"RelayModern",fb_api_req_friendly_name:friendlyName,variables:JSON.stringify(variables),server_timestamps:"true"});
+  const body = new URLSearchParams({__user:actorId,av:actorId,__a:"1",__comet_req:"15",fb_dtsg:token,jazoest:`2${Array.from(token).reduce((sum,char)=>sum+char.charCodeAt(0),0)}`,lsd,doc_id:documentId,fb_api_caller_class:"RelayModern",fb_api_req_friendly_name:friendlyName,variables:JSON.stringify(variables),server_timestamps:"true"});
   try {
     stage = "request";
     const response = await fetch("/api/graphql/", {method:"POST",credentials:"same-origin",redirect:"error",cache:"no-store",headers:{"content-type":"application/x-www-form-urlencoded","x-fb-lsd":lsd,"x-fb-friendly-name":friendlyName},body:body.toString(),signal:AbortSignal.timeout(20_000)});

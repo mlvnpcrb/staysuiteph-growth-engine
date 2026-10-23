@@ -16,7 +16,7 @@ test("Facebook page provider follows the read-only request contract and returns 
   await page.route("https://www.facebook.com/**",async route=>{
     if(new URL(route.request().url()).pathname==="/api/graphql/"){
       const body=new URLSearchParams(route.request().postData()??"");
-      expect(body.get("fb_dtsg")).toBe(csrf);expect(body.get("jazoest")).toMatch(/^2\d+$/);expect(body.get("lsd")).toBe(lsd);expect(body.get("doc_id")).toBe("11111111111111");
+      expect(body.get("__comet_req")).toBe("15");expect(body.get("fb_dtsg")).toBe(csrf);expect(body.get("jazoest")).toMatch(/^2\d+$/);expect(body.get("lsd")).toBe(lsd);expect(body.get("doc_id")).toBe("11111111111111");
       const variables=JSON.parse(body.get("variables")??"{}");cursors.push(variables.cursor??null);
       expect(body.get("fb_api_req_friendly_name")).toBe(variables.cursor?"GroupsCometUnpinnedGroupsPaginationListPaginatedQuery":"GroupsCometPinnedGroupsDialogQuery");
       await route.fulfill({json:variables.cursor?payload([7,8,9,10,11,12]):payload([1,2,3,4,5,6],true)});
@@ -76,4 +76,72 @@ test("incompatible fallback responses export only fixed structural flags",async(
     expect(result).toMatchObject({error:"unsupported",diagnostic:{stage:"group_connection",httpStatus:200,querySource:"reviewed_fallback",structure:item.flags}});
     expect(JSON.stringify(result)).not.toContain(csrf);expect(JSON.stringify(result)).not.toContain(lsd);expect(JSON.stringify(result)).not.toContain("privateField");
   }
+});
+
+test("loads a current query artifact before using stale fallback IDs on both pages",async({page})=>{
+  const requests:{id:string|null;name:string|null}[]=[];
+  await page.route("https://www.facebook.com/**",route=>{
+    if(new URL(route.request().url()).pathname==="/api/graphql/"){
+      const form=new URLSearchParams(route.request().postData()??"");
+      requests.push({id:form.get("doc_id"),name:form.get("fb_api_req_friendly_name")});
+      return route.fulfill({json:payload([requests.length],requests.length===1)});
+    }
+    return route.fulfill({contentType:"text/html",body:markup()+`<script>
+      const originalRequire=window.require;
+      window.require=function(name){
+        if(name.endsWith('.graphql'))throw new Error('Not loaded');
+        if(name==='Bootloader')return {loadModules:function(names,callback){
+          window.loadedQueryNames=(window.loadedQueryNames||[]).concat(names);
+          const name=names[0].replace(/\\.graphql$/,'');
+          setTimeout(()=>callback({params:{id:name==='GroupsCometPinnedGroupsDialogQuery'?'22222222222222':'33333333333333',name:name,operationKind:'query'}}),20);
+        }};
+        return originalRequire(name);
+      };
+    </script>`});
+  });
+  await page.goto("https://www.facebook.com/groups/joins/");
+  expect(await invoke(page)).toHaveProperty("hasNext",true);
+  expect(await invoke(page,"page-two")).toHaveProperty("hasNext",false);
+  expect(requests.map(item=>item.id)).toEqual(["22222222222222","33333333333333"]);
+  expect(await page.evaluate('window.loadedQueryNames')).toEqual(["GroupsCometPinnedGroupsDialogQuery.graphql","GroupsCometUnpinnedGroupsPaginationListPaginatedQuery.graphql"]);
+});
+test("rejects mismatched or mutation artifacts and ignores callbacks after timeout",async({page})=>{
+  const ids:(string|null)[]=[];
+  await page.route("https://www.facebook.com/**",route=>{
+    if(new URL(route.request().url()).pathname==="/api/graphql/"){
+      ids.push(new URLSearchParams(route.request().postData()??"").get("doc_id"));return route.fulfill({json:payload([1])});
+    }
+    return route.fulfill({contentType:"text/html",body:markup()+`<script>
+      const originalRequire=window.require;
+      window.require=function(name){
+        if(name.endsWith('.graphql'))return {params:{id:'99999999999999',operationKind:'mutation'}};
+        if(name==='Bootloader')return {loadModules:function(names,callback){
+          if(window.lateCallback){setTimeout(()=>callback({params:{id:'88888888888888',operationKind:'query'}}),2700);return;}
+          callback({params:{id:'88888888888888',operationKind:'query',name:'OtherQuery'}});
+        }};
+        return originalRequire(name);
+      };
+    </script>`});
+  });
+  await page.goto("https://www.facebook.com/groups/joins/");
+  expect(await invoke(page)).toHaveProperty("groups");
+  await page.evaluate('window.lateCallback=true');
+  expect(await invoke(page)).toHaveProperty("groups");
+  expect(ids).toEqual(["7740459739385247","7740459739385247"]);
+});
+test("account changes during module loading stop before any group request",async({page})=>{
+  let requests=0;
+  await page.route("https://www.facebook.com/**",route=>{
+    if(new URL(route.request().url()).pathname==="/api/graphql/"){requests++;return route.fulfill({json:payload([1])});}
+    return route.fulfill({contentType:"text/html",body:markup()+`<script>
+      const originalRequire=window.require;
+      window.require=function(name){
+        if(name.endsWith('.graphql'))throw new Error('Not loaded');
+        if(name==='Bootloader')return {loadModules:function(names,callback){window.fixtureModules.CurrentUserInitialData.USER_ID='999';callback({params:{id:'22222222222222',operationKind:'query'}});}};
+        return originalRequire(name);
+      };
+    </script>`});
+  });
+  await page.goto("https://www.facebook.com/groups/joins/");
+  expect(await invoke(page)).toMatchObject({error:"account_changed"});expect(requests).toBe(0);
 });
