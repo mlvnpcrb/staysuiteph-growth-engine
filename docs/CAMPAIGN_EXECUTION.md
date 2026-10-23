@@ -188,3 +188,8 @@ private media retrieval, exact approval, one submission/receipt, explicit owner
 confirmation and cleanup. Passing that test establishes integration, not live
 Facebook compatibility. Hosted Google login completion and owner-session Facebook
 posting remain separate, requiring the owner's browser and selected campaign.
+
+Blocking account alert dialogs stop the Classic adapter regardless of their text.
+Immediately before clicking Post, it verifies that the visible control is the
+actual topmost element at its center. An overlay cannot be bypassed by calling a
+covered element's click handler. No submit is recorded until that check passes.

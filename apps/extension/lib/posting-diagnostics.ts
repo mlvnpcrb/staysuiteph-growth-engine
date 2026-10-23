@@ -14,6 +14,8 @@ export function postingDiagnostics(job: CampaignJob | null) {
   };
 }
 export const postingMessages: Record<string, string> = {
+  obstructed_composer:
+    "Another Facebook dialog covers the Post control. Resolve it manually; nothing was submitted.",
   composer_unavailable:
     "Facebook's post composer could not be identified. Open the selected group and check that posting is available.",
   composer_shape_unknown:

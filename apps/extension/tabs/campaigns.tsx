@@ -671,7 +671,7 @@ export default function CampaignWorkspace() {
           {list.campaigns.map((c) => (
             <div key={c.id} className="campaign-extension-card">
               <strong>{c.title || c.plan.text.slice(0, 80)}</strong>
-              <p>{c.state}</p>
+              <p>{c.id === job?.id ? job.state : c.state}</p>
               <button
                 disabled={busy || running}
                 className="secondary"
@@ -691,6 +691,18 @@ export default function CampaignWorkspace() {
           <p>
             {job.plan.media.length} attachment(s) · {job.targets.length}{" "}
             group(s) · minimum {job.plan.intervalMinutes} minutes between posts
+          </p>
+          <p>
+            Next eligible:{" "}
+            {new Intl.DateTimeFormat("en-PH", {
+              timeZone: "Asia/Manila",
+              dateStyle: "medium",
+              timeStyle: "short",
+            }).format(new Date(job.next_eligible_at))}{" "}
+            (Asia/Manila).{" "}
+            {job.settings.avoidNight
+              ? "Your 22:00–07:00 night pause is enabled."
+              : "Your night pause is off."}
           </p>
           <ul>
             {job.plan.media.map((m) => (

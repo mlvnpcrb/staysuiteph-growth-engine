@@ -74,10 +74,12 @@ export async function classicPublisherPage(
       ),
     )
       .filter(visible)
-      .some((node) =>
-        /temporarily blocked|account restricted|too many posts|try again later|you can.t post|captcha|confirm your identity/i.test(
-          node.innerText,
-        ),
+      .some(
+        (node) =>
+          node.getAttribute("role") === "alertdialog" ||
+          /temporarily blocked|account restricted|too many posts|try again later|you can.t post|captcha|confirm your identity/i.test(
+            node.innerText,
+          ),
       );
   }
   function guard() {
@@ -311,6 +313,15 @@ export async function classicPublisherPage(
           }
         });
     const before = new Set(receipts());
+    button.scrollIntoView({ block: "center", inline: "nearest" });
+    guard();
+    const bounds = button.getBoundingClientRect();
+    const top = document.elementFromPoint(
+      bounds.left + bounds.width / 2,
+      bounds.top + bounds.height / 2,
+    );
+    if (!top || !(top === button || button.contains(top)))
+      return result("stopped", "obstructed_composer");
     dispatched = true;
     button.click();
     for (let i = 0; i < 200; i++) {

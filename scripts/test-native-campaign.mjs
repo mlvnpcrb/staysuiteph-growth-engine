@@ -24,6 +24,7 @@ export async function testNativeCampaign({
   let clicks = 0;
   let blockedMutations = 0;
   const networkFailures = [];
+  const blockedPaths = [];
   const id = randomUUID();
   const actor = "424242",
     groupUrl = "https://www.facebook.com/groups/987654321/";
@@ -108,18 +109,25 @@ export async function testNativeCampaign({
         const url = new URL(request.url());
         if (url.pathname.startsWith("/storage/v1/"))
           networkFailures.push("private_media");
-      } catch { /* Ignore browser-internal requests without URL metadata. */ }
+      } catch {
+        /* Ignore browser-internal requests without URL metadata. */
+      }
     });
     await native.route("https://www.facebook.com/**", (route) => {
       if (route.request().method() !== "GET") {
         blockedMutations++;
+        blockedPaths.push(
+          new URL(route.request().url()).pathname
+            .replace(/[0-9]{5,}/g, ":id")
+            .slice(0, 120),
+        );
         return route.abort();
       }
       if (route.request().url() !== groupUrl) return route.abort();
       return route.fulfill({
         contentType: "text/html",
         body: `<!doctype html><html><body><div role="dialog"><div role="textbox" contenteditable="true"></div><button id="media" aria-label="Photo/video">Photo/video</button><button id="publish">Post</button></div><script>
-    window.require=name=>name==='CurrentUser'?{getID:()=>'${actor}'}:{USER_ID:'${actor}',PROFILE_ID:'${actor}'};
+    window.fixturePage=true;window.require=name=>name==='CurrentUser'?{getID:()=>'${actor}'}:{USER_ID:'${actor}',PROFILE_ID:'${actor}'};
     document.getElementById('media').onclick=()=>{const input=document.createElement('input');input.type='file';input.accept='image/*';input.multiple=true;input.onchange=()=>{const preview=document.createElement('button');preview.setAttribute('aria-label','Remove photo');document.querySelector('[role=dialog]').append(preview)};document.querySelector('[role=dialog]').append(input)};
     document.getElementById('publish').onclick=()=>{const status=document.createElement('div');status.setAttribute('role','status');status.innerHTML='Your post was published. <a href="${groupUrl}posts/54321/">View post</a>';document.body.append(status);window.fixturePublished=true;};
    </script></body></html>`,
@@ -204,6 +212,31 @@ export async function testNativeCampaign({
       "PASS: real native MV3 campaign UI, signed media retrieval, actor binding, exact approval, single DOM submission/receipt and owner confirmation through authenticated dashboard/real disposable Supabase; all Facebook responses intercepted, not live compatibility proof",
     );
   } catch (error) {
+    const result = await admin
+      .from("campaign_targets")
+      .select("state,provider_code")
+      .eq("campaign_id", id);
+    const pages = [];
+    if (native)
+      for (const page of native.pages()) {
+        if (page.url().startsWith("https://www.facebook.com/"))
+          pages.push(
+            await page
+              .evaluate(() => ({
+                fixture: globalThis.fixturePage === true,
+                published: globalThis.fixturePublished === true,
+                editors: globalThis.document.querySelectorAll('[role="textbox"]').length,
+              }))
+              .catch(() => ({ unavailable: true })),
+          );
+      }
+    console.error(
+      JSON.stringify({
+        nativeTargetDiagnostics: result.data,
+        blockedPaths,
+        facebookFixturePages: pages,
+      }),
+    );
     console.error(
       JSON.stringify({
         nativeCampaignFailure:

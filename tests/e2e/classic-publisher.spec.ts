@@ -96,3 +96,24 @@ test("expired publication claims never type or click Post", async ({
   expect(await page.locator('[role="textbox"]').innerText()).toBe("");
   expect(await page.evaluate(() => Reflect.get(window, "postClicks"))).toBe(0);
 });
+
+test("blocking dialogs and overlays cannot be bypassed by programmatic submission", async ({
+  page,
+}) => {
+  for (const mode of ["alertdialog", "overlay"]) {
+    await fixture(page);
+    await page.evaluate((mode) => {
+      const blocker = document.createElement("div");
+      blocker.textContent = "Account check";
+      if (mode === "alertdialog") blocker.setAttribute("role", "alertdialog");
+      blocker.style.cssText =
+        "position:fixed;inset:0;z-index:9999;background:white";
+      document.body.append(blocker);
+    }, mode);
+    const result = await page.evaluate(classicPublisherPage, input);
+    expect(result.outcome).toBe("stopped");
+    expect(await page.evaluate(() => Reflect.get(window, "postClicks"))).toBe(
+      0,
+    );
+  }
+});
