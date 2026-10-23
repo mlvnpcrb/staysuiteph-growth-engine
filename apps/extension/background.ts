@@ -36,11 +36,21 @@ async function start() {
   if (existing && existing.actorId === actorId && Date.now()-existing.startedAt<180_000) return state();
   if (existing) await stop("interrupted");
   const prior = await loadFacebookLibrary(actorId);
-  // A fresh extension-owned page gets current request context without reloading
-  // or navigating the user's existing Facebook tabs.
-  const tab = await chrome.tabs.create({url:"https://www.facebook.com/groups/joins/",active:false});
+  // Reuse only a page whose public actor matches the current identity. This
+  // neither reloads a user's tab nor assumes a cached page is still signed in.
+  let tab: chrome.tabs.Tab | undefined;
+  const candidates=await chrome.tabs.query({url:"https://www.facebook.com/*"});
+  for(const candidate of candidates.slice(0,5)) {
+    if(candidate.id === undefined || candidate.status !== "complete")continue;
+    try {
+      const result=(await chrome.scripting.executeScript({target:{tabId:candidate.id},world:"MAIN",func:readFacebookGroupPage,args:[actorId,null,true]}))[0]?.result;
+      if(result && "actorId" in result && result.actorId===actorId){tab=candidate;break;}
+    }catch{ /* An unavailable/stale page is never used as account evidence. */ }
+  }
+  const ownFacebookTab=tab === undefined;
+  tab ??= await chrome.tabs.create({url:"https://www.facebook.com/groups/joins/",active:false});
   if (tab.id === undefined) throw new FacebookFailure("network");
-  const job = {actorId,tabId:tab.id,ownFacebookTab:true,runId:crypto.randomUUID(),startedAt:Date.now()};
+  const job = {actorId,tabId:tab.id,ownFacebookTab,runId:crypto.randomUUID(),startedAt:Date.now()};
   await chrome.storage.session.set({[FACEBOOK_JOB]:job});
   await chrome.storage.local.set({[FACEBOOK_ACTIVE]:actorId});
   await writeFacebookLibrary({schema:1,actorId,actorName:prior?.actorName??"Facebook profile",groups:prior?.groups??[],phase:"fetching",pages:0,complete:false,updatedAt:new Date().toISOString(),syncedAt:prior?.syncedAt??null,error:null,runId:job.runId});

@@ -4,7 +4,7 @@
  * Query identifiers are compatibility metadata observed in the supplied package;
  * prefer the current Facebook query module when available. Never run mutations.
  */
-export async function readFacebookGroupPage(actorId: string, cursor: string | null) {
+export async function readFacebookGroupPage(actorId: string, cursor: string | null, probeOnly = false) {
   let stage = "input", httpStatus: number | null = null;
   let querySource = "reviewed_fallback";
   const failure = (error: string) => ({ error, diagnostic: {stage,httpStatus,query:cursor === null ? "initial" : "pagination",querySource} });
@@ -48,6 +48,7 @@ export async function readFacebookGroupPage(actorId: string, cursor: string | nu
   if (!identity || typeof identity.USER_ID !== "string") return failure("unsupported");
   if (identity.USER_ID === "0") return failure("signed_out");
   if (String(identity.USER_ID) !== actorId) return failure("account_changed");
+  if (probeOnly) return {actorId,actorName:typeof identity.NAME === "string" && identity.NAME.trim()?identity.NAME.trim().slice(0,120):"Facebook profile"};
   stage = "bootstrap_tokens";
   const token = modules.get("DTSGInitialData")?.token;
   const lsd = modules.get("LSD")?.token;

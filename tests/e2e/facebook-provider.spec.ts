@@ -54,3 +54,10 @@ test("rate limiting and unrecognized responses stop without retries or raw error
   await page.goto("https://www.facebook.com/groups/joins/");expect(await invoke(page)).toMatchObject({error:"rate_limited"});expect(requests).toBe(1);
   expect(await invoke(page)).toMatchObject({error:"unsupported"});expect(requests).toBe(2);
 });
+
+test("account probe returns public identity without making a group request or returning request tokens",async({page})=>{
+ let requests=0;await page.route("https://www.facebook.com/**",route=>{if(new URL(route.request().url()).pathname==="/api/graphql/")requests++;return route.fulfill({contentType:"text/html",body:markup()});});
+ await page.goto("https://www.facebook.com/groups/joins/");
+ const result=await page.evaluate(`(${readFacebookGroupPage.toString()})(${JSON.stringify(actor)},null,true)`);
+ expect(result).toEqual({actorId:actor,actorName:"Fixture host"});expect(requests).toBe(0);expect(JSON.stringify(result)).not.toContain(csrf);
+});

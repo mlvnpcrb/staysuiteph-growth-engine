@@ -12,7 +12,7 @@ const wait=()=>new Promise(resolve=>setTimeout(resolve,0));
 beforeEach(async()=>{
  vi.resetModules();actor="123456789";local={};session={};removeTab.mockReset().mockResolvedValue(undefined);getCookie.mockReset().mockImplementation(async({name}:{name:string})=>name==="c_user"?{value:actor}:null);
  readPage.mockReset().mockImplementation(()=>new Promise(resolve=>{release=resolve;}));
- vi.stubGlobal("chrome",{runtime:{id:"fixture",getURL:(path:string)=>prefix+path,onMessage:{addListener:(value:Listener)=>{listener=value;}}},storage:{local:area(local),session:area(session)},permissions:{contains:async()=>true,onAdded:{addListener:()=>{}},onRemoved:{addListener:()=>{}}},cookies:{get:getCookie,onChanged:{addListener:(value:typeof cookieChange)=>{cookieChange=value;}}},scripting:{executeScript:readPage},tabs:{create:async()=>({id:1}),get:async()=>({id:1,status:"complete",active:false}),update:async()=>{},remove:removeTab,onRemoved:{addListener:()=>{}}}});
+ vi.stubGlobal("chrome",{runtime:{id:"fixture",getURL:(path:string)=>prefix+path,onMessage:{addListener:(value:Listener)=>{listener=value;}}},storage:{local:area(local),session:area(session)},permissions:{contains:async()=>true,onAdded:{addListener:()=>{}},onRemoved:{addListener:()=>{}}},cookies:{get:getCookie,onChanged:{addListener:(value:typeof cookieChange)=>{cookieChange=value;}}},scripting:{executeScript:readPage},tabs:{query:async()=>[],create:async()=>({id:1}),get:async()=>({id:1,status:"complete",active:false}),update:async()=>{},remove:removeTab,onRemoved:{addListener:()=>{}}}});
  await import("../../apps/extension/background");
 });
 afterEach(async()=>{await request("FACEBOOK_STOP");release?.([{result:{error:"cancelled"}}]);await wait();vi.unstubAllGlobals();});

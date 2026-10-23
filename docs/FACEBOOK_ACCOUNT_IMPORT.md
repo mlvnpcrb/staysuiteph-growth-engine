@@ -21,8 +21,9 @@ Click the extension button to open its Facebook connection and saved library
 directly. A full workspace is also available. Click Connect Facebook. Grant optional cookies
 and www.facebook.com access. Only c_user and i_user identity values are read. A Page
 acting session is refused in this version; switch to the personal profile first.
-Connection starts a background-owned job. It opens a fresh inactive Facebook
-joined-groups tab for current page context without navigating existing user tabs.
+Connection starts a background-owned job. It probes the public actor in an existing loaded Facebook tab and reuses it only
+when that actor matches the current browser identity. If none matches, it opens
+a fresh inactive Facebook tab. Existing user tabs are never reloaded or navigated.
 The popup/workspace may be closed while the background collector works.
 
 The collector invokes an original self-contained function in Facebook's MAIN world.
