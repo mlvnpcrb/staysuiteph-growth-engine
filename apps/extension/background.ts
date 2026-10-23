@@ -79,8 +79,28 @@ let observingCookies = false;
 function observeCookies() {
   if (observingCookies || !chrome.cookies?.onChanged) return;
   chrome.cookies.onChanged.addListener(change => {
-    // Observe credential-cookie changes only as events, without accessing values.
-    if (/(^|\.)facebook\.com$/.test(change.cookie.domain) && ["c_user","i_user","xs"].includes(change.cookie.name)) void serialized(()=>stop("account_changed")).catch(()=>{});
+    if (!/(^|\.)facebook\.com$/.test(change.cookie.domain) || !["c_user","i_user","xs"].includes(change.cookie.name)) return;
+    // Cookie expiry refreshes must not impersonate an account change. Never read
+    // xs values; explicit removal invalidates, while rotations use current actor
+    // and server response checks. Ignore the removal half of identity overwrites.
+    if (change.removed && change.cause === "overwrite") return;
+    void serialized(async () => {
+      const job = await readFacebookJob();
+      const active = (await chrome.storage.local.get(FACEBOOK_ACTIVE))[FACEBOOK_ACTIVE];
+      if (change.cookie.name === "xs") {
+        if (change.removed) {
+          await stop("account_changed");
+          await chrome.storage.session.set({"staysuite-facebook-observed-v1":crypto.randomUUID()});
+        }
+        return;
+      }
+      try {
+        const current = await facebookIdentity();
+        const expected = job?.actorId ?? active;
+        if (expected && current !== expected) await stop("account_changed");
+      } catch { await stop("account_changed"); }
+      await chrome.storage.session.set({"staysuite-facebook-observed-v1":crypto.randomUUID()});
+    }).catch(()=>{});
   });
   observingCookies = true;
 }

@@ -2,7 +2,7 @@ import { beforeEach, afterEach, expect, it, vi } from "vitest";
 import type { FacebookJob } from "../../apps/extension/lib/facebook-store";
 type Listener=(message:unknown,sender:{id:string;url:string;frameId:number;tab:{id:number}},reply:(value:unknown)=>void)=>boolean;
 let listener:Listener;
-let cookieChange:(change:{cookie:{name:string;domain:string}})=>void;
+let cookieChange:(change:{cookie:{name:string;domain:string};removed?:boolean;cause?:string})=>void;
 let actor:string;
 let local:Record<string,unknown>,session:Record<string,unknown>;
 const removeTab=vi.fn();
@@ -48,7 +48,7 @@ it("cancellation invalidates in-flight checkpoints and removes only extension-ow
 it("session-cookie change invalidates the job without reading that cookie value",async()=>{
  await request("FACEBOOK_START");
  const cookie={name:"xs",domain:".facebook.com"};Object.defineProperty(cookie,"value",{get(){throw new Error("Session cookie value must not be read");}});
- cookieChange({cookie});await request("FACEBOOK_STATE");
+ cookieChange({cookie,removed:true,cause:"explicit"});await request("FACEBOOK_STATE");
  expect(session['staysuite-facebook-job-v1']).toBeUndefined();
  expect((local[`staysuite-facebook-library-v1:${actor}`] as {error:string}).error).toBe("account_changed");
 });
@@ -60,4 +60,11 @@ it("refuses to persist request tokens supplied in a checkpoint",async()=>{
  await request("FACEBOOK_START");const library=local[`staysuite-facebook-library-v1:${actor}`];
  expect((await request("FACEBOOK_CHECKPOINT",{library:{...library as object,token:"DO_NOT_STORE"}},true)).ok).toBe(false);
  expect(JSON.stringify(local)).not.toContain("DO_NOT_STORE");
+});
+
+it("ordinary same-identity cookie refresh does not stop collection",async()=>{
+ await request("FACEBOOK_START");
+ cookieChange({cookie:{name:"c_user",domain:".facebook.com"},removed:true,cause:"overwrite"});
+ cookieChange({cookie:{name:"c_user",domain:".facebook.com"},removed:false,cause:"explicit"});
+ await request("FACEBOOK_STATE");expect(session['staysuite-facebook-job-v1']).toBeDefined();
 });

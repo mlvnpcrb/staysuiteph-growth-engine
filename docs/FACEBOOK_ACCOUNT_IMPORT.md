@@ -57,9 +57,10 @@ this is access-time expiry, not a scheduled deletion guarantee.
 
 Job bindings live in chrome.storage.session. Background operations serialize starts,
 stop/cancel and checkpoint commits. Only the bound collector tab and run ID can
-commit validated metadata. Session change events (including xs changes without
-reading its value), account changes, revoked permissions and relevant tab closure
-invalidate the job. Cookie observers are registered when optional access becomes
+commit validated metadata. Explicit session-cookie removal (without reading its value), account changes,
+revoked permissions and relevant tab closure
+invalidate the job. Same-account cookie expiry refreshes do not create false
+account-change errors. Cookie observers are registered when optional access becomes
 available. Stopping prevents late responses from being committed.
 
 The collector and its inactive Facebook tab close after completion; existing user
