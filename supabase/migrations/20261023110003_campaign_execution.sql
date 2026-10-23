@@ -110,7 +110,7 @@ begin
  else
    select * into c from public.campaign_jobs where id=p_id and user_id=u for update;
    if not found then raise exception 'Campaign not found' using errcode='42501'; end if;
-   if p_command not in ('report','recover','inspect') and c.revision is distinct from p_revision then raise exception 'Campaign changed; reload' using errcode='40001'; end if;
+   if p_command not in ('report','recover','inspect') and c.revision is distinct from p_revision then raise exception 'Campaign changed; reload' using errcode='PT409'; end if;
  end if;
  if p_command='inspect' then
    return to_jsonb(c)||jsonb_build_object('digest',staysuite_campaign_private.snapshot(c.id),'targets',coalesce((select jsonb_agg(to_jsonb(x) order by position) from public.campaign_targets x where campaign_id=c.id),'[]'::jsonb),'media',coalesce((select jsonb_agg(to_jsonb(x) order by position) from public.campaign_media x where campaign_id=c.id),'[]'::jsonb));
@@ -167,7 +167,7 @@ begin
    if c.actor_id is null or c.state not in ('draft','ready') or not staysuite_campaign_private.rules_ready(c.id) then raise exception 'Review current group rules and permission' using errcode='22023'; end if;
    if (select count(*) from public.campaign_media where campaign_id=c.id and uploaded)<>jsonb_array_length(c.plan->'media') then raise exception 'Finish all media uploads' using errcode='22023'; end if;
    digest_now:=staysuite_campaign_private.snapshot(c.id);
-   if p_payload->>'digest' is distinct from digest_now then raise exception 'Review the current campaign version' using errcode='40001'; end if;
+   if p_payload->>'digest' is distinct from digest_now then raise exception 'Review the current campaign version' using errcode='PT409'; end if;
    update public.campaign_jobs set state='ready',approved_digest=digest_now,stop_reason=null where id=c.id;
  elsif p_command in ('start','resume','claim') then
    perform pg_advisory_xact_lock(hashtextextended(u::text||':'||c.actor_type||':'||c.actor_id,0));

@@ -213,7 +213,7 @@ export async function testCampaignQueue({ admin, a, b, apiUrl, onStage }) {
         code: !result.error
           ? "success"
           : [
-                "40001",
+                "PT409",
                 "40P01",
                 "55P03",
                 "57014",
@@ -231,7 +231,7 @@ export async function testCampaignQueue({ admin, a, b, apiUrl, onStage }) {
       })),
     );
     assert.equal(claims.filter((r) => !r.error).length, 1);
-    assert.equal(claims.filter((r) => r.error?.code === "40001").length, 1);
+    assert.equal(claims.filter((r) => r.error?.code === "PT409").length, 1);
     job = claims.find((r) => !r.error).data;
     assert.equal(job.targets.filter((t) => t.state === "claimed").length, 1);
     onStage("campaign cancellation and uncertain result");

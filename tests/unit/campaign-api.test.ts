@@ -81,7 +81,7 @@ it("rejects forged command payloads and arbitrary receipt states", async () => {
 });
 it("reports stale revisions, missing setup and disabled adapters without leaking database errors", async () => {
   for (const [code, status] of [
-    ["40001", 409],
+    ["PT409", 409],
     ["PGRST202", 503],
     ["55000", 409],
     ["42501", 403],

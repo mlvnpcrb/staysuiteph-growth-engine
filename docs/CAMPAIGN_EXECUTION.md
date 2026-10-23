@@ -23,7 +23,10 @@ matching actor, current approval and server-persisted eligibility time. At most 
 submission per actor can be in flight; unresolved results block further claims
 across that actor's campaigns. Quiet hours use Asia/Manila, 22:00–07:00.
 
-Leases, revision checks and unique attempt tokens prevent duplicate claims. Expired
+Leases, revision checks and unique attempt tokens prevent duplicate claims.
+Expected stale-version conflicts use SQLSTATE `PT409`, not `40001`: PostgREST 14
+can infinitely retry manually raised serialization failures. See [Supabase's
+troubleshooting note](https://supabase.com/docs/guides/troubleshooting/high-cpu-and-infinite-transaction-retries-when-using-custom-error-codes-in-rpc-functions-77326b). Expired
 or lost submissions become uncertain and are never automatically requeued. A late
 result can be recorded after pause/cancellation without restarting the campaign.
 Reported outcomes remain extension reports or explicit owner records, not

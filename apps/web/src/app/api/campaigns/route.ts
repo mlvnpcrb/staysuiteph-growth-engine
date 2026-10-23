@@ -86,7 +86,7 @@ async function handle(request: Request, mutation: boolean) {
         { error: "This campaign or selected account is not available to you." },
         403,
       );
-    if (code === "40001")
+    if (["PT409", "40001"].includes(code))
       return reply(
         { error: "Campaign changed. Reload and review it again." },
         409,

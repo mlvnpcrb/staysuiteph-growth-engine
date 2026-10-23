@@ -84,7 +84,7 @@ it("transactional campaign commands isolate owners and fail closed before publis
     expect(job.targets).toHaveLength(2);
     await expect(
       cmd("approve", job.revision, { digest: "stale" }),
-    ).rejects.toMatchObject({ code: "40001" });
+    ).rejects.toMatchObject({ code: "PT409" });
     job = await cmd("approve", job.revision, { digest: job.digest });
     expect(job.state).toBe("ready");
     await expect(
