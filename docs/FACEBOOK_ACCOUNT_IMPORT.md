@@ -247,3 +247,21 @@ on 0.2.4 and passing with this correction. Tests also preserve credential confli
 stops, reject oversized responses and accept bounded responses above the old cap.
 This establishes parser correctness for those cases, not live Facebook success.
 No query identifiers, permissions, posting, file imports or database changes.
+
+## Smart category filters (0.2.6)
+
+The owner reported that live importing started successfully with 0.2.5. This
+release adds local name-based category suggestions to the extension library:
+All, Staycation, Airbnb, Resorts & hotels, Travel, Hosts & owners, Condos & property,
+and Other. A name can match multiple categories. Whole-token/phrase matching,
+Unicode normalization and explicit local travel terms avoid substring matches;
+unmatched names remain Other rather than inventing a category.
+
+Counts describe the full local library. Search and category filtering combine;
+changing category resets the visible-row limit. Group labels explain matched terms
+on hover. Filters use native keyboard-accessible buttons with aria-pressed state.
+Category suggestions are derived again when a saved library is restored or a sync
+changes names. No Facebook requests, credentials or external AI are needed for
+classification, and no schema/data rewrite is performed. These suggestions do not
+verify rules or posting eligibility. The cloud action explicitly says Save all
+groups to My Groups; a filter does not silently change the save target.

@@ -52,8 +52,28 @@ test("Connect Facebook automatically fills the library and reopening restores it
   await page.getByRole("button",{name:"Sync Groups"}).click();
   await expect(page.locator(".workspace-list li")).toHaveCount(12);
   await expect(page.getByText("Group-list pagination completed.",{exact:false})).toBeVisible();
-  await expect(page.getByRole("button",{name:"Save groups to My Groups"})).toBeDisabled();
+  await expect(page.getByRole("button",{name:"Save all groups to My Groups"})).toBeDisabled();
   await page.reload();await expect(page.locator(".workspace-list li")).toHaveCount(12);
   expect(await page.evaluate(()=>localStorage.getItem("fixture-starts"))).toBe("1");
   await page.getByRole("searchbox").fill("Hosts 12");await expect(page.locator(".workspace-list li")).toHaveCount(1);
+});
+
+test("smart category filters overlap, combine with search, and restore without syncing again",async({context,page})=>{
+  await serve(context);await bridge(context);
+  await page.goto("http://extension-fixture.test/tabs/groups.html");
+  await page.evaluate(()=>{
+    const names=["Cebu Airbnb Staycation Hosts","Tagaytay Staycation Villas","Manila Condo Rentals","Biyahero Travel PH","Neighborhood Book Club"];
+    localStorage.setItem("fixture-library",JSON.stringify({schema:1,actorId:"123456789",actorName:"Fixture host",groups:names.map((title,index)=>({title,url:`https://www.facebook.com/groups/${index+1}/`})),phase:"ready",pages:1,complete:true,updatedAt:new Date().toISOString(),syncedAt:new Date().toISOString(),error:null,runId:null}));
+  });
+  await page.reload();await expect(page.locator(".workspace-list li")).toHaveCount(5);
+  const filters=page.getByRole("group",{name:"Filter groups by category"});
+  await filters.getByRole("button",{name:/^Staycation 2$/}).click();await expect(page.locator(".workspace-list li")).toHaveCount(2);
+  await page.getByRole("searchbox").fill("cebu");await expect(page.locator(".workspace-list li")).toHaveCount(1);
+  await filters.getByRole("button",{name:/^Airbnb 1$/}).click();await expect(page.locator(".workspace-list li")).toHaveCount(1);
+  await page.getByRole("searchbox").fill("");
+  const other=filters.getByRole("button",{name:/^Other 1$/});await other.focus();await page.keyboard.press("Enter");
+  await expect(page.locator(".workspace-list li")).toHaveCount(1);await expect(page.locator(".workspace-list")).toContainText("Neighborhood Book Club");
+  await page.reload();await expect(page.locator(".workspace-list li")).toHaveCount(5);
+  expect(await page.evaluate(()=>localStorage.getItem("fixture-starts"))).toBeNull();
+  for(const colorScheme of ["light","dark"] as const){await page.emulateMedia({colorScheme});expect((await new AxeBuilder({page}).withTags(["wcag2a","wcag2aa","wcag21aa"]).analyze()).violations).toEqual([]);}
 });

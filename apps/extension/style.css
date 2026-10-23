@@ -91,3 +91,13 @@ body:has(.popup-library) { width:640px; }
 .popup-library .collect-panel { padding:14px; margin-bottom:12px; }
 .popup-library .search-label { margin:12px 0 10px; }
 .popup-library .workspace-list { max-height:240px; }
+
+.category-filters { display:flex; flex-wrap:wrap; gap:6px; margin:14px 0 8px; }
+.category-filters button.category-filter { width:auto; min-height:34px; padding:6px 10px; background:var(--paper); color:var(--ink); border:1px solid var(--line); border-radius:18px; font-size:11px; }
+.category-filters button.category-filter[aria-pressed="true"] { background:var(--accent); color:var(--paper); border-color:var(--accent); }
+.category-filter span { margin-left:4px; font-variant-numeric:tabular-nums; }
+.category-help,.category-result-count { font-size:11px; }
+.group-entry { min-width:0; }
+.group-category-labels { display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
+.workspace-list .group-category-labels span { display:inline-block; padding:2px 6px; background:var(--tint); border-radius:4px; color:var(--muted); font-size:10px; }
+@media(prefers-color-scheme:dark) { .category-filters button.category-filter[aria-pressed="true"] { color:var(--canvas); } }

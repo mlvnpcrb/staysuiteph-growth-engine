@@ -21,7 +21,7 @@ try {
   const workspace=await opened;
   await expect(workspace.getByRole("heading",{name:"Your Facebook groups."})).toBeVisible();
   await expect(workspace.getByRole("button",{name:"Sync Groups"})).toBeEnabled();
-  await expect(workspace.getByRole("button",{name:"Save groups to My Groups"})).toBeDisabled();
+  await expect(workspace.getByRole("button",{name:"Save all groups to My Groups"})).toBeDisabled();
   if(errors.length)throw new Error("Extension launch produced runtime errors.");
   await workspace.close();await popup.close();
 
