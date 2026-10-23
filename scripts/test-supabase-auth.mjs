@@ -118,6 +118,9 @@ async function main() {
       a,
       b,
       apiUrl: api.origin,
+      onStage: (value) => {
+        stage = value;
+      },
     });
 
     stage = "application startup";

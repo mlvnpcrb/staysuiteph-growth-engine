@@ -4,7 +4,7 @@ import { Buffer, Blob } from "node:buffer";
 const { FormData } = globalThis;
 import { randomUUID, createHash } from "node:crypto";
 /** Only called by the disposable loopback Supabase harness. Never enables a hosted publisher. */
-export async function testCampaignQueue({ admin, a, b, apiUrl }) {
+export async function testCampaignQueue({ admin, a, b, apiUrl, onStage }) {
   assert.ok(["127.0.0.1", "localhost"].includes(new URL(apiUrl).hostname));
   const ids = [],
     groups = [];
@@ -36,24 +36,25 @@ export async function testCampaignQueue({ admin, a, b, apiUrl }) {
     const user = (await a.client.auth.getUser()).data.user;
     assert.ok(user);
     userId = user.id;
-    const groupId = randomUUID();
-    groups.push(groupId);
+    onStage("campaign fixture group insert");
     const groupUrl = "https://www.facebook.com/groups/987654321/";
-    assert.equal(
-      (
-        await a.client.from("saved_groups").insert({
-          id: groupId,
-          user_id: user.id,
-          identity: "987654321",
-          url: groupUrl,
-          title: "Disposable QA accommodation group",
-          destination: "",
-          accommodation: "",
-          audience: "",
-        })
-      ).error,
-      null,
-    );
+    const inserted = await a.client
+      .from("saved_groups")
+      .insert({
+        user_id: user.id,
+        identity: "987654321",
+        url: groupUrl,
+        title: "Disposable QA accommodation group",
+        destination: "",
+        accommodation: "",
+        audience: "",
+      })
+      .select("id")
+      .single();
+    assert.equal(inserted.error, null);
+    const groupId = inserted.data.id;
+    groups.push(groupId);
+    onStage("campaign fixture rule update");
     assert.equal(
       (
         await a.client
@@ -102,6 +103,7 @@ export async function testCampaignQueue({ admin, a, b, apiUrl }) {
       assert.equal(result.error, null, `Campaign ${command} failed`);
       return result.data;
     }
+    onStage("campaign create and ownership checks");
     let job = await command("create", 0, {
       actor_id: "12345",
       actor_type: "personal",
@@ -124,6 +126,7 @@ export async function testCampaignQueue({ admin, a, b, apiUrl }) {
       ).error?.code,
       "42501",
     );
+    onStage("campaign signed media reservation and upload");
     job = await command("reserve_media", job.revision, { position: 0 });
     const asset = job.media[0];
     mediaPath = asset.object_path;
@@ -147,6 +150,7 @@ export async function testCampaignQueue({ admin, a, b, apiUrl }) {
     assert.ok(
       (await b.client.storage.from("campaign-media").download(mediaPath)).error,
     );
+    onStage("campaign media reconciliation and approval");
     job = await command("media_uploaded", job.revision, { asset_id: asset.id });
     job = await command("approve", job.revision, { digest: job.digest });
     assert.ok(
@@ -180,6 +184,7 @@ export async function testCampaignQueue({ admin, a, b, apiUrl }) {
       actor_id: "12345",
       actor_type: "personal",
     });
+    onStage("campaign concurrent claims");
     const claims = await Promise.all(
       [0, 1].map(() =>
         a.client.rpc("campaign_command", {
@@ -194,6 +199,7 @@ export async function testCampaignQueue({ admin, a, b, apiUrl }) {
     assert.equal(claims.filter((r) => r.error?.code === "40001").length, 1);
     job = claims.find((r) => !r.error).data;
     assert.equal(job.targets.filter((t) => t.state === "claimed").length, 1);
+    onStage("campaign cancellation and uncertain result");
     job = await command("cancel", job.revision);
     job = await command("report", 0, {
       attempt_token: job.targets[0].attempt_token,
