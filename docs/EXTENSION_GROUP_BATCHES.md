@@ -42,3 +42,16 @@ Sign in there first. Changing the configured dashboard origin requires a new bui
 The GroupPosting reference site could not be inspected in this environment:
 HTTPS CONNECT returned 403. No claims about its collection implementation are made.
 This change does not implement campaign posting or broaden Facebook host access.
+
+## Recorded verification
+
+Frozen installation, lint, strict typechecks, both builds and MV3 manifest checks
+passed locally. Unit tests: 185 passed, with script tests also passing. The full
+responsive browser suite passed 87 tests; the final popup layout also passed its
+focused browser checks. Native unpacked installation was blocked by administrator
+policy in this environment. No live Facebook collection or bulk publication is
+claimed from fixture tests.
+
+Dashboard theme audits explicitly finish transient CSS transitions before checking
+final colors; accessibility rules and assertions remain enabled. The correction
+addresses intermediate-color failures reported by the hosted browser job.
