@@ -8,10 +8,10 @@ export const facebookErrorSchema = z.enum([
 ]);
 export type FacebookError = z.infer<typeof facebookErrorSchema>;
 export const facebookDiagnosticSchema = z.object({
-  stage: z.enum(["input","page_guard","bootstrap_identity","bootstrap_tokens","request","response_json","response_errors","group_connection","group_nodes","pagination","actor_recheck"]),
+  stage: z.enum(["collector_start","page_load","page_injection","checkpoint","input","page_guard","bootstrap_identity","bootstrap_tokens","request","response_json","response_errors","group_connection","group_nodes","pagination","actor_recheck"]),
   httpStatus: z.number().int().min(100).max(599).nullable(),
-  query: z.enum(["initial","pagination"]),
-  querySource: z.enum(["page_module","reviewed_fallback"]),
+  query: z.enum(["not_started","initial","pagination"]),
+  querySource: z.enum(["not_started","page_module","reviewed_fallback"]),
 }).strict();
 export const facebookPageSchema = z.object({
   actorId: facebookActorSchema,

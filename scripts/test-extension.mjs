@@ -16,8 +16,8 @@ try {
   const {id}=await session.send("Extensions.loadUnpacked",{path:extensionPath});
   const popup=await context.newPage();const errors=[];popup.on("pageerror",error=>errors.push(error.message));
   await popup.goto(`chrome-extension://${id}/popup.html`);
-  await expect(popup.getByRole("heading",{name:"Your groups, in one place."})).toBeVisible();
-  const opened=context.waitForEvent("page");await popup.getByRole("button",{name:"Open Sync workspace"}).click();
+  await expect(popup.getByRole("heading",{name:"Your Facebook groups."})).toBeVisible();
+  const opened=context.waitForEvent("page");await popup.getByRole("button",{name:"Open full workspace"}).click();
   const workspace=await opened;
   await expect(workspace.getByRole("heading",{name:"Your Facebook groups."})).toBeVisible();
   await expect(workspace.getByRole("button",{name:"Connect Facebook"})).toBeEnabled();
@@ -50,13 +50,13 @@ try {
   await context.addCookies([{name:"c_user",value:actor,domain:".facebook.com",path:"/",secure:true,sameSite:"Lax"}]);
   const facebook=await context.newPage();await facebook.goto("https://www.facebook.com/groups/joins/");
   const installed=await session.send("Extensions.loadUnpacked",{path:fixturePath});
-  const connected=await context.newPage();await connected.goto(`chrome-extension://${installed.id}/tabs/groups.html`);
+  const connected=await context.newPage();await connected.goto(`chrome-extension://${installed.id}/popup.html`);
   await connected.getByRole("button",{name:"Refresh groups"}).click();
   await expect(connected.getByRole("button",{name:"Stop collection"})).toBeVisible();
   await expect(connected.locator(".workspace-list li")).toHaveCount(6,{timeout:45000});
   await connected.close();releaseSecond();
   await expect.poll(()=>fixtureRequests,{timeout:15000}).toBe(2);
-  const reopened=await context.newPage();await reopened.goto(`chrome-extension://${installed.id}/tabs/groups.html`);
+  const reopened=await context.newPage();await reopened.goto(`chrome-extension://${installed.id}/popup.html`);
   await expect(reopened.locator(".workspace-list li")).toHaveCount(12,{timeout:15000});
   await expect(reopened.getByText("Group-list pagination completed.",{exact:false})).toBeVisible();
   const snapshot=await reopened.evaluate(async()=>JSON.stringify(await chrome.storage.local.get(null)));
@@ -67,7 +67,7 @@ try {
   console.log("PASS: native MV3 launch; real background/collector/MAIN-world injection against intercepted Facebook fixtures; two pages and 12 groups; popup closure persistence; local restoration; account-switch isolation; no request tokens in persisted data. Live Facebook compatibility is unverified.");
 } catch(error){
   if(context && !(error instanceof Error && /disabled by the administrator|Method not available/.test(error.message))) {
-    const page=context.pages().find(page=>page.url().startsWith("chrome-extension://") && page.url().includes("/tabs/groups.html"));
+    const page=context.pages().find(page=>page.url().startsWith("chrome-extension://") && (page.url().includes("/tabs/groups.html") || page.url().endsWith("/popup.html")));
     const libraries=await page?.evaluate(async()=>{
       const stored=await chrome.storage.local.get(null);
       return Object.values(stored).filter(value=>value && typeof value==="object" && value.schema===1).map(value=>({phase:value.phase,error:value.error,pages:value.pages,count:Array.isArray(value.groups)?value.groups.length:0,diagnostic:value.diagnostic??null}));

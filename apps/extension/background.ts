@@ -1,6 +1,9 @@
-import { facebookLibrarySchema } from "@staysuite/validation";
+import { facebookLibrarySchema, facebookDiagnosticSchema, facebookErrorSchema } from "@staysuite/validation";
 import { FacebookFailure, facebookCode } from "./lib/facebook-model";
 import { FACEBOOK_ACTIVE, FACEBOOK_JOB, assertFacebookJob, facebookIdentity, libraryKey, loadFacebookLibrary, readFacebookJob, writeFacebookLibrary } from "./lib/facebook-store";
+class CollectorRefusal extends FacebookFailure {
+  constructor(public readonly refusal: "job" | "nonce" | "sender_tab" | "owned_tab") { super("cancelled"); }
+}
 let operations: Promise<unknown> = Promise.resolve();
 function serialized<T>(operation: () => Promise<T>) {
   const next = operations.then(operation,operation); operations = next.catch(() => {}); return next;
@@ -61,11 +64,13 @@ chrome.runtime.onMessage.addListener((message: unknown,sender,reply) => {
   void serialized(async () => {
     if (collector) {
       const job = await readFacebookJob();
-      if (!job || job.collectorTabId === undefined || new URL(url).searchParams.get("run") !== job.runId || (sender.tab && sender.tab.id !== job.collectorTabId)) throw new FacebookFailure("cancelled");
+      if (!job || job.collectorTabId === undefined) throw new CollectorRefusal("job");
+      if (new URL(url).searchParams.get("run") !== job.runId) throw new CollectorRefusal("nonce");
+      if (sender.tab && sender.tab.id !== job.collectorTabId) throw new CollectorRefusal("sender_tab");
       // Extension-page messages do not always populate sender.tab. In that case
       // the exact extension URL + per-run nonce must match the live owned tab.
       const ownedTab = await chrome.tabs.get(job.collectorTabId);
-      if (ownedTab.id !== job.collectorTabId || (ownedTab.url !== undefined && ownedTab.url !== url)) throw new FacebookFailure("cancelled");
+      if (ownedTab.id !== job.collectorTabId || (ownedTab.url !== undefined && ownedTab.url !== url)) throw new CollectorRefusal("owned_tab");
       await assertFacebookJob(job);
       const library = await loadFacebookLibrary(job.actorId);
       if (message.type === "FACEBOOK_COLLECTOR_INIT") {
@@ -79,7 +84,9 @@ chrome.runtime.onMessage.addListener((message: unknown,sender,reply) => {
         return {};
       }
       if (message.type === "FACEBOOK_COLLECTOR_FAILED") {
-        if (library?.runId === job.runId) await writeFacebookLibrary({...library,phase:library.groups.length?"partial":"error",error:"interrupted",complete:false,runId:null,updatedAt:new Date().toISOString()});
+        const diagnostic=facebookDiagnosticSchema.safeParse({stage:"stage" in message?message.stage:null,httpStatus:null,query:"not_started",querySource:"not_started"});
+        const code=facebookErrorSchema.safeParse("code" in message?message.code:null);
+        if (library?.runId === job.runId) await writeFacebookLibrary({...library,phase:library.groups.length?"partial":"error",error:code.success?code.data:"interrupted",diagnostic:diagnostic.success?diagnostic.data:null,complete:false,runId:null,updatedAt:new Date().toISOString()});
         return {};
       }
       const next = facebookLibrarySchema.parse("library" in message ? message.library : null);
@@ -91,7 +98,7 @@ chrome.runtime.onMessage.addListener((message: unknown,sender,reply) => {
     if (message.type === "FACEBOOK_STOP") await stop();
     if (message.type === "FACEBOOK_FORGET") { await stop(); const actorId = await facebookIdentity(); await chrome.storage.local.remove([libraryKey(actorId),FACEBOOK_ACTIVE]); return {actorId,library:null}; }
     return message.type === "FACEBOOK_START" ? start() : state();
-  }).then(value=>reply({ok:true,...value})).catch(error=>reply({ok:false,error:facebookCode(error)}));
+  }).then(value=>reply({ok:true,...value})).catch(error=>reply({ok:false,error:facebookCode(error),...(error instanceof CollectorRefusal?{refusal:error.refusal}:{})}));
   return true;
 });
 let observingCookies = false;

@@ -17,7 +17,8 @@ No vendor config server, network rule, posting code or keep-awake script is used
 
 ## Connect and collect
 
-Open the extension workspace and click Connect Facebook. Grant optional cookies
+Click the extension button to open its Facebook connection and saved library
+directly. A full workspace is also available. Click Connect Facebook. Grant optional cookies
 and www.facebook.com access. Only c_user and i_user identity values are read. A Page
 acting session is refused in this version; switch to the personal profile first.
 Connection starts a background-owned job and a dedicated inactive collector tab.

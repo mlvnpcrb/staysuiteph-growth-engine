@@ -71,3 +71,9 @@ summary { cursor:pointer; padding:6px 0; }
 .workspace-list li { display:flex; justify-content:space-between; gap:16px; padding:12px 0; border-top:1px solid var(--line); }
 .workspace-list span { color:var(--muted); font-size:11px; flex-shrink:0; }
 @media(max-width:440px) { .workspace { padding:18px; } .workspace-list li { display:block; } .workspace-list span { display:block; } }
+.popup-library { width:420px; max-width:100vw; }
+.popup-library .workspace { padding:18px; }
+.popup-expand { padding:8px 18px 0; text-align:right; }
+.popup-expand .text-button { font-size:11px; }
+.popup-library .workspace .intro { margin-top:18px; }
+.popup-library .workspace h1 { font-size:27px; }
