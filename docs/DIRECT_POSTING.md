@@ -1,5 +1,12 @@
 # Direct text and photo campaigns (0.4.0)
 
+Extension 0.4.1 automatically detects supported open StaySuite dashboard tabs.
+Connect requests optional Chrome tab-metadata permission, then grants execution
+only for the selected StaySuite origin and Facebook. URL metadata is filtered
+locally and is not persisted or uploaded. The active or most recently used
+dashboard wins; manual URL entry is an advanced fallback. No permanent `tabs`
+permission or broad permanent host access is added.
+
 The extension can submit an approved campaign sequentially through Facebook
 requests without opening each target group's composer. The editor defaults to
 Direct; existing Classic drafts have an explicit “Use Direct posting for this

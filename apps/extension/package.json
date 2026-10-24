@@ -1,6 +1,6 @@
 {
   "name": "@staysuite/extension",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "private": true,
   "displayName": "StaySuite Growth Engine",
   "description": "Account-scoped group library and approved sequential campaigns with experimental Direct text and photo publishing.",
@@ -38,7 +38,8 @@
       "http://127.0.0.1/*"
     ],
     "optional_permissions": [
-      "cookies"
+      "cookies",
+      "tabs"
     ]
   }
 }

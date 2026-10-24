@@ -1,4 +1,5 @@
 import { directPublisherPage } from "../lib/direct-publisher";
+import { detectCampaignDashboard } from "../lib/campaign-browser";
 import type { SavedGroup } from "@staysuite/types";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -33,8 +34,18 @@ export default function CampaignWorkspace() {
   const [receiptReviewed, setReceiptReviewed] = useState(false);
   const [groups, setGroups] = useState<SavedGroup[]>([]);
   const [url, setUrl] = useState(
-    process.env.PLASMO_PUBLIC_DASHBOARD_URL || "http://localhost:3000",
+    process.env.PLASMO_PUBLIC_DASHBOARD_URL || "",
   );
+  const [manualUrl, setManualUrl] = useState(false);
+  const [detected, setDetected] = useState(false);
+  useEffect(() => {
+    let active = true;
+    void chrome.tabs.query({}).then((tabs) => {
+      const dashboard = detectCampaignDashboard(tabs);
+      if (active && dashboard) { setUrl(dashboard.origin); setDetected(true); }
+    }).catch(() => { /* Connect requests optional tab detection if needed. */ });
+    return () => { active = false; };
+  }, []);
   const [connection, setConnection] = useState<Connection | null>(null),
     [list, setList] = useState<CampaignList | null>(null),
     [job, setJob] = useState<CampaignJob | null>(null);
@@ -103,7 +114,17 @@ export default function CampaignWorkspace() {
     setValidationAvailable(false);
     clearApproval();
     try {
-      const origin = campaignDashboardOrigin(url),
+      let chosenUrl = url;
+      if (!manualUrl) {
+        if (!(await chrome.permissions.request({permissions: ["tabs"]})))
+          throw new Error("Tab detection was not allowed. Use the manual connection option.");
+        const dashboard = detectCampaignDashboard(await chrome.tabs.query({}));
+        if (!dashboard) throw new Error("Open StaySuite and sign in in this Chrome profile, then click Connect again. Your dashboard will be detected automatically.");
+        chosenUrl = dashboard.origin;
+        setUrl(chosenUrl);
+        setDetected(true);
+      }
+      const origin = campaignDashboardOrigin(chosenUrl),
         host = new URL(origin);
       const pattern = `${host.protocol}//${host.hostname}/*`;
       if (
@@ -706,6 +727,9 @@ export default function CampaignWorkspace() {
       </section>
       <section className="collect-panel">
         <h2>1. Connect your browser</h2>
+        <p>{detected && !manualUrl ? "StaySuite dashboard detected. Connect to load your saved campaigns and Facebook profile." : "Open your signed-in StaySuite dashboard and Facebook in this Chrome profile. Connect detects them automatically."}</p>
+        <details open={manualUrl} onToggle={(event) => setManualUrl(event.currentTarget.open)}>
+        <summary>Manual connection (if detection is unavailable)</summary>
         <label htmlFor="campaign-origin">StaySuite Preview URL</label>
         <input
           id="campaign-origin"
@@ -714,6 +738,7 @@ export default function CampaignWorkspace() {
           disabled={busy || running}
           onChange={(e) => setUrl(e.target.value)}
         />
+        </details>
         <button disabled={busy || running} onClick={() => void connect()}>
           Connect StaySuite and Facebook
         </button>

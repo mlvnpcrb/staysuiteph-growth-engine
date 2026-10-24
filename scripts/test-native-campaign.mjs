@@ -116,6 +116,8 @@ export async function testNativeCampaign({
       "https://www.facebook.com/*",
     ];
     manifest.optional_host_permissions = [];
+    manifest.permissions = [...manifest.permissions, "tabs"];
+    manifest.optional_permissions = manifest.optional_permissions.filter((p) => p !== "tabs");
     await writeFile(join(fixture, "manifest.json"), JSON.stringify(manifest));
     onStage("native campaign Chrome launch");
     native = await chromium.launchPersistentContext(profile, {
@@ -184,7 +186,7 @@ export async function testNativeCampaign({
     await workspace.goto(
       `chrome-extension://${installed.id}/tabs/campaigns.html`,
     );
-    await workspace.getByLabel("StaySuite Preview URL").fill(origin);
+    await expect(workspace.getByLabel("StaySuite Preview URL")).not.toBeVisible();
     await workspace
       .getByRole("button", { name: "Connect StaySuite and Facebook" })
       .click();
