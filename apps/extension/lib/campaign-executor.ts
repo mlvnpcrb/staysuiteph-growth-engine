@@ -36,7 +36,7 @@ export async function executeCampaignTarget(port: ExecutorPort, id: string) {
   if (job.actor_id !== actor.actor_id || job.actor_type !== actor.actor_type)
     throw new Error("Facebook identity changed. Nothing was sent.");
   if (job.state !== "running") return job;
-  if (job.settings.method !== "classic")
+  if (!["classic", "direct"].includes(job.settings.method))
     throw new Error("This publishing method has no validated adapter.");
   job = await port.command({
     id,
@@ -52,8 +52,8 @@ export async function executeClaimedCampaignTarget(
   expectedActor?: { actor_id: string; actor_type: "personal" | "page" },
 ) {
   const id = job.id;
-  if (job.state !== "running" || job.settings.method !== "classic")
-    throw new Error("No running Classic submission claim.");
+  if (job.state !== "running" || !["classic", "direct"].includes(job.settings.method))
+    throw new Error("No running submission claim.");
   const actor = expectedActor ?? (await port.actor());
   if (job.actor_id !== actor.actor_id || job.actor_type !== actor.actor_type)
     throw new Error("Facebook identity changed. Nothing was sent.");
@@ -115,3 +115,4 @@ export async function executeClaimedCampaignTarget(
     },
   });
 }
+

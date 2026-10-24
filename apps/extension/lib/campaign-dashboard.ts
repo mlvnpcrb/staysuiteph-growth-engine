@@ -34,7 +34,7 @@ export async function campaignDashboardRequest(
   )
     return { error: "Open a signed-in StaySuite dashboard tab first." };
   if (
-    !/^\/api\/(campaigns(?:\?id=[0-9a-f-]+|\/publisher(?:\?actor_id=[1-9][0-9]{0,79})?)?|groups)$/.test(
+    !/^\/api\/(campaigns(?:\?id=[0-9a-f-]+|\/publisher(?:\?actor_id=[1-9][0-9]{0,79}(?:&method=direct)?)?)?|groups)$/.test(
       path,
     )
   )
@@ -166,3 +166,4 @@ export function campaignFacebookActor() {
     return null;
   }
 }
+

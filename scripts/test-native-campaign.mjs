@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { randomUUID, createHash } from "node:crypto";
 import { Buffer, Blob } from "node:buffer";
-import { URL } from "node:url";
+import { URL, URLSearchParams } from "node:url";
 const { FormData } = globalThis;
 /** Actual MV3 -> authenticated local Next.js -> real disposable Supabase -> synthetic FB DOM.
  * No real Facebook traffic or owner cookies. Never call against a hosted origin.
@@ -90,7 +90,7 @@ export async function testNativeCampaign({
           },
         ],
       },
-      settings: { avoidNight: false },
+      settings: { method: "direct", avoidNight: false },
     });
     const reserved = await api("reserve_media", { position: 0 });
     const form = new FormData();
@@ -137,7 +137,17 @@ export async function testNativeCampaign({
         /* Ignore browser-internal requests without URL metadata. */
       }
     });
+    await native.route("https://upload.facebook.com/**", route => route.fulfill({json:{payload:{photoID:"67890"}}}));
     await native.route("https://www.facebook.com/**", (route) => {
+      if (route.request().method() === "POST" && new URL(route.request().url()).pathname === "/api/graphql/") {
+        const variables = JSON.parse(new URLSearchParams(route.request().postData()).get("variables"));
+        assert.equal(variables.input.message.text, "Native fixture offer — no live Facebook traffic");
+        assert.deepEqual(variables.input.attachments, [{photo:{id:"67890"}}]);
+        assert.equal(variables.input.actor_id,actor);
+        assert.ok(["987654321","987654322"].includes(variables.input.audience.to_id));
+        clicks++;
+        return route.fulfill({json:{data:{story_create:{story:{id:"fixture-story",legacy_story_hideable_id:"54321",to:{__typename:"Group",id:variables.input.audience.to_id},default_actor:{__typename:"User",id:actor},if_viewer_can_learn_more_about_pending_post:null}}}}});
+      }
       if (route.request().method() !== "GET") {
         blockedMutations++;
         blockedPaths.push(
@@ -153,7 +163,7 @@ export async function testNativeCampaign({
       return route.fulfill({
         contentType: "text/html",
         body: `<!doctype html><html><body><div role="dialog"><div role="textbox" contenteditable="true"></div><button id="media" aria-label="Photo/video">Photo/video</button><button id="publish">Post</button></div><script>
-    window.fixturePage=true;window.fixtureClicks=0;window.require=name=>name==='CurrentUser'?{getID:()=>'${actor}'}:{USER_ID:'${actor}',PROFILE_ID:'${actor}'};
+    window.fixturePage=true;window.fixtureClicks=0;window.require=name=>({CurrentUser:{getID:()=>'${actor}'},CurrentUserInitialData:{USER_ID:'${actor}',PROFILE_ID:'${actor}'},DTSGInitialData:{token:'fixture-csrf'},LSD:{token:'fixture-lsd'},'ComposerStoryCreateMutation.graphql':{params:{id:'555555555555'}}})[name];
     document.getElementById('media').onclick=()=>{const input=document.createElement('input');input.type='file';input.accept='image/*';input.multiple=true;input.onchange=()=>{const preview=document.createElement('button');preview.setAttribute('aria-label','Remove photo');document.querySelector('[role=dialog]').append(preview)};document.querySelector('[role=dialog]').append(input)};
     document.getElementById('publish').onclick=()=>{window.fixtureClicks++;const status=document.createElement('div');status.setAttribute('role','status');status.innerHTML='Your post was published. <a href="${currentGroup}posts/54321/">View post</a>';document.body.append(status);window.fixturePublished=true;};
    </script></body></html>`,
@@ -194,7 +204,7 @@ export async function testNativeCampaign({
       .check();
     workspace.once("dialog", (dialog) => dialog.accept());
     onStage(
-      "native single-validation submission against synthetic Facebook DOM",
+      "native single-validation submission against intercepted Facebook Direct requests",
     );
     await workspace
       .getByRole("button", { name: "Publish one validation post", exact: true })
@@ -204,12 +214,6 @@ export async function testNativeCampaign({
         name: "Inspect validation post in Facebook",
       }),
     ).toBeVisible({ timeout: 60000 });
-    for (const page of native.pages())
-      if (
-        page.url() === groupUrl &&
-        (await page.evaluate(() => globalThis.fixturePublished === true))
-      )
-        clicks++;
     assert.equal(clicks, 1);
     assert.equal(blockedMutations, 0);
     await expect(
@@ -249,11 +253,9 @@ export async function testNativeCampaign({
       "completed",
       { timeout: 60000 },
     );
-    let totalClicks = 0;
-    for (const page of native.pages())
-      if (page.url().startsWith("https://www.facebook.com/"))
-        totalClicks += await page.evaluate(() => globalThis.fixtureClicks || 0);
-    assert.equal(totalClicks, 2);
+    assert.equal(clicks, 2);
+    assert.equal(fb.url(), groupUrl, "Direct execution never navigates to the second group composer");
+    assert.equal(await fb.evaluate(() => globalThis.fixtureClicks || 0), 0, "Direct execution never clicks a composer Post button");
     assert.equal(blockedMutations, 0);
     for (const page of native.pages())
       if (page.url().startsWith("https://www.facebook.com/"))
@@ -266,9 +268,9 @@ export async function testNativeCampaign({
     await api("inspect", {});
     assert.equal(job.targets[1].state, "live");
     assert.equal(job.targets[0].state, "live");
-    assert.equal(job.targets[0].provider_code, "reported_ui_receipt");
+    assert.equal(job.targets[0].provider_code, "direct_story_receipt");
     console.log(
-      "PASS: real native MV3 campaign UI, signed media retrieval, actor binding, exact approval, single DOM submission/receipt, owner confirmation and sequential next-group submission through authenticated dashboard/real disposable Supabase; all Facebook responses intercepted, not live compatibility proof",
+      "PASS: real native MV3 campaign UI, signed media retrieval, actor binding, exact approval, single Direct submission/receipt, owner confirmation and sequential next-group submission through authenticated dashboard/real disposable Supabase; all Facebook responses intercepted, not live compatibility proof",
     );
   } catch (error) {
     const result = await admin
@@ -332,3 +334,4 @@ export async function testNativeCampaign({
     }
   }
 }
+

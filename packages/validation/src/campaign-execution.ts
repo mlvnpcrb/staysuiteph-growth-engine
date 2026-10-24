@@ -37,7 +37,7 @@ const payloads = {
   validate_one: z
     .object({
       actor_id: actor.actor_id,
-      adapter_version: z.literal("0.3.2"),
+      adapter_version: z.enum(["0.3.2", "0.4.0"]),
       reviewed: z.literal(true),
       digest: z.string().regex(/^[a-f0-9]{64}$/),
       target_id: z.uuid(),
@@ -46,7 +46,7 @@ const payloads = {
   confirm_validation: z
     .object({
       actor_id: actor.actor_id,
-      adapter_version: z.literal("0.3.2"),
+      adapter_version: z.enum(["0.3.2", "0.4.0"]),
       reviewed: z.literal(true),
       digest: z.string().regex(/^[a-f0-9]{64}$/),
       post_url: z
@@ -252,3 +252,4 @@ export const campaignRestoreSchema = z.object({
 });
 
 export const campaignActorIdSchema = actor.actor_id;
+

@@ -63,6 +63,14 @@ function port() {
     }),
   };
 }
+it("dispatches a Direct server claim through its supplied adapter", async()=>{
+ const p=port();
+ const direct={...job,settings:{...job.settings,method:"direct" as const}};
+ p.command.mockResolvedValue(direct);
+ await executeCampaignTarget(p,id);
+ expect(p.publish).toHaveBeenCalledOnce();
+ expect(p.command).toHaveBeenLastCalledWith(expect.objectContaining({command:"report",payload:expect.objectContaining({outcome:"live"})}));
+});
 it("never publishes when server claim fails", async () => {
   const p = port();
   p.command
@@ -129,3 +137,4 @@ it("requires actor continuity before dispatch", async () => {
   await executeCampaignTarget(p, id);
   expect(p.publish).not.toHaveBeenCalled();
 });
+

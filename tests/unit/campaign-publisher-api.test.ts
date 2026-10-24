@@ -19,6 +19,14 @@ beforeEach(() => {
     error: null,
   });
 });
+it("Direct uses separate readiness and stays disabled before its migration", async () => {
+  const request = new Request("http://localhost/api/campaigns/publisher?actor_id=12345&method=direct");
+  mocks.rpc.mockResolvedValue({data: null, error: {code: "PGRST202"}});
+  expect(await (await GET(request)).json()).toMatchObject({direct:false,classic:false,validation_available:false,adapter_version:"0.4.0"});
+  mocks.rpc.mockResolvedValue({data:true,error:null});
+  expect(await (await GET(request)).json()).toMatchObject({direct:true,classic:false,validation_available:true});
+  expect(mocks.rpc).toHaveBeenCalledWith("campaign_direct_publisher_ready", {p_actor_id:"12345"});
+});
 it("denies anonymous sessions without reading publisher flags", async () => {
   mocks.user.mockResolvedValue({
     data: { user: { id: "owner", is_anonymous: true } },
@@ -79,3 +87,4 @@ it("keeps the connection readable and publishing disabled until validation migra
     validation_available: false,
   });
 });
+

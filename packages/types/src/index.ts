@@ -112,6 +112,10 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      campaign_direct_publisher_ready: {
+        Args: { p_actor_id: string };
+        Returns: boolean;
+      };
       campaign_publisher_ready: {
         Args: { p_actor_id: string };
         Returns: boolean;
@@ -142,3 +146,4 @@ export type {
 } from "./groups";
 
 export type { CampaignJobRow, Json } from "./campaigns";
+
