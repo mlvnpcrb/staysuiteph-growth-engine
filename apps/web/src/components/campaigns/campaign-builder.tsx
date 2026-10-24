@@ -86,7 +86,7 @@ export function CampaignBuilder() {
     return () => controller.abort();
   }, [storageCheck]);
   const [settings, setSettings] = useState<CampaignSettings>({
-    method: "classic",
+    method: "direct",
     pauseEvery: 1,
     pauseMinutes: 2,
     avoidNight: true,
@@ -783,6 +783,8 @@ export function CampaignBuilder() {
       </section>
       <section className="panel campaign-review">
         <h2>4. Review the campaign plan</h2>
+        <label>Posting method<select value={settings.method} disabled={cloudBusy || busy} onChange={(e) => { invalidateApproval(); setSettings({...settings, method: e.target.value === "direct" ? "direct" : "classic"}); }}><option value="direct">Direct — automatic text and photo posting</option><option value="classic">Classic — browser composer</option></select></label>
+        <p className="muted text-sm">Direct posts your approved campaign through the extension without opening each group composer. This version supports text and photos. Live compatibility must be validated separately.</p>
         <div className="finder-fields">
           <label>
             Pause after every (posts)
@@ -971,3 +973,4 @@ export function CampaignBuilder() {
     </div>
   );
 }
+

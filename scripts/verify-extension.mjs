@@ -10,7 +10,7 @@ assert.deepEqual([...(manifest.permissions ?? [])].sort(), [
 ]);
 assert.equal(manifest.host_permissions?.length ?? 0, 0);
 assert.equal(manifest.content_scripts?.length ?? 0, 0);
-assert.deepEqual(manifest.optional_permissions, ["cookies"]);
+assert.deepEqual(manifest.optional_permissions, ["cookies", "tabs"]);
 assert.deepEqual(manifest.optional_host_permissions, [
   "https://www.facebook.com/*",
   "https://*.vercel.app/*",
@@ -30,3 +30,4 @@ assert.ok(existsSync(`${directory}/tabs/campaigns.html`));
 console.log(
   "PASS: built Chrome MV3 manifest, popup, and account-scoped library and bounded background collector; zero permanent host/content-script permissions; optional cookies and scoped site grants",
 );
+

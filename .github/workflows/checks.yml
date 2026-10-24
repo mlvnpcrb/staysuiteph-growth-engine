@@ -26,7 +26,7 @@ jobs:
       - run: pnpm build
       - uses: actions/upload-artifact@v4
         with:
-          name: staysuite-extension-0.3.2
+          name: staysuite-extension-0.4.1
           path: apps/extension/build/chrome-mv3-prod/
           retention-days: 14
   browser:
@@ -44,6 +44,8 @@ jobs:
       - run: pnpm --filter @staysuite/extension build
       - name: Install supported Chromium and OS dependencies
         run: pnpm exec playwright install --with-deps chromium
+      - name: Direct publishing protocol (all Facebook traffic intercepted)
+        run: PLAYWRIGHT_CHROMIUM_EXECUTABLE="$(command -v google-chrome)" node scripts/test-direct-publisher.mjs
       - name: Native Facebook collection boundary
         run: pnpm test:extension
         timeout-minutes: 3
@@ -180,3 +182,4 @@ jobs:
           name: real-preview-verification
           path: preview-audit/
           retention-days: 7
+

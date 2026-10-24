@@ -19,10 +19,14 @@ export async function GET(request?: Request) {
       ? new URL(request.url).searchParams.get("actor_id")
       : null;
     if (actorId !== null) {
+      const method = new URL(request!.url).searchParams.get("method");
+      if (method !== null && method !== "direct") return reply({error: "Unsupported publisher method."}, 400);
+      const direct = method === "direct";
+      const version = direct ? "0.4.0" : "0.3.2";
       const actor = campaignActorIdSchema.safeParse(actorId);
       if (!actor.success)
         return reply({ error: "Choose a valid Facebook profile." }, 400);
-      const available = await client.rpc("campaign_publisher_ready", {
+      const available = await client.rpc(direct ? "campaign_direct_publisher_ready" : "campaign_publisher_ready", {
         p_actor_id: actor.data,
       });
       if (available.error) {
@@ -30,15 +34,17 @@ export async function GET(request?: Request) {
           return reply({
             viewer_id: user.id,
             classic: false,
-            adapter_version: "0.3.2",
+            direct: false,
+            adapter_version: version,
             validation_available: false,
           });
         throw available.error;
       }
       return reply({
         viewer_id: user.id,
-        classic: available.data === true,
-        adapter_version: "0.3.2",
+        classic: !direct && available.data === true,
+        direct: direct && available.data === true,
+        adapter_version: version,
         validation_available: true,
       });
     }
@@ -61,3 +67,4 @@ export async function GET(request?: Request) {
     );
   }
 }
+

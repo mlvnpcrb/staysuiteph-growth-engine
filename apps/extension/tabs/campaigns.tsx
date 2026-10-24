@@ -1,3 +1,5 @@
+import { directPublisherPage } from "../lib/direct-publisher";
+import { detectCampaignDashboard } from "../lib/campaign-browser";
 import type { SavedGroup } from "@staysuite/types";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -32,8 +34,18 @@ export default function CampaignWorkspace() {
   const [receiptReviewed, setReceiptReviewed] = useState(false);
   const [groups, setGroups] = useState<SavedGroup[]>([]);
   const [url, setUrl] = useState(
-    process.env.PLASMO_PUBLIC_DASHBOARD_URL || "http://localhost:3000",
+    process.env.PLASMO_PUBLIC_DASHBOARD_URL || "",
   );
+  const [manualUrl, setManualUrl] = useState(false);
+  const [detected, setDetected] = useState(false);
+  useEffect(() => {
+    let active = true;
+    void chrome.tabs.query({}).then((tabs) => {
+      const dashboard = detectCampaignDashboard(tabs);
+      if (active && dashboard) { setUrl(dashboard.origin); setDetected(true); }
+    }).catch(() => { /* Connect requests optional tab detection if needed. */ });
+    return () => { active = false; };
+  }, []);
   const [connection, setConnection] = useState<Connection | null>(null),
     [list, setList] = useState<CampaignList | null>(null),
     [job, setJob] = useState<CampaignJob | null>(null);
@@ -102,7 +114,17 @@ export default function CampaignWorkspace() {
     setValidationAvailable(false);
     clearApproval();
     try {
-      const origin = campaignDashboardOrigin(url),
+      let chosenUrl = url;
+      if (!manualUrl) {
+        if (!(await chrome.permissions.request({permissions: ["tabs"]})))
+          throw new Error("Tab detection was not allowed. Use the manual connection option.");
+        const dashboard = detectCampaignDashboard(await chrome.tabs.query({}));
+        if (!dashboard) throw new Error("Open StaySuite and sign in in this Chrome profile, then click Connect again. Your dashboard will be detected automatically.");
+        chosenUrl = dashboard.origin;
+        setUrl(chosenUrl);
+        setDetected(true);
+      }
+      const origin = campaignDashboardOrigin(chosenUrl),
         host = new URL(origin);
       const pattern = `${host.protocol}//${host.hostname}/*`;
       if (
@@ -135,14 +157,14 @@ export default function CampaignWorkspace() {
         tab.id,
         origin,
         session.viewer,
-      ).read(`/api/campaigns/publisher?actor_id=${identity.actor_id}`);
+      ).read(`/api/campaigns/publisher?actor_id=${identity.actor_id}&method=direct`);
       if (
         !publisher ||
         typeof publisher !== "object" ||
         !("viewer_id" in publisher) ||
         publisher.viewer_id !== session.viewer ||
-        !("classic" in publisher) ||
-        typeof publisher.classic !== "boolean"
+        !("direct" in publisher) ||
+        typeof publisher.direct !== "boolean"
       )
         throw new Error("Publisher response did not match your account.");
       const savedGroups = groupResponseSchema.parse(
@@ -156,17 +178,17 @@ export default function CampaignWorkspace() {
       setActor(identity);
       setConnection(session);
       setList(campaignListSchema.parse(campaigns));
-      setEnabled(publisher.classic);
+      setEnabled(publisher.direct);
       const available =
         "validation_available" in publisher &&
         publisher.validation_available === true;
       setValidationAvailable(available);
       setNotice(
-        publisher.classic
+        publisher.direct
           ? "Connected. Review one exact campaign before starting."
           : !available
             ? "Connected. Live validation setup is pending for this workspace. You can save campaigns; publishing remains disabled."
-            : "Connected. Automatic submission is disabled until this Facebook adapter passes live validation. You can inspect the composer without filling or publishing it.",
+            : "Connected. Automatic submission is disabled until this Facebook adapter passes live validation. You can check the Direct connection without uploading or publishing.",
       );
     } catch (e) {
       setNotice(e instanceof Error ? e.message : "Could not connect.");
@@ -242,6 +264,11 @@ export default function CampaignWorkspace() {
       throw new Error(
         "The target group is unavailable or has an unsupported URL.",
       );
+    if (current.settings.method === "direct") {
+      const identity = await readActor();
+      if (identity.actor_id !== current.actor_id || activeFacebook.current === null) throw new Error("Facebook profile changed. Reconnect.");
+      return {tabId: activeFacebook.current, group};
+    }
     const targetUrl = new URL(group.url);
     const matches = (value: string | undefined) => {
       try {
@@ -308,7 +335,7 @@ export default function CampaignWorkspace() {
         await chrome.scripting.executeScript({
           target: { tabId },
           world: "MAIN",
-          func: classicPublisherPage,
+          func: job.settings.method === "direct" ? directPublisherPage : classicPublisherPage,
           args: [
             {
               actorId: identity.actor_id,
@@ -323,7 +350,9 @@ export default function CampaignWorkspace() {
         })
       )[0]?.result;
       setNotice(
-        result?.outcome === "ready"
+        job.settings.method === "direct"
+          ? `Direct connection check: ${result?.code || "unavailable"}. Nothing was uploaded or published.`
+          : result?.outcome === "ready"
           ? "Facebook composer detected. No text was inserted and no post was sent. Actual media attachment and submission confirmation still require a live validation campaign."
           : `Composer check stopped: ${result?.code || "unavailable"}. No post was sent.`,
       );
@@ -336,6 +365,18 @@ export default function CampaignWorkspace() {
     } finally {
       setBusy(false);
     }
+  }
+  async function useDirect() {
+    if (!job || !bridge || busy || running) return;
+    setBusy(true);
+    clearApproval();
+    try {
+      const changed = await bridge.command({id: job.id, revision: job.revision, command: "edit", payload: {plan: job.plan, settings: {...job.settings, method: "direct"}, title: job.title, description: job.description}});
+      setJob(changed);
+      setNotice("Direct posting selected. Review this version; the earlier approval was cleared. Nothing was published.");
+    } catch (e) {
+      setNotice(e instanceof Error ? e.message : "Could not change posting method.");
+    } finally {setBusy(false);}
   }
   async function publish(
     current: CampaignJob,
@@ -359,7 +400,7 @@ export default function CampaignWorkspace() {
       current.plan.media.reduce((sum, m) => sum + m.size, 0) >
       20 * 1024 * 1024
     )
-      throw new Error("Classic dispatch supports at most 20 MB per post.");
+      throw new Error("Direct photo posting supports at most 20 MB per post.");
     const media: ClassicPublishInput["media"] = [];
     for (const saved of [...loaded.job.media].sort(
       (a, b) => a.position - b.position,
@@ -420,7 +461,7 @@ export default function CampaignWorkspace() {
       await chrome.scripting.executeScript({
         target: { tabId },
         world: "MAIN",
-        func: classicPublisherPage,
+        func: current.settings.method === "direct" ? directPublisherPage : classicPublisherPage,
         args: [
           {
             actorId: current.actor_id!,
@@ -442,6 +483,7 @@ export default function CampaignWorkspace() {
   async function validateOne() {
     if (!bridge || !job || !actor || !validationReviewed || pending.current)
       return;
+    if (job.settings.method !== "direct") { setNotice("Select Direct posting in the dashboard and save this draft before validation."); return; }
     const target = job.targets[0];
     if (!target) return;
     const group = groups.find((g) => g.id === target.group_id);
@@ -473,7 +515,7 @@ export default function CampaignWorkspace() {
         command: "validate_one",
         payload: {
           actor_id: identity.actor_id,
-          adapter_version: "0.3.2",
+          adapter_version: "0.4.0",
           reviewed: true,
           digest: job.digest,
           target_id: target.id,
@@ -529,22 +571,22 @@ export default function CampaignWorkspace() {
         command: "confirm_validation",
         payload: {
           actor_id: identity.actor_id,
-          adapter_version: "0.3.2",
+          adapter_version: "0.4.0",
           reviewed: true,
           digest: job.digest,
           post_url: target.post_url,
         },
       });
       const status = await bridge.read(
-        `/api/campaigns/publisher?actor_id=${identity.actor_id}`,
+        `/api/campaigns/publisher?actor_id=${identity.actor_id}&method=direct`,
       );
       if (
         !status ||
         typeof status !== "object" ||
         !("viewer_id" in status) ||
         status.viewer_id !== connection?.viewer ||
-        !("classic" in status) ||
-        status.classic !== true
+        !("direct" in status) ||
+        status.direct !== true
       )
         throw new Error(
           "Validation availability was not confirmed. Reconnect before starting.",
@@ -589,13 +631,13 @@ export default function CampaignWorkspace() {
         current.state === "running"
       ) {
         const publishers = await bridge.read(
-          `/api/campaigns/publisher?actor_id=${identity.actor_id}`,
+          `/api/campaigns/publisher?actor_id=${identity.actor_id}&method=direct`,
         );
         if (
           !publishers ||
           typeof publishers !== "object" ||
-          !("classic" in publishers) ||
-          publishers.classic !== true ||
+          !("direct" in publishers) ||
+          publishers.direct !== true ||
           !("viewer_id" in publishers) ||
           publishers.viewer_id !== connection?.viewer
         )
@@ -685,6 +727,9 @@ export default function CampaignWorkspace() {
       </section>
       <section className="collect-panel">
         <h2>1. Connect your browser</h2>
+        <p>{detected && !manualUrl ? "StaySuite dashboard detected. Connect to load your saved campaigns and Facebook profile." : "Open your signed-in StaySuite dashboard and Facebook in this Chrome profile. Connect detects them automatically."}</p>
+        <details open={manualUrl} onToggle={(event) => setManualUrl(event.currentTarget.open)}>
+        <summary>Manual connection (if detection is unavailable)</summary>
         <label htmlFor="campaign-origin">StaySuite Preview URL</label>
         <input
           id="campaign-origin"
@@ -693,6 +738,7 @@ export default function CampaignWorkspace() {
           disabled={busy || running}
           onChange={(e) => setUrl(e.target.value)}
         />
+        </details>
         <button disabled={busy || running} onClick={() => void connect()}>
           Connect StaySuite and Facebook
         </button>
@@ -724,6 +770,9 @@ export default function CampaignWorkspace() {
         <section className="collect-panel">
           <h2>3. Review this exact version</h2>
           <h3>{job.title || "Untitled campaign"}</h3>
+          <p>Posting method: {job.settings.method === "direct" ? "Direct — no group composer navigation" : "Classic composer"}</p>
+          {job.settings.method !== "direct" && <button disabled={busy || running || !["draft", "ready"].includes(job.state)} onClick={() => void useDirect()}>Use Direct posting for this draft</button>}
+          {job.settings.method === "direct" && job.plan.media.some((m) => !m.type.startsWith("image/")) && <p role="alert">Direct 0.4.0 supports photos. Create a photo or text campaign to use this method.</p>}
           <p className="campaign-extension-text">{job.plan.text}</p>
           <p>
             {job.plan.media.length} attachment(s) · {job.targets.length}{" "}
@@ -763,7 +812,7 @@ export default function CampaignWorkspace() {
             disabled={busy || running}
             onClick={() => void preflight()}
           >
-            Check Facebook composer — no publishing
+            {job.settings.method === "direct" ? "Check Direct connection — no publishing" : "Check Facebook composer — no publishing"}
           </button>
           <button
             className="secondary"
@@ -839,7 +888,7 @@ export default function CampaignWorkspace() {
                   job.state !== "ready" ||
                   !groups.some((g) => g.id === job.targets[0]?.group_id) ||
                   !job.actor_id ||
-                  job.settings.method !== "classic" ||
+                  job.settings.method !== "direct" ||
                   job.plan.media.reduce((sum, m) => sum + m.size, 0) >
                     20 * 1024 * 1024
                 }
@@ -893,7 +942,7 @@ export default function CampaignWorkspace() {
               running ||
               !confirmed ||
               !enabled ||
-              job.settings.method !== "classic" ||
+              job.settings.method !== "direct" ||
               !["ready", "paused"].includes(job.state) ||
               job.plan.media.reduce((sum, m) => sum + m.size, 0) >
                 20 * 1024 * 1024
@@ -905,7 +954,7 @@ export default function CampaignWorkspace() {
           {!enabled && (
             <p>
               Bulk publishing is locked until the single-post validation
-              succeeds and you confirm its result. A composer check alone does
+              succeeds and you confirm its result. A connection check alone does
               not unlock posting.
             </p>
           )}
@@ -935,7 +984,7 @@ export default function CampaignWorkspace() {
             Download posting diagnostics
           </button>
           <p>
-            Classic dispatch supports up to 20 MB total attachments. Keep this
+            Direct photo posting supports up to 20 MB total attachments. Keep this
             workspace and the signed-in StaySuite tab open during a run. Closing
             them stops processing; inspect the queue before restarting. Delays
             do not guarantee avoidance of restrictions.
@@ -966,3 +1015,4 @@ export default function CampaignWorkspace() {
     </main>
   );
 }
+

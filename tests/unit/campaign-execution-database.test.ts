@@ -17,6 +17,7 @@ it("transactional campaign commands isolate owners and fail closed before publis
       "20261023110003_campaign_execution.sql",
       "20261023145846_campaign_management.sql",
       "20261023215918_campaign_live_validation.sql",
+      "20261024083111_campaign_direct_publishing.sql",
     ])
       await db.exec(
         await readFile(
@@ -473,3 +474,4 @@ it("transactional campaign commands isolate owners and fail closed before publis
     await db.close();
   }
 }, 30000);
+

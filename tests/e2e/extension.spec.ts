@@ -303,8 +303,8 @@ test("campaign workspace connects the scoped dashboard but never starts an unval
         },
         permissions: { request: async () => true },
         tabs: {
-          query: async ({ url }: { url: string }) =>
-            url.includes("facebook")
+          query: async ({ url }: { url?: string }) =>
+            url?.includes("facebook")
               ? [
                   {
                     id: 2,
@@ -338,6 +338,7 @@ test("campaign workspace connects the scoped dashboard but never starts an unval
                     data: {
                       viewer_id: owner,
                       classic: false,
+                      direct: false,
                       validation_available: true,
                     },
                   },
@@ -364,6 +365,7 @@ test("campaign workspace connects the scoped dashboard but never starts an unval
     });
   });
   await page.goto("http://extension-fixture.test/tabs/campaigns.html");
+  await expect(page.getByLabel("StaySuite Preview URL")).not.toBeVisible();
   await page
     .getByRole("button", { name: "Connect StaySuite and Facebook" })
     .click();
@@ -397,3 +399,4 @@ test("campaign workspace connects the scoped dashboard but never starts an unval
     ),
   ).toBe(true);
 });
+
