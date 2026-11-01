@@ -87,6 +87,51 @@ export type SyncSnapshot = {
 export type Database = {
   public: {
     Tables: {
+      radar_settings: {
+        Row: {
+          user_id: string;
+          scope: string;
+          revision: number;
+          group_ids: string[];
+          keyword_rules: Json;
+          scan_interval: number;
+          in_page_notifications: boolean;
+          desktop_notifications: boolean;
+          reply_preferences: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      radar_leads: {
+        Row: {
+          id: string;
+          user_id: string;
+          scope: string;
+          group_id: string | null;
+          group_identity: string;
+          group_name: string;
+          post_id: string;
+          url: string;
+          author: string;
+          text: string;
+          matched_keywords: Json;
+          stage: string;
+          is_read: boolean;
+          is_starred: boolean;
+          note: string;
+          revision: number;
+          discovered_at: string;
+          post_created_at: string | null;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       campaign_schedules: {
         Row: {
           id: string;
@@ -188,6 +233,15 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      radar_command: {
+        Args: {
+          p_scope: string;
+          p_revision: number;
+          p_operation: string;
+          p_payload: Json;
+        };
+        Returns: Json;
+      };
       library_snapshot: { Args: Record<string, never>; Returns: Json };
       library_command: {
         Args: {

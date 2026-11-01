@@ -1,0 +1,1155 @@
+{
+  "reference": "Group Posting PRO 2.11.30 owner-uploaded ZIP",
+  "method": "Static lexical inventory only. No vendor code executed, no hosts contacted, no credential values collected. Call-site counts and literal keys are evidence pointers, not a complete inferred API schema.",
+  "files": [
+    {
+      "file": "_locales/de/messages.json",
+      "sha256": "6d795503ac47d8fe20484932204553d7bdf90c9394024fbc72e87be4e8cbdeae",
+      "bytes": 634581,
+      "external_hosts": [
+        "deinewebsite.de",
+        "www.facebook.com"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "_locales/en/messages.json",
+      "sha256": "3474f26de66dcefa525f092eae9dd64fd5b9bc018a1667a9961891504315188f",
+      "bytes": 559699,
+      "external_hosts": [
+        "www.facebook.com",
+        "yourwebsite.com"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "_locales/es/messages.json",
+      "sha256": "4a6219ee4e85578f0c7ebbba04b00da8d3a9cf6f893615041f8f8583f08d739a",
+      "bytes": 620144,
+      "external_hosts": [
+        "tuweb.com",
+        "www.facebook.com"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "_locales/fr/messages.json",
+      "sha256": "631434592ac53205303ef68e576794b3adc4c8a2280ec1e2dd22d8db9ab67ff5",
+      "bytes": 652126,
+      "external_hosts": [
+        "votresite.fr",
+        "www.facebook.com"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "_locales/hi/messages.json",
+      "sha256": "d640f9dcb8f0cda061bc2a320718cb628e1621258326dc1ad9797f45c624a83e",
+      "bytes": 991313,
+      "external_hosts": [
+        "www.facebook.com",
+        "xn--m1bc5b1bycn6dza8cq2f.com"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "_locales/hu/messages.json",
+      "sha256": "995ef27c31e90aa395c7e6c7ceaa896829c00c7444afb6f464d77081e096b75f",
+      "bytes": 646562,
+      "external_hosts": [
+        "weboldalad.hu",
+        "www.facebook.com"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "_locales/id/messages.json",
+      "sha256": "85f75cf69a47feb22d85e8e32ded60207cf2df9612eb7fa500d820098643d24b",
+      "bytes": 598281,
+      "external_hosts": [
+        "situsanda.com",
+        "www.facebook.com"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "_locales/it/messages.json",
+      "sha256": "7c5599649e7567a8441c5a60b8c1d71b3d7c3c96ac683e5e33c12f33fb8fc5bb",
+      "bytes": 615617,
+      "external_hosts": [
+        "iltuosito.it",
+        "www.facebook.com"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "_locales/pl/messages.json",
+      "sha256": "af98fbf40b0dc515c37ad73f93c193e383724afbb7fa9d514ddcbe1f0a17eae2",
+      "bytes": 613343,
+      "external_hosts": [
+        "twojastrona.pl",
+        "www.facebook.com"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "_locales/pt/messages.json",
+      "sha256": "1a9ddaaa4d89a2c3f52525163e08e3cfd8dc8f569fb6db5b2b5e2cd6bc4c4a89",
+      "bytes": 619781,
+      "external_hosts": [
+        "seusite.com",
+        "www.facebook.com"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "_locales/tl/messages.json",
+      "sha256": "5dfe949560a9b2ae08171e2839aa517f4c8eeca6385a07a99f1872adf6149d05",
+      "bytes": 631782,
+      "external_hosts": [
+        "iyongwebsite.com",
+        "www.facebook.com"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "_locales/vi/messages.json",
+      "sha256": "7d58a577eea5907d597141310ab3948a6024c923d8505ae0f1f3d96f016a4370",
+      "bytes": 686841,
+      "external_hosts": [
+        "trangwebcuaban.com",
+        "www.facebook.com"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "_metadata/verified_contents.json",
+      "sha256": "276e45998a8a2769bf66d672eab9ab7fc8aae41f2954853c6141205a15511d54",
+      "bytes": 19865,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "agency-contract.js",
+      "sha256": "743b401b3dae369e013b5b39893526c37a56259a6f2dbab10203a4274179d0ec",
+      "bytes": 189510,
+      "external_hosts": [
+        "www.facebook.com",
+        "x"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "agency-core.js",
+      "sha256": "744b716abc8791fd88155d7b829319182d77949466946fcabc772b4d50548f08",
+      "bytes": 289203,
+      "external_hosts": [],
+      "storage_key_candidates": [
+        "gppProfileSwitchCommit",
+        "gppRadarSettings:v2:"
+      ],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "agency-panel.js",
+      "sha256": "4a3867184daadceba58ca3196b3341fbecf35ad35bda2153102611742cdc4243",
+      "bytes": 53873,
+      "external_hosts": [
+        "groupposting.com"
+      ],
+      "storage_key_candidates": [
+        "campaigns",
+        "campaignsListContainer",
+        "scheduledPosts"
+      ],
+      "network_call_sites": 0,
+      "chrome_message_sites": 1
+    },
+    {
+      "file": "agency-sync.js",
+      "sha256": "0d1b5af566d69a532d88ef2bd5061e980427aaff832c242e50134bda12714ee3",
+      "bytes": 338616,
+      "external_hosts": [
+        "graph.facebook.com",
+        "groupposting.com",
+        "www.groupposting.com"
+      ],
+      "storage_key_candidates": [
+        "campaigns",
+        "gppProfileSwitchCommit",
+        "gppProfileWorkspaces",
+        "scheduledPosts"
+      ],
+      "network_call_sites": 5,
+      "chrome_message_sites": 1
+    },
+    {
+      "file": "ai-business.js",
+      "sha256": "9053da01a599b23bdc2c3d88c8c57f664d921f8c1832ac79ed36a212875f6e6e",
+      "bytes": 26601,
+      "external_hosts": [],
+      "storage_key_candidates": [
+        "gppProfileSwitchCommit"
+      ],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "ai-campaign-editor.js",
+      "sha256": "1d7f39d782ed29e0c33d022c481cc824f8c29df47b4a2aef992eb1a9a22b907d",
+      "bytes": 21112,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "ai-coach.js",
+      "sha256": "cab970beab77767f7223cd33b1a3efabbc3cfc6c6bc30d8073bc020ab8741277",
+      "bytes": 39360,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 1
+    },
+    {
+      "file": "ai-helper-actions.js",
+      "sha256": "b55a0e13643c320435b4ce6cf9c98261b5ae1f6ab9133391bab3031fefbc6ed3",
+      "bytes": 2797,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "ai-leads.js",
+      "sha256": "7ec3540f1c3503dc1061806b29ef747ac2fb4673e884309eeb1623a8ae7337ae",
+      "bytes": 84038,
+      "external_hosts": [],
+      "storage_key_candidates": [
+        "gppProfileSwitchCommit",
+        "gppRadarWebhooks:v1",
+        "gppRadarWins"
+      ],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "ai-profile.js",
+      "sha256": "d75f9389b427db104fff299e7ca266eeb36be4188e8e33a40943fdfcc06fd6b1",
+      "bytes": 23540,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "ai-suite-bridge.js",
+      "sha256": "de13ca48fce3330db06eed4f5b9ac1cbf753039c37e7408d7ac9922167f0177f",
+      "bytes": 35314,
+      "external_hosts": [],
+      "storage_key_candidates": [
+        "campaigns",
+        "scheduledPosts"
+      ],
+      "network_call_sites": 0,
+      "chrome_message_sites": 1
+    },
+    {
+      "file": "ai-suite.js",
+      "sha256": "157094e0f7a0ed1203381d2e060e5a3494a42343d51959dcaa0134ba9ad9def3",
+      "bytes": 16773,
+      "external_hosts": [
+        "www.facebook.com",
+        "www.facebook.com${u.pathname}"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "ai-workspace.js",
+      "sha256": "639565d48ec9fb345cfa52e9d2379add9dd84a13e560664230e8efc3a0ae6b25",
+      "bytes": 45140,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "alwaysActive.js",
+      "sha256": "2ad13c3f738b2c52e975715583b26f60a591740d6afa4b0383bf4551d6891d1a",
+      "bytes": 7741,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "alwaysActiveIsolated.js",
+      "sha256": "569825c783515716c2bab12c642ff97b36518b4cbf91a16908050586d8462c98",
+      "bytes": 6230,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "appearance-styles.js",
+      "sha256": "f8ca58aa06439b369c089fd5ea008de227f6c119b0f71cb9b749836615fe6fec",
+      "bytes": 7323,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "appearance.js",
+      "sha256": "e70543c7f015b715997bdbfe34caaf786fa7d286fb760daff8f0f29ebae4698f",
+      "bytes": 12734,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "automation-calendar-core.js",
+      "sha256": "b9e7fa7721c5c9b5b67a14d8aec1003c392d20c94ee289cbfd427fcdc0b54497",
+      "bytes": 7355,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "automation-order.js",
+      "sha256": "05cc4c5a1419e6149f6c8ef61494bab087463de191cec992511289771c0cc8e9",
+      "bytes": 1020,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "autopilot-launcher.js",
+      "sha256": "f094fc1942bfcf9ac06da415da401f9f417ecd75521af2b4e37d50026b530b1b",
+      "bytes": 20208,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "background.js",
+      "sha256": "2c99a1dd65d54cd8bac16e2d2e3d4d48f05b6850a1246ef1a54c9e93d13fa3e5",
+      "bytes": 846081,
+      "external_hosts": [
+        "(",
+        "*",
+        "1.1.1.1",
+        "app.lemonsqueezy.com",
+        "groupposting-api.clientradar.workers.dev",
+        "groupposting.com",
+        "www",
+        "www.facebook.com",
+        "www.google.com",
+        "www.groupposting.com"
+      ],
+      "storage_key_candidates": [
+        "campaigns",
+        "campaigns_unwritable",
+        "gppCampaignStartClaim",
+        "gppProfileSwitchCommit",
+        "gppProfileWorkspaces",
+        "gppRadarCommentLedgerV1",
+        "gppRadarGroupIdMap",
+        "gppRadarHistory:v2:",
+        "gppRadarSettings:v2:",
+        "scheduledPosts"
+      ],
+      "network_call_sites": 8,
+      "chrome_message_sites": 7
+    },
+    {
+      "file": "card-engine.js",
+      "sha256": "f49b5db47310f5c9c3b4beacd4d0c3be4cf4a0f7cd7dd881b06a4b609b669de8",
+      "bytes": 96224,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "content.js",
+      "sha256": "024f77171c5046294eadbe257f75ac481a464840c90014f3b66ac1a6c818f46d",
+      "bytes": 218749,
+      "external_hosts": [
+        "groupposting.com",
+        "www.facebook.com",
+        "www.groupposting.com"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 1,
+      "chrome_message_sites": 35
+    },
+    {
+      "file": "conversion-measurement.js",
+      "sha256": "73b746e9163ebc713146864b8f88213c9a9153fd885287e1f7556737798a4fac",
+      "bytes": 8616,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 2
+    },
+    {
+      "file": "conversion-offers.js",
+      "sha256": "c8f14cddb4e275136ea17ab674ba440ed7482669dab0a6dae1c85442fd498806",
+      "bytes": 34891,
+      "external_hosts": [
+        "chromewebstore.google.com",
+        "groupposting.com",
+        "www.w3.org"
+      ],
+      "storage_key_candidates": [
+        "campaigns"
+      ],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "db.js",
+      "sha256": "e82628c9c9ce5e3b31708b8432b79d2fb99ffa8a3858de6739460d92da338ff5",
+      "bytes": 34492,
+      "external_hosts": [
+        "api.groupposting.com",
+        "groupposting-api.clientradar.workers.dev"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 3,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "embed-boot.js",
+      "sha256": "3324283eb8b99a9cc29f01d6c70a77c28ed236f89e48d6dde0146428f89957fc",
+      "bytes": 955,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "experience-ui.js",
+      "sha256": "8fc2db07b2ff538b0716074b88eae80a20b6e822930b7f11e492c4d1c0deb381",
+      "bytes": 2159,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "first-session.js",
+      "sha256": "2f852cba8b8f2c5e5315e69b0c6cdf03a3189d48b5605731a23edb135cf84591",
+      "bytes": 11959,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "first-success.js",
+      "sha256": "cb3fb37456a353ec8dfd9a8106af3f9d793a2744d8e756faf9e8c0b5447d27ef",
+      "bytes": 39713,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "gpp-diagnostic.js",
+      "sha256": "1828be2754b63bdf154dea9875ea9533d20c67170d4f94c942275187447ca611",
+      "bytes": 5868,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 1
+    },
+    {
+      "file": "group-discovery-background.js",
+      "sha256": "406d6b20a1fb242af23b72a225e2afc293b45c44f8d57a1db9711d5c625798a8",
+      "bytes": 96062,
+      "external_hosts": [
+        "www.facebook.com"
+      ],
+      "storage_key_candidates": [
+        "campaigns",
+        "gppRadarThrottleUntil"
+      ],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "group-discovery-protocol.js",
+      "sha256": "eeea1b2c3b83052d828b6eda484c55b25078c70eb944aae13529e05b3bbf952f",
+      "bytes": 20087,
+      "external_hosts": [
+        "www.facebook.com"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "group-discovery-worker.js",
+      "sha256": "92c2cde3f999f4f6e3337dd0e55d8573b9a4adf36a0b8c7b63a8ab993c8448a2",
+      "bytes": 19576,
+      "external_hosts": [
+        "www.facebook.com"
+      ],
+      "storage_key_candidates": [
+        "gppRadarThrottleUntil"
+      ],
+      "network_call_sites": 1,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "group-shortlist-core.js",
+      "sha256": "fc701bff14d8a9a4ed5f7d82dfa7d1d63061569d6726609050c067e2f8688aa9",
+      "bytes": 4264,
+      "external_hosts": [
+        "www.facebook.com"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "group-shortlist-ui.js",
+      "sha256": "3a647e7b6489a3e4d8eeb4602fdbbfa6a2fce7e73b439d1a53ec8f0e46d7857f",
+      "bytes": 15497,
+      "external_hosts": [
+        "www."
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "growth-coach-contract.js",
+      "sha256": "17affc73a10443709673bd807a2b1d9d4c4fbd81435b58bd41e956bd2cdd34da",
+      "bytes": 15408,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "growth-coach-practice.js",
+      "sha256": "94db1191203276878cca64a69f1c1caf1ee97b34a3402e5fd48bc455fa8a3a15",
+      "bytes": 10065,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "growth-coach-store.js",
+      "sha256": "dd1dba7d12150f71ab78a5114b6272bf6b63ee60747f9e01b0f34cdec3dfa6a7",
+      "bytes": 4689,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "growth-coach.js",
+      "sha256": "531a73b5ed9d95d088e5efc93dc0c12379d8b3dfc7ee1d79f892fc799e586c2d",
+      "bytes": 100602,
+      "external_hosts": [
+        "www.w3.org"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "growth-guide.js",
+      "sha256": "8c0195daf559f487debbc9267bfa7ec6c9b0cfa966e0693da70420f0b7b9ff37",
+      "bytes": 3869,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "i18n.js",
+      "sha256": "baf229a07bd9324b53edb3b1d5e74df1775ea3acb66c80cb6297ee117f9e7773",
+      "bytes": 15481,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 1,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "image-cards.js",
+      "sha256": "085aa7e9ee36d74e224c28160643d837b8739f8a066914beb514fbba822607b8",
+      "bytes": 92373,
+      "external_hosts": [],
+      "storage_key_candidates": [
+        "campaigns",
+        "scheduledPosts"
+      ],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "js/emoji-button-3.0.3.min.js",
+      "sha256": "3237e098b3cf58b6c26b196d850550f1a68bd6d94650dba77eaeb1685d004e44",
+      "bytes": 351685,
+      "external_hosts": [
+        "twemoji.maxcdn.com",
+        "www.apache.org",
+        "www.w3.org"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "js/quill.js",
+      "sha256": "57ca948562b4d8bd8aa814d077779d6c2aea7b4799d3ed5f47563ad2bbf33bc5",
+      "bytes": 429139,
+      "external_hosts": [
+        "quilljs.com"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "lead-capture.js",
+      "sha256": "1487a3399fc4e797733f0cd07c5a1eefa51cc80e55e70e0065c63193abdc81de",
+      "bytes": 13127,
+      "external_hosts": [],
+      "storage_key_candidates": [
+        "gppRadarHistory:v2:"
+      ],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "lead-intent-client.js",
+      "sha256": "6f06f4afd731e364e73e5ae47e40187c4a2c840da26bd694ee7480ee8dd013e6",
+      "bytes": 34779,
+      "external_hosts": [],
+      "storage_key_candidates": [
+        "gppRadarHistory:v2:"
+      ],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "lead-intent-core.js",
+      "sha256": "9c92baa1642012677c95f5df995ab336c5cfd75feacec55fe8fe5e1953c90f13",
+      "bytes": 3442,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "lead-intent-ui.js",
+      "sha256": "bd37940263978647bd6c761b75c25d0a6d7c728aadcd3098b9115b79f1acdf65",
+      "bytes": 15858,
+      "external_hosts": [],
+      "storage_key_candidates": [
+        "gppProfileSwitchCommit",
+        "gppRadarHistory:"
+      ],
+      "network_call_sites": 0,
+      "chrome_message_sites": 1
+    },
+    {
+      "file": "manifest.json",
+      "sha256": "8ddd6c29d99394844caea2f783c493920ef496775f031900288f6b98da495fe0",
+      "bytes": 1335,
+      "external_hosts": [
+        "*",
+        "*.facebook.com;",
+        "clients2.google.com",
+        "facebook.com"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "milo-group-discovery.js",
+      "sha256": "aed4f7563d63e51955f0e5d9e58bf10609491584b7ee3c07281913bfb14a34a9",
+      "bytes": 42557,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "native-batch-plan.js",
+      "sha256": "7825b13a36cf27e7c9860be9751075ddf5eed4a49153a03b49b76d76aa881bb3",
+      "bytes": 17386,
+      "external_hosts": [
+        "www.facebook.com"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "networkrule.json",
+      "sha256": "36b78406ce13135fad03116601b2f0918b8b93f10a332677e9162277979ccf4a",
+      "bytes": 5435,
+      "external_hosts": [
+        "www.facebook.com"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "personal-va-core.js",
+      "sha256": "2675c6ff918a695a557a3b8a678da3b3ce71c5088f033b96b6f00d221f7f77f4",
+      "bytes": 91233,
+      "external_hosts": [
+        "www.facebook.com"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "personal-va-groups.js",
+      "sha256": "59f2fe60704f56c71995a20401617eaa411ec9e8c673de74ac8e40d82fbc8f80",
+      "bytes": 3364,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "personal-va-host.js",
+      "sha256": "b3a915ea4876b6de81ce44e98cda986f5f6c9c09e7b259573449e3523f45a695",
+      "bytes": 154630,
+      "external_hosts": [
+        "www",
+        "www.facebook.com"
+      ],
+      "storage_key_candidates": [
+        "campaigns"
+      ],
+      "network_call_sites": 0,
+      "chrome_message_sites": 2
+    },
+    {
+      "file": "personal-va-preview.js",
+      "sha256": "3e540f1bc2e00d64bf9e54f76cb23b090abd994b153fbfba4d2376b166b4e556",
+      "bytes": 54603,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "personal-va-store.js",
+      "sha256": "9a079169b98fb75201de5ba18ac787d3e8583eaa49901e384883a6fa2718856c",
+      "bytes": 2699,
+      "external_hosts": [],
+      "storage_key_candidates": [
+        "gppProfileSwitchCommit"
+      ],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "personal-va-week-drafts.js",
+      "sha256": "fe0ba944efbf3c496b5fe5ff37afd9ac4e73ae4e49b7a63f622f195d16d581f5",
+      "bytes": 16664,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "personal-va-week-runtime.js",
+      "sha256": "af0b04c76a882f41006112e19682e9c3c2c15caad835cb2bb75b1f3a6fc0d0c9",
+      "bytes": 4355,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "personal-va-weekly.js",
+      "sha256": "de1b7e940a2051d155497426033d13a95f95f3040824557c83d386bd57980794",
+      "bytes": 33864,
+      "external_hosts": [
+        "www.facebook.com"
+      ],
+      "storage_key_candidates": [
+        "campaigns"
+      ],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "personal-va.js",
+      "sha256": "3d062268ac3d06b43ac8a6e453f65baa97b51b6a97f5295652ebef32cc63a1c7",
+      "bytes": 506171,
+      "external_hosts": [
+        "www.facebook.com",
+        "www.facebook.com${a.pathname.replace(",
+        "www.w3.org",
+        "your-business.com"
+      ],
+      "storage_key_candidates": [
+        "campaigns",
+        "gppProfileSwitchCommit",
+        "scheduledPosts"
+      ],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "plan-change-client.js",
+      "sha256": "d525be9bccfc4c506e766400c23506ab8bb3dee42ecb25933f3c30e024d0e3bf",
+      "bytes": 13885,
+      "external_hosts": [
+        "groupposting-api.clientradar.workers.dev"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "plan-switch-offer-policy.js",
+      "sha256": "3b3eac6a27e1c59141798bd186ba1db7af107d259448d8ee49503f700155c0f6",
+      "bytes": 4878,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "plan-switch-offers.js",
+      "sha256": "aa39c5e5804f137c472d144f9433439db3ec3c34b4ad2c4c147433e41dc92ccb",
+      "bytes": 14600,
+      "external_hosts": [],
+      "storage_key_candidates": [
+        "gppProfileSwitchCommit"
+      ],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "popup.html",
+      "sha256": "7b8561c1ee96700918388c34352566abebda098ce46628fa0b06dfd7226c8fb1",
+      "bytes": 344167,
+      "external_hosts": [
+        "chromewebstore.google.com",
+        "groupposting.com",
+        "groupposting.lemonsqueezy.com",
+        "transparency.fb.com",
+        "www.w3.org",
+        "yourwebsite.com"
+      ],
+      "storage_key_candidates": [
+        "campaigns",
+        "campaignsBTN",
+        "campaignsListContainer",
+        "scheduledPostsPage"
+      ],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "popup.js",
+      "sha256": "ed1a3994211830fc5ab41844f0abb784fb1b6f0589943a7229c2035fe8483cf4",
+      "bytes": 2138837,
+      "external_hosts": [
+        "app.lemonsqueezy.com",
+        "chromewebstore.google.com",
+        "example.com",
+        "groupposting.com",
+        "groupposting.lemonsqueezy.com",
+        "schemas.openxmlformats.org",
+        "www.",
+        "www.facebook.com",
+        "www.w3.org"
+      ],
+      "storage_key_candidates": [
+        "campaigns",
+        "campaignsBTN",
+        "campaignsListContainer",
+        "gppCampaignQuotaUpsellShown",
+        "gppCampaignStartClaim",
+        "gppProfileSetupSeen:v1:",
+        "gppProfileSwitchCommit",
+        "gppProfileWorkspaces",
+        "gppRadar",
+        "gppRadarGroupIdMap",
+        "gppRadarHistory:v2:",
+        "gppRadarSettings:v2:",
+        "gppRadarWins",
+        "scheduledPosts",
+        "scheduledPostsPage"
+      ],
+      "network_call_sites": 6,
+      "chrome_message_sites": 102
+    },
+    {
+      "file": "posting-outcomes.js",
+      "sha256": "95c092855b99e8c49737d15173458ecf9bfad633b84dce49246d26ac8fd14cf2",
+      "bytes": 7518,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "posting-results.js",
+      "sha256": "2b3fd52add080ef3fb9f35f556f6b1434ee398c6861695277a0e5317d0a47665",
+      "bytes": 7288,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "product-feedback.js",
+      "sha256": "8e6fea054e7582cf31971918ee84f4f166f81fb4e457e493c920cdf3a9438e4b",
+      "bytes": 21355,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "profile-setup-guide.js",
+      "sha256": "b0c3342caccf3b5260ff99e50368e1bb4b9d67ffd846015ebd49cce4fd56806d",
+      "bytes": 6116,
+      "external_hosts": [],
+      "storage_key_candidates": [
+        "gppProfileSetupSeen:v1:"
+      ],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "radar-automation.js",
+      "sha256": "ec308f63e28b7b18113142f088fc5c49c23ae90aaa45b2ab55542b3730b40c83",
+      "bytes": 70882,
+      "external_hosts": [
+        "www.facebook.com"
+      ],
+      "storage_key_candidates": [
+        "gppProfileSwitchCommit",
+        "gppRadarAutoPassV1",
+        "gppRadarCommentLedgerV1"
+      ],
+      "network_call_sites": 0,
+      "chrome_message_sites": 3
+    },
+    {
+      "file": "radar-background.js",
+      "sha256": "bc5df6616b00d9a235a813041b35f7c21ab0ecb4948f5de6c1133690888a417e",
+      "bytes": 32642,
+      "external_hosts": [],
+      "storage_key_candidates": [
+        "gppRadarHistory:v2:",
+        "gppRadarSeen:v2:",
+        "gppRadarSettings:v2:",
+        "gppRadarWebhooks:v1"
+      ],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "radar-core.js",
+      "sha256": "c5dac9f715000614c097fe8455d717410c614f55f81a782cfe82f3807fabf6d1",
+      "bytes": 12774,
+      "external_hosts": [
+        "www.facebook.com"
+      ],
+      "storage_key_candidates": [
+        "gppProfileSwitchCommit"
+      ],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "radar-workspace.js",
+      "sha256": "d7c8a2bd6fbb3f723f26c2aa586afc3dc8ec3425e57715179485683f4f6e3c85",
+      "bytes": 76873,
+      "external_hosts": [
+        "www.facebook.com"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "restricted.html",
+      "sha256": "f59ec830100de34d5921685a693cd2f690b35baaa01b66aabf0e1d02d8b9c7f0",
+      "bytes": 1945,
+      "external_hosts": [
+        "www.google.com"
+      ],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "restricted.js",
+      "sha256": "502c2a61b250cb963508a1ec54f9c2e42fb050c889652ea7e3242fc9718b6ad3",
+      "bytes": 560,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "returning-action.js",
+      "sha256": "0de359eaece5cb96bbb28ef0f3c9210b07be34f4367adc52a8eb913002fe141b",
+      "bytes": 5344,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "review-milestones.js",
+      "sha256": "5ff0bd66ca7b31bcc729c8aa80e1ba8d50824a72a8e5fabe458f4d4433bd7b50",
+      "bytes": 2587,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "schedule-store.js",
+      "sha256": "79cf8515dee84b60f049dbc4ecace85bdfb59056e9c31381cd861a369e2ca3bb",
+      "bytes": 26699,
+      "external_hosts": [],
+      "storage_key_candidates": [
+        "campaigns",
+        "gppCampaignStartClaim",
+        "scheduledPosts"
+      ],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "starter-template.js",
+      "sha256": "1cb0d9ad0ad4d0c6d58940229689fcfbcce2873c1989deab5ff195e32010ca89",
+      "bytes": 5673,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "trial-value-controller.js",
+      "sha256": "01d981f709fe66ad228ffe40f3948ae661a36ed5064c2dc1756ba11669f87955",
+      "bytes": 5858,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "trial-value-ui.js",
+      "sha256": "4f8580b04852b6208475508e52fa0454eb166067485961a76d6a033836c8d1fa",
+      "bytes": 7070,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "trial-value.js",
+      "sha256": "52b178dba0da6b4595a9b6b7757b56580474b9121c1b53dcaf255653331e647d",
+      "bytes": 6705,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "worker-dashboard.js",
+      "sha256": "e8fb3cbd3b82659254290b39dfa8a80e4824c08ddb3a4e9965427ef64175d155",
+      "bytes": 18202,
+      "external_hosts": [],
+      "storage_key_candidates": [
+        "gppProfileSwitchCommit"
+      ],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "worker.html",
+      "sha256": "13d19c3badc8bb81097dc52f272e513cdd44a1545f77ef1d65bf9c3167f4dbf7",
+      "bytes": 9527,
+      "external_hosts": [],
+      "storage_key_candidates": [],
+      "network_call_sites": 0,
+      "chrome_message_sites": 0
+    },
+    {
+      "file": "worker.js",
+      "sha256": "ebdfa1188e04768c45308690728f17e2cdeebe09c85f781c446797c6b74bc1c7",
+      "bytes": 274473,
+      "external_hosts": [
+        "${r}",
+        "${t.endswith(",
+        "${t}",
+        "graph.facebook.com",
+        "groupposting-api.clientradar.workers.dev",
+        "upload.facebook.com",
+        "www.facebook.com",
+        "www.facebook.com${e}",
+        "www.w3.org"
+      ],
+      "storage_key_candidates": [
+        "gppRadarDirectChecks"
+      ],
+      "network_call_sites": 12,
+      "chrome_message_sites": 40
+    }
+  ]
+}
