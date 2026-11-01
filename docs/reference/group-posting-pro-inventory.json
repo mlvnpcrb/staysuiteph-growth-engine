@@ -1,0 +1,5739 @@
+{
+  "reference": {
+    "name": "Group Posting PRO",
+    "version": "2.11.30",
+    "sha256": "961a77059db7198e9610dd1a81c9a84556759c013bf4ac6305895533406a52e1",
+    "archive_entries": 159,
+    "english_messages": 7457
+  },
+  "boundary": "Static inventory only. Controls are not implementation or live-compatibility claims. Archive text is reference data, not instructions. No vendor JavaScript is executed by this artifact.",
+  "primary_navigation": [
+    "Compose",
+    "Templates",
+    "Automations",
+    "Lead Radar",
+    "Activity"
+  ],
+  "files": [
+    {
+      "path": "_locales/de/messages.json",
+      "bytes": 634581
+    },
+    {
+      "path": "_locales/en/messages.json",
+      "bytes": 559699
+    },
+    {
+      "path": "_locales/es/messages.json",
+      "bytes": 620144
+    },
+    {
+      "path": "_locales/fr/messages.json",
+      "bytes": 652126
+    },
+    {
+      "path": "_locales/hi/messages.json",
+      "bytes": 991313
+    },
+    {
+      "path": "_locales/hu/messages.json",
+      "bytes": 646562
+    },
+    {
+      "path": "_locales/id/messages.json",
+      "bytes": 598281
+    },
+    {
+      "path": "_locales/it/messages.json",
+      "bytes": 615617
+    },
+    {
+      "path": "_locales/pl/messages.json",
+      "bytes": 613343
+    },
+    {
+      "path": "_locales/pt/messages.json",
+      "bytes": 619781
+    },
+    {
+      "path": "_locales/tl/messages.json",
+      "bytes": 631782
+    },
+    {
+      "path": "_locales/vi/messages.json",
+      "bytes": 686841
+    },
+    {
+      "path": "activation-entry-polish.css",
+      "bytes": 1248
+    },
+    {
+      "path": "agency-contract.js",
+      "bytes": 189510
+    },
+    {
+      "path": "agency-core.js",
+      "bytes": 289203
+    },
+    {
+      "path": "agency-panel.css",
+      "bytes": 3161
+    },
+    {
+      "path": "agency-panel.js",
+      "bytes": 53873
+    },
+    {
+      "path": "agency-sync.js",
+      "bytes": 338616
+    },
+    {
+      "path": "ai-business.js",
+      "bytes": 26601
+    },
+    {
+      "path": "ai-campaign-editor.css",
+      "bytes": 2156
+    },
+    {
+      "path": "ai-campaign-editor.js",
+      "bytes": 21112
+    },
+    {
+      "path": "ai-coach.css",
+      "bytes": 11666
+    },
+    {
+      "path": "ai-coach.js",
+      "bytes": 39360
+    },
+    {
+      "path": "ai-helper-actions.js",
+      "bytes": 2797
+    },
+    {
+      "path": "ai-leads.css",
+      "bytes": 15899
+    },
+    {
+      "path": "ai-leads.js",
+      "bytes": 84038
+    },
+    {
+      "path": "ai-profile.css",
+      "bytes": 10609
+    },
+    {
+      "path": "ai-profile.js",
+      "bytes": 23540
+    },
+    {
+      "path": "ai-suite-bridge.js",
+      "bytes": 35314
+    },
+    {
+      "path": "ai-suite.js",
+      "bytes": 16773
+    },
+    {
+      "path": "ai-workspace.css",
+      "bytes": 7264
+    },
+    {
+      "path": "ai-workspace.js",
+      "bytes": 45140
+    },
+    {
+      "path": "alwaysActive.js",
+      "bytes": 7741
+    },
+    {
+      "path": "alwaysActiveIsolated.js",
+      "bytes": 6230
+    },
+    {
+      "path": "appearance-styles.js",
+      "bytes": 7323
+    },
+    {
+      "path": "appearance.css",
+      "bytes": 23548
+    },
+    {
+      "path": "appearance.js",
+      "bytes": 12734
+    },
+    {
+      "path": "assets/card/gpp-mark-ink.png",
+      "bytes": 4459
+    },
+    {
+      "path": "assets/card/gpp-mark-white.png",
+      "bytes": 4424
+    },
+    {
+      "path": "assets/icons/icon16.png",
+      "bytes": 92830
+    },
+    {
+      "path": "assets/icons/larger-logo-extension.png",
+      "bytes": 62876
+    },
+    {
+      "path": "assets/icons/loading.gif",
+      "bytes": 231885
+    },
+    {
+      "path": "assets/icons/logo.png",
+      "bytes": 57222
+    },
+    {
+      "path": "automation-calendar-core.js",
+      "bytes": 7355
+    },
+    {
+      "path": "automation-order.js",
+      "bytes": 1020
+    },
+    {
+      "path": "automation-reliability.css",
+      "bytes": 785
+    },
+    {
+      "path": "autopilot-launcher.css",
+      "bytes": 6217
+    },
+    {
+      "path": "autopilot-launcher.js",
+      "bytes": 20208
+    },
+    {
+      "path": "background.js",
+      "bytes": 846081
+    },
+    {
+      "path": "card-engine.js",
+      "bytes": 96224
+    },
+    {
+      "path": "content.js",
+      "bytes": 218749
+    },
+    {
+      "path": "conversion-measurement.js",
+      "bytes": 8616
+    },
+    {
+      "path": "conversion-offers.css",
+      "bytes": 24293
+    },
+    {
+      "path": "conversion-offers.js",
+      "bytes": 34891
+    },
+    {
+      "path": "css/bootstrap.min.css",
+      "bytes": 155758
+    },
+    {
+      "path": "css/font-awesome.min.css",
+      "bytes": 31000
+    },
+    {
+      "path": "css/fonts.css",
+      "bytes": 3375
+    },
+    {
+      "path": "css/quill.snow.css",
+      "bytes": 24602
+    },
+    {
+      "path": "db.js",
+      "bytes": 34492
+    },
+    {
+      "path": "dialog-refinements.css",
+      "bytes": 14322
+    },
+    {
+      "path": "embed-boot.js",
+      "bytes": 955
+    },
+    {
+      "path": "experience-ui.js",
+      "bytes": 2159
+    },
+    {
+      "path": "experience.css",
+      "bytes": 38108
+    },
+    {
+      "path": "first-session.css",
+      "bytes": 3127
+    },
+    {
+      "path": "first-session.js",
+      "bytes": 11959
+    },
+    {
+      "path": "first-success.css",
+      "bytes": 10668
+    },
+    {
+      "path": "first-success.js",
+      "bytes": 39713
+    },
+    {
+      "path": "fonts/fontawesome-webfont.woff2",
+      "bytes": 77160
+    },
+    {
+      "path": "fonts/gf-inter-00.woff2",
+      "bytes": 25844
+    },
+    {
+      "path": "fonts/gf-inter-01.woff2",
+      "bytes": 18744
+    },
+    {
+      "path": "fonts/gf-inter-02.woff2",
+      "bytes": 11272
+    },
+    {
+      "path": "fonts/gf-inter-03.woff2",
+      "bytes": 19044
+    },
+    {
+      "path": "fonts/gf-inter-04.woff2",
+      "bytes": 10280
+    },
+    {
+      "path": "fonts/gf-inter-05.woff2",
+      "bytes": 85272
+    },
+    {
+      "path": "fonts/gf-inter-06.woff2",
+      "bytes": 48432
+    },
+    {
+      "path": "fonts/gf-jbmono-07.woff2",
+      "bytes": 1664
+    },
+    {
+      "path": "fonts/gf-jbmono-08.woff2",
+      "bytes": 8892
+    },
+    {
+      "path": "fonts/gf-jbmono-09.woff2",
+      "bytes": 6800
+    },
+    {
+      "path": "fonts/gf-jbmono-10.woff2",
+      "bytes": 5872
+    },
+    {
+      "path": "fonts/gf-jbmono-11.woff2",
+      "bytes": 11596
+    },
+    {
+      "path": "fonts/gf-jbmono-12.woff2",
+      "bytes": 31340
+    },
+    {
+      "path": "gpp-diagnostic.js",
+      "bytes": 5868
+    },
+    {
+      "path": "group-discovery-background.js",
+      "bytes": 96062
+    },
+    {
+      "path": "group-discovery-protocol.js",
+      "bytes": 20087
+    },
+    {
+      "path": "group-discovery-worker.js",
+      "bytes": 19576
+    },
+    {
+      "path": "group-shortlist-core.js",
+      "bytes": 4264
+    },
+    {
+      "path": "group-shortlist-ui.css",
+      "bytes": 3399
+    },
+    {
+      "path": "group-shortlist-ui.js",
+      "bytes": 15497
+    },
+    {
+      "path": "growth-coach-contract.js",
+      "bytes": 15408
+    },
+    {
+      "path": "growth-coach-practice.js",
+      "bytes": 10065
+    },
+    {
+      "path": "growth-coach-store.js",
+      "bytes": 4689
+    },
+    {
+      "path": "growth-coach.css",
+      "bytes": 22892
+    },
+    {
+      "path": "growth-coach.js",
+      "bytes": 100602
+    },
+    {
+      "path": "growth-guide.css",
+      "bytes": 2004
+    },
+    {
+      "path": "growth-guide.js",
+      "bytes": 3869
+    },
+    {
+      "path": "i18n.js",
+      "bytes": 15481
+    },
+    {
+      "path": "icon16.png",
+      "bytes": 92830
+    },
+    {
+      "path": "image-cards.css",
+      "bytes": 13040
+    },
+    {
+      "path": "image-cards.js",
+      "bytes": 92373
+    },
+    {
+      "path": "journey.css",
+      "bytes": 2630
+    },
+    {
+      "path": "js/emoji-button-3.0.3.min.js",
+      "bytes": 351685
+    },
+    {
+      "path": "js/quill.js",
+      "bytes": 429139
+    },
+    {
+      "path": "lead-capture.js",
+      "bytes": 13127
+    },
+    {
+      "path": "lead-intent-client.js",
+      "bytes": 34779
+    },
+    {
+      "path": "lead-intent-core.js",
+      "bytes": 3442
+    },
+    {
+      "path": "lead-intent-ui.css",
+      "bytes": 7033
+    },
+    {
+      "path": "lead-intent-ui.js",
+      "bytes": 15858
+    },
+    {
+      "path": "manifest.json",
+      "bytes": 1335
+    },
+    {
+      "path": "milo-group-discovery.js",
+      "bytes": 42557
+    },
+    {
+      "path": "native-batch-plan.js",
+      "bytes": 17386
+    },
+    {
+      "path": "networkrule.json",
+      "bytes": 5435
+    },
+    {
+      "path": "personal-va-core.js",
+      "bytes": 91233
+    },
+    {
+      "path": "personal-va-groups.js",
+      "bytes": 3364
+    },
+    {
+      "path": "personal-va-host.js",
+      "bytes": 154630
+    },
+    {
+      "path": "personal-va-preview.js",
+      "bytes": 54603
+    },
+    {
+      "path": "personal-va-store.js",
+      "bytes": 2699
+    },
+    {
+      "path": "personal-va-week-drafts.js",
+      "bytes": 16664
+    },
+    {
+      "path": "personal-va-week-runtime.js",
+      "bytes": 4355
+    },
+    {
+      "path": "personal-va-weekly.js",
+      "bytes": 33864
+    },
+    {
+      "path": "personal-va.css",
+      "bytes": 169751
+    },
+    {
+      "path": "personal-va.js",
+      "bytes": 506171
+    },
+    {
+      "path": "plan-change-client.js",
+      "bytes": 13885
+    },
+    {
+      "path": "plan-switch-offer-policy.js",
+      "bytes": 4878
+    },
+    {
+      "path": "plan-switch-offers.js",
+      "bytes": 14600
+    },
+    {
+      "path": "popup.css",
+      "bytes": 646880
+    },
+    {
+      "path": "popup.html",
+      "bytes": 344167
+    },
+    {
+      "path": "popup.js",
+      "bytes": 2138837
+    },
+    {
+      "path": "posting-outcomes.css",
+      "bytes": 27152
+    },
+    {
+      "path": "posting-outcomes.js",
+      "bytes": 7518
+    },
+    {
+      "path": "posting-polish.css",
+      "bytes": 22815
+    },
+    {
+      "path": "posting-results.js",
+      "bytes": 7288
+    },
+    {
+      "path": "product-feedback.css",
+      "bytes": 1598
+    },
+    {
+      "path": "product-feedback.js",
+      "bytes": 21355
+    },
+    {
+      "path": "profile-setup-guide.css",
+      "bytes": 4316
+    },
+    {
+      "path": "profile-setup-guide.js",
+      "bytes": 6116
+    },
+    {
+      "path": "radar-automation.js",
+      "bytes": 70882
+    },
+    {
+      "path": "radar-background.js",
+      "bytes": 32642
+    },
+    {
+      "path": "radar-core.js",
+      "bytes": 12774
+    },
+    {
+      "path": "radar-workspace.css",
+      "bytes": 36449
+    },
+    {
+      "path": "radar-workspace.js",
+      "bytes": 76873
+    },
+    {
+      "path": "restricted.html",
+      "bytes": 1945
+    },
+    {
+      "path": "restricted.js",
+      "bytes": 560
+    },
+    {
+      "path": "returning-action.js",
+      "bytes": 5344
+    },
+    {
+      "path": "review-milestones.js",
+      "bytes": 2587
+    },
+    {
+      "path": "schedule-store.js",
+      "bytes": 26699
+    },
+    {
+      "path": "setup-flow.css",
+      "bytes": 34994
+    },
+    {
+      "path": "starter-template.js",
+      "bytes": 5673
+    },
+    {
+      "path": "tag-selector-polish.css",
+      "bytes": 4989
+    },
+    {
+      "path": "trial-value-controller.js",
+      "bytes": 5858
+    },
+    {
+      "path": "trial-value-ui.js",
+      "bytes": 7070
+    },
+    {
+      "path": "trial-value.css",
+      "bytes": 6568
+    },
+    {
+      "path": "trial-value.js",
+      "bytes": 6705
+    },
+    {
+      "path": "worker-dashboard.js",
+      "bytes": 18202
+    },
+    {
+      "path": "worker.css",
+      "bytes": 14424
+    },
+    {
+      "path": "worker.html",
+      "bytes": 9527
+    },
+    {
+      "path": "worker.js",
+      "bytes": 274473
+    },
+    {
+      "path": "workspace-compact.css",
+      "bytes": 7050
+    },
+    {
+      "path": "_metadata/",
+      "bytes": 0
+    },
+    {
+      "path": "_metadata/verified_contents.json",
+      "bytes": 19865
+    }
+  ],
+  "external_hostnames_in_root_scripts": [
+    "1.1.1.1",
+    "api.groupposting.com",
+    "app.lemonsqueezy.com",
+    "chromewebstore.google.com",
+    "example.com",
+    "graph.facebook.com",
+    "groupposting-api.clientradar.workers.dev",
+    "groupposting.com",
+    "groupposting.lemonsqueezy.com",
+    "schemas.openxmlformats.org",
+    "upload.facebook.com",
+    "www",
+    "www.",
+    "www.facebook.com",
+    "www.google.com",
+    "www.groupposting.com",
+    "www.w3.org",
+    "your-business.com"
+  ],
+  "popup_controls": [
+    {
+      "tag": "button",
+      "id": "ardCollapseBtn",
+      "type": "button",
+      "label": "Minimize — keep working while it posts",
+      "i18n_keys": [
+        "runMinimize"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "stopButton",
+      "type": "button",
+      "label": "Stop Posting",
+      "i18n_keys": [
+        "btnStop"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "forceResetStatusBtn",
+      "label": "Force reset GPP",
+      "i18n_keys": [
+        "btnForceReset"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "grmExpandBtn",
+      "type": "button",
+      "label": "Show the run",
+      "i18n_keys": [
+        "runExpand"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "grmStopBtn",
+      "type": "button",
+      "label": "Stop Posting",
+      "i18n_keys": [
+        "btnStopPosting"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "CloseLogButton",
+      "label": "Close",
+      "i18n_keys": [
+        "btnClose"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "backButton",
+      "type": "button",
+      "label": "Back",
+      "i18n_keys": [
+        "btnBack"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "verifiedBool",
+      "type": "text",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "aboutActivateBtn",
+      "type": "button",
+      "label": "Activate License Key",
+      "i18n_keys": [
+        "btnActivateKey"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "aboutChangeLicenseBtn",
+      "type": "button",
+      "label": "Change licence key",
+      "i18n_keys": [
+        "aboutChangeLicense"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "licenseKey",
+      "type": "text",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "platformBought",
+      "type": "text",
+      "initially_disabled": false
+    },
+    {
+      "tag": "select",
+      "id": "gppAppearanceTheme",
+      "label": "System",
+      "i18n_keys": [
+        "appearanceSystem",
+        "appearanceLight",
+        "appearanceDark"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "select",
+      "id": "gppAppearanceTextSize",
+      "label": "100% 115% 130% 150% 200%",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "gppAppearanceContrast",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "select",
+      "id": "languageSelect",
+      "label": "System Default",
+      "i18n_keys": [
+        "langSystemDefault"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "allowTelemetryToggle",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "skipNetworkCheckToggle",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "gppReshareBtnToggle",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "cloudBackupBtn",
+      "type": "button",
+      "label": "Save to Cloud",
+      "i18n_keys": [
+        "btnSaveCloud"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "cloudRestoreBtn",
+      "type": "button",
+      "label": "Load from Cloud",
+      "i18n_keys": [
+        "btnLoadCloud"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gpaCloudLock",
+      "type": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "backupDataBtn",
+      "type": "button",
+      "label": "Backup All Data",
+      "i18n_keys": [
+        "btnBackup"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "restoreDataBtn",
+      "type": "button",
+      "label": "Restore from Backup",
+      "i18n_keys": [
+        "btnRestore"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "restoreDataInput",
+      "type": "file",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "anonymousId",
+      "type": "text",
+      "label": "Provide this ID for support requests.",
+      "i18n_keys": [
+        "supportIdTip"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "a",
+      "id": "gppFeatureReqLink",
+      "label": "Feature request",
+      "i18n_keys": [
+        "btnFeatureReq"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "a",
+      "label": "Read Facebook™ Community Standards",
+      "i18n_keys": [
+        "lblFbStandards"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "removeValidationKey",
+      "type": "button",
+      "label": "Remove Validation Key",
+      "i18n_keys": [
+        "btnRemoveKey"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "psRefresh",
+      "type": "button",
+      "label": "Refresh profiles",
+      "i18n_keys": [
+        "psRefresh"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "psSetupGuide",
+      "type": "button",
+      "label": "Profile setup & guide",
+      "i18n_keys": [
+        "profileSetupMenu"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "headerUpgradeBtn",
+      "type": "button",
+      "label": "Upgrade",
+      "i18n_keys": [
+        "btnUpgrade"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "headerAlreadyPurchasedBtn",
+      "type": "button",
+      "label": "Already purchased?",
+      "i18n_keys": [
+        "lblAlreadyPurchased"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppRfMenuBtn",
+      "label": "Refer a friend",
+      "i18n_keys": [
+        "rfMenuTip",
+        "rfMenuLabel"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "aiProfileBtn",
+      "label": "AI Studio",
+      "i18n_keys": [
+        "hmAiStudio",
+        "menuAiShort"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "safetyCenterBtn",
+      "label": "Safety Center",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppWorkspaceOpen",
+      "type": "button",
+      "label": "Open larger workspace",
+      "i18n_keys": [
+        "workspaceOpen"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppAppearanceOpen",
+      "type": "button",
+      "label": "Appearance",
+      "i18n_keys": [
+        "workspaceAppearance"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "aboutButton",
+      "label": "Settings & About",
+      "i18n_keys": [
+        "menuSettingsTip"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "helpBadge",
+      "label": "Help",
+      "i18n_keys": [
+        "menuHelpTip"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppHeaderMenuBtn",
+      "label": "Menu",
+      "i18n_keys": [
+        "hdrMenuTip"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppGrowthCoachOpen",
+      "type": "button",
+      "label": "Grow",
+      "i18n_keys": [
+        "experienceGrow"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "closePopup",
+      "label": "Close",
+      "i18n_keys": [
+        "btnClose"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "engineStatusDismiss",
+      "type": "button",
+      "label": "Hide this",
+      "i18n_keys": [
+        "essDismiss"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "Close",
+      "i18n_keys": [
+        "btnClose"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "upsellCheckoutBtn",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "closeProModalBtn",
+      "type": "button",
+      "label": "×",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "topActivateBtn",
+      "type": "button",
+      "label": "Activate License Key",
+      "i18n_keys": [
+        "btnActivateKey"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppPromoCta",
+      "type": "button",
+      "label": "Claim offer",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gpmCycYearly",
+      "type": "button",
+      "role": "tab",
+      "label": "Yearly",
+      "i18n_keys": [
+        "lblYearly"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gpmCycQuarterly",
+      "type": "button",
+      "role": "tab",
+      "label": "Quarterly",
+      "i18n_keys": [
+        "lblQuarterly"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gpmCycMonthly",
+      "type": "button",
+      "role": "tab",
+      "label": "Monthly",
+      "i18n_keys": [
+        "lblMonthly"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "label": "Upgrade to Pro",
+      "i18n_keys": [
+        "psUpgradeToPro"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "label": "Upgrade to Pro",
+      "i18n_keys": [
+        "psUpgradeToPro"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "label": "Upgrade to Pro",
+      "i18n_keys": [
+        "psUpgradeToPro"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gpmTrialBtn",
+      "type": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "label": "Choose Plus",
+      "i18n_keys": [
+        "modalChooseBasic"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "label": "Get Lifetime",
+      "i18n_keys": [
+        "modalChooseLifetime"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "a",
+      "id": "gpmAgencyLine",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "referralCtaBtn",
+      "type": "button",
+      "label": "Give a friend 3 days of Plus — earn Pro",
+      "i18n_keys": [
+        "rfCta"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppBillingAlertCta",
+      "type": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppBillingAlertDismiss",
+      "type": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppCancelSaveCta",
+      "type": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppCancelSaveDismiss",
+      "type": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "freeBudgetNoticeCta",
+      "type": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "freeBudgetNoticeDismiss",
+      "type": "button",
+      "label": "×",
+      "initially_disabled": false
+    },
+    {
+      "tag": "a",
+      "id": "giveFeedbackBtn",
+      "label": "Sure",
+      "i18n_keys": [
+        "btnSure"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "closeFeedbackBtn",
+      "label": "×",
+      "initially_disabled": false
+    },
+    {
+      "tag": "a",
+      "id": "lockoutBannerAction",
+      "label": "What happened?",
+      "i18n_keys": [
+        "lockoutBannerAction"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "a",
+      "id": "resumeSchedulerNow",
+      "label": "Resume",
+      "i18n_keys": [
+        "btnResume"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppUpdStripCta",
+      "type": "button",
+      "label": "See what's new",
+      "i18n_keys": [
+        "updStripCta"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppUpdStripClose",
+      "type": "button",
+      "label": "Close",
+      "i18n_keys": [
+        "btnClose"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "a",
+      "id": "mainNavPostBtn",
+      "label": "Compose",
+      "i18n_keys": [
+        "navCompose"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "a",
+      "id": "mainNavTemplatesBtn",
+      "label": "Templates",
+      "i18n_keys": [
+        "navTemplates"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "a",
+      "id": "campaignsBTN",
+      "label": "Automations",
+      "i18n_keys": [
+        "navCampaigns"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "a",
+      "id": "monitorBTN",
+      "label": "Lead Radar",
+      "i18n_keys": [
+        "navMonitor"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "a",
+      "id": "mainNavActivityBtn",
+      "label": "Activity",
+      "i18n_keys": [
+        "navActivity"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "tagBTN",
+      "label": "Post Templates",
+      "i18n_keys": [
+        "tabPostTemps"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "groupBTN",
+      "label": "Groups",
+      "i18n_keys": [
+        "tabGroupColls"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "subNavUpcomingBtn",
+      "label": "Upcoming",
+      "i18n_keys": [
+        "navUpcoming"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "subNavHistoryBtn",
+      "label": "History",
+      "i18n_keys": [
+        "navHistory"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "previewTagBtn",
+      "type": "button",
+      "label": "Preview",
+      "i18n_keys": [
+        "btnPreviewPost"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "cancelTag",
+      "type": "button",
+      "label": "Cancel",
+      "i18n_keys": [
+        "btnCancel"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "saveTag",
+      "type": "button",
+      "label": "Save",
+      "i18n_keys": [
+        "btnSave"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "postTitle",
+      "type": "text",
+      "label": "Enter a name for this template",
+      "i18n_keys": [
+        "phTemplateName"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "categoryComboboxInput",
+      "type": "text",
+      "label": "Assign...",
+      "i18n_keys": [
+        "phAssign"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "A",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "B",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "C",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "D",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "Insert Emoji",
+      "i18n_keys": [
+        "insertEmoji"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "toggleQualityScorerBtn",
+      "type": "button",
+      "label": "Post Quality",
+      "i18n_keys": [
+        "lblPostScore"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "templateSpintaxHelperBtn",
+      "type": "button",
+      "label": "Insert {option A|option B} — each post picks one at random so your posts don't look identical",
+      "i18n_keys": [
+        "titleAddVariations",
+        "btnAddVariations"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "aiEnhanceButton",
+      "type": "button",
+      "label": "Improve",
+      "i18n_keys": [
+        "btnAiImprove"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "aiCustomiseButton",
+      "type": "button",
+      "label": "Generate",
+      "i18n_keys": [
+        "btnAiGenerate"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "aiGenerateButton",
+      "type": "button",
+      "label": "Ideate",
+      "i18n_keys": [
+        "btnAiIdeate"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "aiGenerateVariationsBtn",
+      "type": "button",
+      "label": "Auto-Variations",
+      "i18n_keys": [
+        "btnAutoVariations"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "templateColorToggleBtn",
+      "type": "button",
+      "label": "Background",
+      "i18n_keys": [
+        "lblBackground"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "label": "None",
+      "i18n_keys": [
+        "miloEmojiNone"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "mediaDropzone",
+      "type": "button",
+      "label": "Drag and drop, or click to choose",
+      "i18n_keys": [
+        "tipDropMedia",
+        "lblAddMediaText"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "imageInput",
+      "type": "file",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "templateCardBtn",
+      "type": "button",
+      "label": "Add card",
+      "i18n_keys": [
+        "cardBtn"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "templateMediaRandomToggle",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "templateMediaRandomCount",
+      "type": "number",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "cancelGroups",
+      "type": "button",
+      "label": "Cancel",
+      "i18n_keys": [
+        "btnCancel"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "saveGroups",
+      "type": "button",
+      "label": "Save Group Collection",
+      "i18n_keys": [
+        "saveCollection"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "groupTitle",
+      "type": "text",
+      "label": "Name of the group collection",
+      "i18n_keys": [
+        "phCollName"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "searchGroupInput",
+      "type": "text",
+      "label": "Search tags & groups",
+      "i18n_keys": [
+        "phSearchGroups"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "addGroupButton",
+      "type": "button",
+      "label": "Add a new link",
+      "i18n_keys": [
+        "btnAddLink"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "cutUpGroupsBtn",
+      "type": "button",
+      "label": "Split",
+      "i18n_keys": [
+        "btnSplit"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "segmentByNicheBtn",
+      "type": "button",
+      "label": "Extract specific niches into new collections",
+      "i18n_keys": [
+        "segmentCollectionTip"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "viewList",
+      "type": "radio",
+      "label": "List",
+      "i18n_keys": [
+        "autoLensList"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "viewCalendar",
+      "type": "radio",
+      "label": "Calendar",
+      "i18n_keys": [
+        "autoLensCalendar"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "viewTimeline",
+      "type": "radio",
+      "label": "Agenda",
+      "i18n_keys": [
+        "autoLensAgenda"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppCampPlanWeekBtn",
+      "label": "Plan my week",
+      "i18n_keys": [
+        "ideatePlanBtn"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "openAiWizardBtn",
+      "label": "Create with Milo",
+      "i18n_keys": [
+        "btnAiWizard"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "createNewCampaignBtn",
+      "label": "Create New",
+      "i18n_keys": [
+        "btnCreateNew"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "calendarShowAll",
+      "label": "Show All Posts",
+      "i18n_keys": [
+        "btnShowAll"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "automationsEmptyCta",
+      "type": "button",
+      "label": "Build your first automation",
+      "i18n_keys": [
+        "autoEmptyCta"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "calendarPrevMonth",
+      "label": "Previous month",
+      "i18n_keys": [
+        "calPrevMonth"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "calendarNextMonth",
+      "label": "Next month",
+      "i18n_keys": [
+        "calNextMonth"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "calendarToday",
+      "label": "Today",
+      "i18n_keys": [
+        "lblToday"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "backToCampaignListBtn",
+      "label": "Back to the list",
+      "i18n_keys": [
+        "campBackToList"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "campaignTitle",
+      "type": "text",
+      "label": "Campaign name",
+      "i18n_keys": [
+        "campNamePlaceholder"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "campaignRecipesRestore",
+      "type": "button",
+      "label": "Show recipes",
+      "i18n_keys": [
+        "btnShowRecipes"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "saveCampaignBtn",
+      "label": "Launch",
+      "i18n_keys": [
+        "btnLaunch"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "campaignRecipesDismiss",
+      "type": "button",
+      "label": "Hide recipes",
+      "i18n_keys": [
+        "btnHideRecipes"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "Daily drip to my groups",
+      "i18n_keys": [
+        "recipeDailyTitle",
+        "recipeDailyDesc"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "3-post launch over a week",
+      "i18n_keys": [
+        "recipeLaunchTitle",
+        "recipeLaunchDesc"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "Evergreen weekly loop",
+      "i18n_keys": [
+        "recipeEvergreenTitle",
+        "recipeEvergreenDesc"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "Fill in my own",
+      "i18n_keys": [
+        "recipeBlankTitle",
+        "recipeBlankDesc"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "AddTagBTN",
+      "type": "button",
+      "label": "Create Template",
+      "i18n_keys": [
+        "headerCreateTemp"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "tplImportBtn",
+      "type": "button",
+      "label": "Import from profile",
+      "i18n_keys": [
+        "tplImport"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "tplPacksBtn",
+      "type": "button",
+      "label": "Starter packs",
+      "i18n_keys": [
+        "tplStarterPacks"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "sortFilterBtn",
+      "type": "button",
+      "label": "Sort & Filter",
+      "i18n_keys": [
+        "btnSortFilter"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "label": "Default",
+      "i18n_keys": [
+        "tsSortDefault"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "label": "Name (A-Z)",
+      "i18n_keys": [
+        "tsSortNameAsc"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "label": "Name (Z-A)",
+      "i18n_keys": [
+        "tsSortNameDesc"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "manageCategoriesBtn",
+      "type": "button",
+      "label": "Categories",
+      "i18n_keys": [
+        "lblCategories"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "tsSearchInput",
+      "type": "text",
+      "label": "Search templates…",
+      "i18n_keys": [
+        "phSearchTemplates"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "getProfileGroups",
+      "type": "button",
+      "label": "Import from Facebook",
+      "i18n_keys": [
+        "btnExtractFb"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "importGroupsButton",
+      "type": "button",
+      "label": "Import file",
+      "i18n_keys": [
+        "btnImportGroups"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "aiGroupFinderBtn",
+      "type": "button",
+      "label": "Find new groups",
+      "i18n_keys": [
+        "btnAiGroupFinder"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "groupScoreboardToggle",
+      "type": "button",
+      "label": "Group performance",
+      "i18n_keys": [
+        "gsbTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "Success rate 80% or higher (2+ confirmed attempts)",
+      "i18n_keys": [
+        "gsbBucketFineTip",
+        "gsbBucketFine"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "Success rate between 40% and 79% (2+ confirmed attempts)",
+      "i18n_keys": [
+        "gsbBucketMixedTip",
+        "gsbBucketMixed"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "Success rate under 40% across 3+ confirmed attempts",
+      "i18n_keys": [
+        "gsbBucketStrugglingTip",
+        "gsbBucketStruggling"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "No posting attempts in the last 30 days",
+      "i18n_keys": [
+        "gsbBucketQuietTip",
+        "gsbBucketQuiet"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "select",
+      "id": "gsbIdentitySelect",
+      "label": "Show results for one posting identity (who the run posted as)",
+      "i18n_keys": [
+        "gsbIdentityTip"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gsNavAllGroups",
+      "type": "button",
+      "label": "All groups",
+      "i18n_keys": [
+        "navAllGroups"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gsCreateTagBtn",
+      "type": "button",
+      "label": "New tag",
+      "i18n_keys": [
+        "btnCreateTag"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gsHowTagsLink",
+      "type": "button",
+      "label": "How tags work",
+      "i18n_keys": [
+        "gsHowTagsWork"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gsBtnRenameTag",
+      "type": "button",
+      "role": "menuitem",
+      "label": "Rename…",
+      "i18n_keys": [
+        "gsMenuRename"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gsBtnMergeTag",
+      "type": "button",
+      "role": "menuitem",
+      "label": "Merge into…",
+      "i18n_keys": [
+        "gsMergeInto"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "exportGroupsButton",
+      "type": "button",
+      "role": "menuitem",
+      "label": "Export groups (JSON)",
+      "i18n_keys": [
+        "btnExportGroups"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "toolSplit",
+      "type": "button",
+      "role": "menuitem",
+      "label": "Split into batches…",
+      "i18n_keys": [
+        "toolSplitTagTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "toolSegment",
+      "type": "button",
+      "role": "menuitem",
+      "label": "Pull out by keyword…",
+      "i18n_keys": [
+        "toolSegmentTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "toolResetIdentityGroups",
+      "type": "button",
+      "role": "menuitem",
+      "label": "Reset this profile’s groups…",
+      "i18n_keys": [
+        "gsMenuResetGroups"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "toolDeleteTag",
+      "type": "button",
+      "role": "menuitem",
+      "label": "Delete tag…",
+      "i18n_keys": [
+        "toolDeleteTagTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "gsSearchInput",
+      "type": "text",
+      "label": "Search groups…",
+      "i18n_keys": [
+        "phSearchGroupList"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gsSearchClear",
+      "type": "button",
+      "label": "Clear search",
+      "initially_disabled": false
+    },
+    {
+      "tag": "select",
+      "id": "gsSortSelect",
+      "label": "Oldest first",
+      "i18n_keys": [
+        "gsSortOldest",
+        "gsSortNewest",
+        "gsSortName"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "gsMasterCheckbox",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gsBulkClearBtn",
+      "type": "button",
+      "label": "Clear",
+      "i18n_keys": [
+        "gsBulkClear"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gsBulkTagBtn",
+      "type": "button",
+      "label": "Tag…",
+      "i18n_keys": [
+        "btnManageTags"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gsBulkPostBtn",
+      "type": "button",
+      "label": "Post",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gsBulkEditBtn",
+      "type": "button",
+      "label": "Edit group",
+      "i18n_keys": [
+        "bffEditGroupTitle",
+        "btnEdit"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gsBulkRemoveBtn",
+      "type": "button",
+      "label": "Remove from tag",
+      "i18n_keys": [
+        "btnRemoveFromTag"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "importGroupsInput",
+      "type": "file",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "gppEmailCardInput",
+      "type": "email",
+      "label": "you@example.com",
+      "i18n_keys": [
+        "emailCardPlaceholder"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppEmailCardSend",
+      "type": "submit",
+      "label": "Send",
+      "i18n_keys": [
+        "emailCardSend"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppEmailCardDismiss",
+      "type": "button",
+      "label": "Dismiss",
+      "i18n_keys": [
+        "emailCardDismiss"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppRailStreak",
+      "type": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppRailLevel",
+      "type": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "span",
+      "id": "gppRailWeek",
+      "role": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppRailGoal",
+      "type": "button",
+      "label": "Next step",
+      "i18n_keys": [
+        "twaNextStep"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppRailAchievements",
+      "type": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppComposeIdentityChange",
+      "type": "button",
+      "label": "Change",
+      "i18n_keys": [
+        "twaIdentityChange"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppTargetsReachAll",
+      "type": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppTargetsChange",
+      "type": "button",
+      "label": "Change",
+      "i18n_keys": [
+        "tgtChange"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "quickSelectGroupInput",
+      "type": "text",
+      "label": "Pick a tag or choose groups",
+      "i18n_keys": [
+        "phQuickGroups"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "quickAdvancedGroupSelectionBtn",
+      "type": "button",
+      "label": "Advanced selector",
+      "i18n_keys": [
+        "btnAdvSelector"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "unifiedSelectPostInput",
+      "type": "text",
+      "role": "button",
+      "label": "Add saved posts",
+      "i18n_keys": [
+        "sourceSavedPosts"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppAiDoorBtn",
+      "type": "button",
+      "label": "Write with AI",
+      "i18n_keys": [
+        "aiDoorLabel"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "Insert Emoji",
+      "i18n_keys": [
+        "insertEmoji"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "toggleQuickQualityScorerBtn",
+      "type": "button",
+      "label": "Post Quality",
+      "i18n_keys": [
+        "lblPostScore",
+        "tbStrongPost"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "quickImportPostButton",
+      "type": "button",
+      "label": "Fill from template",
+      "i18n_keys": [
+        "btnFillTemplate"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "quickSaveTemplateBtn",
+      "type": "button",
+      "label": "Save as template",
+      "i18n_keys": [
+        "btnSaveTemplate",
+        "composerSaveLabel"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "quickPostSpintaxHelperBtn",
+      "type": "button",
+      "label": "Insert {option A|option B} — each post picks one at random so your posts don't look identical",
+      "i18n_keys": [
+        "titleAddVariations",
+        "btnAddVariations"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "quickAiEnhanceButton",
+      "type": "button",
+      "label": "Improve",
+      "i18n_keys": [
+        "btnAiImprove"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "quickAiCustomiseButton",
+      "type": "button",
+      "label": "Generate",
+      "i18n_keys": [
+        "btnAiGenerate"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "quickAiGenerateButton",
+      "type": "button",
+      "label": "Ideate",
+      "i18n_keys": [
+        "btnAiIdeate"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "quickColorToggleBtn",
+      "type": "button",
+      "label": "Background",
+      "i18n_keys": [
+        "lblBackground"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "label": "None",
+      "i18n_keys": [
+        "miloEmojiNone"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "quickMediaDropzone",
+      "type": "button",
+      "label": "Drag and drop, or click to choose",
+      "i18n_keys": [
+        "tipDropMedia",
+        "lblAddMediaText"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppAtCardBtn",
+      "type": "button",
+      "label": "Image card",
+      "i18n_keys": [
+        "cardTitle",
+        "cardBtn"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppAtLinkBtn",
+      "type": "button",
+      "label": "Link",
+      "i18n_keys": [
+        "atLink"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "quickMediaRandomToggle",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "quickMediaRandomCount",
+      "type": "number",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "quickGenerateAiVariations",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "quickOrderAlternate",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "quickOrderSequential",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppSettingsChangeBtn",
+      "type": "button",
+      "label": "Change",
+      "i18n_keys": [
+        "setSumChange"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "toggleQuickSettingsBtn",
+      "type": "button",
+      "label": "3. Advanced Automation Settings",
+      "i18n_keys": [
+        "lblQuickStep3"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "quickLinkCount",
+      "type": "number",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "quickEnterTime",
+      "type": "number",
+      "initially_disabled": false
+    },
+    {
+      "tag": "select",
+      "id": "quickPacingMode",
+      "label": "Use my timing (safe minimum gap)",
+      "i18n_keys": [
+        "pacingUser",
+        "pacingAuto",
+        "pacingMax"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "quickDelayFail",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "quickNightPost",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "quickSecuritySlider",
+      "type": "range",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "quickDirectApiMethod",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "quickPopupMethod",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "quickNativeMultiGroup",
+      "type": "checkbox",
+      "role": "switch",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "quickEnableComments",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "quickFirstComment",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "quickCommentSpintaxHelperBtn",
+      "type": "button",
+      "label": "Random variations",
+      "i18n_keys": [
+        "btnAddSpintax"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "textarea",
+      "id": "quickFirstCommentText",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "cancelEditScheduleBtn",
+      "label": "Cancel Edit",
+      "i18n_keys": [
+        "btnCancelEdit"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "quickPreviewButtonFooter",
+      "type": "button",
+      "label": "Preview",
+      "i18n_keys": [
+        "btnPreviewPost"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "quickScheduleButton",
+      "type": "button",
+      "label": "Schedule for Later",
+      "i18n_keys": [
+        "btnScheduleLater"
+      ],
+      "initially_disabled": true
+    },
+    {
+      "tag": "button",
+      "id": "quickPostButton",
+      "type": "button",
+      "label": "Post Now",
+      "i18n_keys": [
+        "btnPostNow"
+      ],
+      "initially_disabled": true
+    },
+    {
+      "tag": "button",
+      "id": "radarSettingsToggle",
+      "type": "button",
+      "label": "Show or hide the Lead Radar settings",
+      "i18n_keys": [
+        "radarSettingsTip",
+        "pgLeadRadar",
+        "radar2SettingsEntry",
+        "radar2HeaderSummary"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "radarPowerBtn",
+      "type": "button",
+      "label": "Turn Lead Radar scanning on or off",
+      "i18n_keys": [
+        "radarPowerTip",
+        "lblClickActivate"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "radarProPlanBtn",
+      "type": "button",
+      "label": "See Pro plans",
+      "i18n_keys": [
+        "radarSeeProPlans"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "monitorToggle",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "textarea",
+      "id": "monitorKeywords",
+      "label": "e.g. looking for, recommend, help needed, -free…",
+      "i18n_keys": [
+        "phRadarKeywords"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "monitorGroupInput",
+      "type": "text",
+      "label": "Search or select groups…",
+      "i18n_keys": [
+        "phRadarGroups"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "select",
+      "id": "radarScanInterval",
+      "label": "15 minutes · Aggressive",
+      "i18n_keys": [
+        "radar2Scan15",
+        "radar2Scan30",
+        "radar2Scan60"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "radarInPageToggle",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "radarDesktopToggle",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "forceScanNowBtn",
+      "label": "Manual Scan",
+      "i18n_keys": [
+        "btnManualScan"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "saveMonitorSettingsBtn",
+      "label": "Save Settings",
+      "i18n_keys": [
+        "btnSaveSettings"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "exportLeadsBtn",
+      "label": "Export CSV",
+      "i18n_keys": [
+        "radar2ExportCSV",
+        "btnExport"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "clearLeadsBtn",
+      "label": "Clear inbox",
+      "i18n_keys": [
+        "copyClearInbox",
+        "btnClearAll"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "inboxSearchInput",
+      "type": "text",
+      "label": "Search names or text…",
+      "i18n_keys": [
+        "phRadarLeadSearch"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "select",
+      "id": "filterLeadStatus",
+      "label": "All Leads",
+      "i18n_keys": [
+        "optAllLeads",
+        "optUnread",
+        "optStarred",
+        "optRead"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "select",
+      "id": "filterLeadKeyword",
+      "label": "All Keywords",
+      "i18n_keys": [
+        "optAllKeywords"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "automationBackBtn",
+      "type": "button",
+      "label": "Back to automations",
+      "i18n_keys": [
+        "autoQeBack"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "automationDeleteBtn",
+      "type": "button",
+      "label": "Delete",
+      "i18n_keys": [
+        "btnDelete"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppSchedPlanWeekBtn",
+      "type": "button",
+      "label": "Plan my week",
+      "i18n_keys": [
+        "ideatePlanBtn"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "automationAdvancedBtn",
+      "type": "button",
+      "label": "Turn this into a multi-step flow",
+      "i18n_keys": [
+        "autoQeAddStepsTitle",
+        "autoQeAddSteps"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "autoQuickSaveBtn",
+      "type": "button",
+      "label": "Turn it on",
+      "i18n_keys": [
+        "autoQeSave"
+      ],
+      "initially_disabled": true
+    },
+    {
+      "tag": "button",
+      "id": "gppInsightsDismiss",
+      "type": "button",
+      "label": "Hide until next week",
+      "i18n_keys": [
+        "insightsDismiss"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "historySearchInput",
+      "type": "text",
+      "label": "Search history...",
+      "i18n_keys": [
+        "histSearch"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "select",
+      "id": "historyTypeFilter",
+      "label": "All Activity",
+      "i18n_keys": [
+        "optAllActivity",
+        "optPostsOnly",
+        "optCommentsOnly"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "select",
+      "id": "historyWhoFilter",
+      "label": "Filter by the profile or Page a run posted as",
+      "i18n_keys": [
+        "histWhoTitle",
+        "histWhoAll"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "historyIssuesToggle",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "checkGroupHealthBtn",
+      "label": "Check which groups have stopped accepting your posts",
+      "i18n_keys": [
+        "histHealthTitle",
+        "btnHealth"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppActExpBtn",
+      "type": "button",
+      "label": "Export your activity as CSV or Excel",
+      "i18n_keys": [
+        "actExpBtnTitle",
+        "actExpBtn"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppPbBtn",
+      "type": "button",
+      "label": "See which groups refuse posts from the profile you post as",
+      "i18n_keys": [
+        "pbBtnTitle",
+        "pbBtn"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "backToHistoryBtn",
+      "type": "button",
+      "label": "Back to history",
+      "i18n_keys": [
+        "outcomeBack"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "quickMediaInput",
+      "type": "file",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "customModalCloseBtn",
+      "type": "button",
+      "label": "Close",
+      "i18n_keys": [
+        "btnClose"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "customModalCancelBtn",
+      "type": "button",
+      "label": "Cancel",
+      "i18n_keys": [
+        "btnCancel"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "customModalConfirmBtn",
+      "type": "button",
+      "label": "OK",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "Close",
+      "i18n_keys": [
+        "btnClose"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "scheduleRotateTemplates",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "advisorCollapseBtn",
+      "type": "button",
+      "label": "Collapse",
+      "i18n_keys": [
+        "btnCollapse"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "autoBestTimeToggle",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "scheduleDate",
+      "type": "date",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "scheduleTime",
+      "type": "time",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "dailyTime",
+      "type": "time",
+      "initially_disabled": false
+    },
+    {
+      "tag": "select",
+      "id": "dailyIntervalSelect",
+      "label": "1 2 3 4",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "weeklyTime",
+      "type": "time",
+      "initially_disabled": false
+    },
+    {
+      "tag": "select",
+      "id": "weeklyIntervalSelect",
+      "label": "1 2 3 4",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "weeklyStartDate",
+      "type": "date",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "monthlyTime",
+      "type": "time",
+      "initially_disabled": false
+    },
+    {
+      "tag": "select",
+      "id": "scheduleMissedRunPolicy",
+      "label": "Post once when Chrome is ready",
+      "i18n_keys": [
+        "schedMissedPolicyCatchUp",
+        "schedMissedPolicySkip"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "Cancel",
+      "i18n_keys": [
+        "btnCancel"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "saveScheduleButton",
+      "type": "button",
+      "label": "Save Schedule",
+      "i18n_keys": [
+        "schedSave"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "Close",
+      "i18n_keys": [
+        "btnClose"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "textarea",
+      "id": "aiPromptShared",
+      "label": "e.g., Announcing our new summer sale...",
+      "i18n_keys": [
+        "aiPhTopic"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "Helpful",
+      "i18n_keys": [
+        "btnToneHelpful"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "Professional",
+      "i18n_keys": [
+        "btnToneProf"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "Promotional",
+      "i18n_keys": [
+        "btnTonePromo"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "aiGenMoreBtn",
+      "type": "button",
+      "label": "More options",
+      "i18n_keys": [
+        "aiGenMore"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "aiTargetAudienceShared",
+      "type": "text",
+      "label": "e.g., 'Entrepreneurs'",
+      "i18n_keys": [
+        "aiPhAudience"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "aiToggleEmojis",
+      "type": "button",
+      "label": "Add Emojis",
+      "i18n_keys": [
+        "aiOptEmojis"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "aiToggleHashtags",
+      "type": "button",
+      "label": "Add Hashtags",
+      "i18n_keys": [
+        "aiOptHashtags"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "Cancel",
+      "i18n_keys": [
+        "btnCancel"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "submitAiGenerateShared",
+      "type": "button",
+      "label": "Generate Post",
+      "i18n_keys": [
+        "aiBtnGenerate"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppIdeateVoiceChip",
+      "type": "button",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppIdeateCloseBtn",
+      "type": "button",
+      "label": "Close",
+      "i18n_keys": [
+        "btnClose"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppAiSetupSkip",
+      "type": "button",
+      "label": "Not now",
+      "i18n_keys": [
+        "aiSetupSkip"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "gppAiSetupRole",
+      "type": "text",
+      "label": "Who are you? e.g. Wedding photographer",
+      "i18n_keys": [
+        "aiSetupRolePh"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "gppAiSetupOffer",
+      "type": "text",
+      "label": "What do you offer? e.g. Mini sessions in Austin",
+      "i18n_keys": [
+        "aiSetupOfferPh"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppAiSetupMore",
+      "type": "button",
+      "label": "Open AI Studio",
+      "i18n_keys": [
+        "aiSetupMore"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppAiSetupSave",
+      "type": "button",
+      "label": "Save & personalize",
+      "i18n_keys": [
+        "aiSetupSaveBtn"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "gppIdeateTopic",
+      "type": "text",
+      "label": "…or type your own topic",
+      "i18n_keys": [
+        "ideateTopicPh"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppIdeateInstantBtn",
+      "type": "button",
+      "label": "Draft for me now",
+      "i18n_keys": [
+        "ideateInstantBtn"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppIdeateGoBtn",
+      "type": "button",
+      "label": "Get 3 ideas",
+      "i18n_keys": [
+        "ideateGoBtn"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppIdeateBriefBtn",
+      "type": "button",
+      "label": "Write from a brief",
+      "i18n_keys": [
+        "ideateBriefBtn"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppIdeatePlanBtn",
+      "type": "button",
+      "label": "Plan my week",
+      "i18n_keys": [
+        "ideatePlanBtn"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppImproveCloseBtn",
+      "type": "button",
+      "label": "Close",
+      "i18n_keys": [
+        "btnClose"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "Grammar & Polish",
+      "i18n_keys": [
+        "enhPolishTitle",
+        "enhPolishDesc"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "Conversion Boost",
+      "i18n_keys": [
+        "enhBoostTitle",
+        "enhBoostDesc"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "Shorten",
+      "i18n_keys": [
+        "enhShortenTitle",
+        "enhShortenDesc"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "Random variations",
+      "i18n_keys": [
+        "enhSpinTitle",
+        "enhSpinDesc"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "closeElegantModalBtn",
+      "type": "button",
+      "label": "×",
+      "initially_disabled": false
+    },
+    {
+      "tag": "a",
+      "id": "goToStoreReviewBtn",
+      "label": "Review on the Chrome Web Store",
+      "i18n_keys": [
+        "revBtnPlain"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "goToFeedbackBtn",
+      "type": "button",
+      "label": "Send private feedback",
+      "i18n_keys": [
+        "fbBtnPlain"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "elegantMaybeLaterBtn",
+      "type": "button",
+      "label": "Maybe later",
+      "i18n_keys": [
+        "rateBtnLater"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppUpdClose",
+      "type": "button",
+      "label": "Close",
+      "i18n_keys": [
+        "btnClose"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppUpdDone",
+      "type": "button",
+      "label": "Continue",
+      "i18n_keys": [
+        "updContinue"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppWpClose",
+      "type": "button",
+      "label": "Close",
+      "i18n_keys": [
+        "btnClose"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "gppWpName",
+      "type": "text",
+      "label": "Weekend offer",
+      "i18n_keys": [
+        "wpNamePh"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppWpSpintax",
+      "type": "button",
+      "label": "Random variations",
+      "i18n_keys": [
+        "wpSpintax"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "textarea",
+      "id": "gppWpText",
+      "label": "What do you want to post?",
+      "i18n_keys": [
+        "wpTextPh"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppWpAiRevert",
+      "type": "button",
+      "label": "Revert",
+      "i18n_keys": [
+        "wpRevert"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppWpCancel",
+      "type": "button",
+      "label": "Cancel",
+      "i18n_keys": [
+        "btnCancel"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppWpSave",
+      "type": "button",
+      "label": "Save & add to step",
+      "i18n_keys": [
+        "wpSave"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppRsClose",
+      "type": "button",
+      "label": "Close",
+      "i18n_keys": [
+        "btnClose"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "select",
+      "id": "gppRsIdentitySelect",
+      "initially_disabled": true
+    },
+    {
+      "tag": "input",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "a",
+      "id": "gppRsLink",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppRsMediaRetry",
+      "type": "button",
+      "label": "Retry attachments",
+      "i18n_keys": [
+        "rsMediaRetry"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppRsMediaDiscard",
+      "type": "button",
+      "label": "Remove missing attachments",
+      "i18n_keys": [
+        "rsMediaDiscard"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "gppRsMediaInput",
+      "type": "file",
+      "initially_disabled": false
+    },
+    {
+      "tag": "textarea",
+      "id": "gppRsCaption",
+      "label": "Add a line of your own — this is what people read first.",
+      "i18n_keys": [
+        "rsCaptionPh"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppRsUndoCaption",
+      "type": "button",
+      "label": "Undo edit",
+      "i18n_keys": [
+        "rsUndoCaption"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppRsUseOriginal",
+      "type": "button",
+      "label": "Use the original text",
+      "i18n_keys": [
+        "rsUseOriginal"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppRsAiWrite",
+      "type": "button",
+      "label": "Write with AI",
+      "i18n_keys": [
+        "rsAiWrite"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppRsAiImprove",
+      "type": "button",
+      "label": "Improve mine",
+      "i18n_keys": [
+        "rsAiImprove"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "gppRsAiVariations",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppRsReloadGroups",
+      "type": "button",
+      "label": "Refresh",
+      "i18n_keys": [
+        "rsRefreshGroups"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppRsImportGroups",
+      "type": "button",
+      "label": "Import groups",
+      "i18n_keys": [
+        "rsImportGroups"
+      ],
+      "initially_disabled": true
+    },
+    {
+      "tag": "input",
+      "id": "gppRsSearch",
+      "type": "search",
+      "label": "Search your groups",
+      "i18n_keys": [
+        "rsSearchPh"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppRsSelectedOnly",
+      "type": "button",
+      "label": "Selected only",
+      "i18n_keys": [
+        "rsSelectedOnly"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppRsSelectAll",
+      "type": "button",
+      "label": "Select all",
+      "i18n_keys": [
+        "rsSelectAll"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppRsClearSelection",
+      "type": "button",
+      "label": "Clear",
+      "i18n_keys": [
+        "rsClearSelection"
+      ],
+      "initially_disabled": true
+    },
+    {
+      "tag": "button",
+      "id": "gppRsAdvToggle",
+      "type": "button",
+      "label": "Timing & extras",
+      "i18n_keys": [
+        "rsAdvanced"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "gppRsDelay",
+      "type": "number",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "gppRsBatch",
+      "type": "number",
+      "initially_disabled": false
+    },
+    {
+      "tag": "select",
+      "id": "gppRsSafety",
+      "label": "Fast",
+      "i18n_keys": [
+        "rsSafetyFast",
+        "rsSafetyBalanced",
+        "rsSafetySafe"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "select",
+      "id": "gppRsPacing",
+      "label": "Use my timing (safe minimum gap)",
+      "i18n_keys": [
+        "pacingUser",
+        "pacingAuto",
+        "pacingMax"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "gppRsNight",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "gppRsDelayFail",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "gppRsLinkFirst",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "gppRsCommentOn",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "textarea",
+      "id": "gppRsCommentText",
+      "label": "Your first comment",
+      "i18n_keys": [
+        "rsCommentPh"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppRsWmUpgrade",
+      "type": "button",
+      "label": "Remove the line",
+      "i18n_keys": [
+        "rsWmRemove"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppRsCancel",
+      "type": "button",
+      "label": "Cancel",
+      "i18n_keys": [
+        "btnCancel"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppRsSchedule",
+      "type": "button",
+      "label": "Schedule for Later",
+      "i18n_keys": [
+        "btnScheduleLater"
+      ],
+      "initially_disabled": true
+    },
+    {
+      "tag": "button",
+      "id": "gppRsGo",
+      "type": "button",
+      "label": "Share now",
+      "i18n_keys": [
+        "rsGo"
+      ],
+      "initially_disabled": true
+    },
+    {
+      "tag": "button",
+      "id": "gppRsPaywallClose",
+      "type": "button",
+      "label": "Close",
+      "i18n_keys": [
+        "btnClose"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppRsPaywallPlans",
+      "type": "button",
+      "label": "See plans & pricing",
+      "i18n_keys": [
+        "rsProPlans"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppRsPaywallBack",
+      "type": "button",
+      "label": "Back to my share",
+      "i18n_keys": [
+        "rsProBack"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppRfClose",
+      "type": "button",
+      "label": "Close",
+      "i18n_keys": [
+        "btnClose"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "gppRfLink",
+      "type": "text",
+      "label": "Your referral link",
+      "i18n_keys": [
+        "rfLinkAria"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppRfCopy",
+      "type": "button",
+      "label": "Copy",
+      "i18n_keys": [
+        "rfCopy"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppPbClose",
+      "type": "button",
+      "label": "Close",
+      "i18n_keys": [
+        "btnClose"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppPbClearAll",
+      "type": "button",
+      "label": "Reset skipped groups for this profile",
+      "i18n_keys": [
+        "pbClearBtn"
+      ],
+      "initially_disabled": true
+    },
+    {
+      "tag": "button",
+      "id": "gppAxClose",
+      "type": "button",
+      "label": "Close",
+      "i18n_keys": [
+        "btnClose"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "select",
+      "id": "gppAxRange",
+      "label": "Last 7 days",
+      "i18n_keys": [
+        "actExpRange7",
+        "actExpRange30",
+        "actExpRange90",
+        "actExpRangeAll",
+        "actExpRangeCustom"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "gppAxFrom",
+      "type": "date",
+      "label": "From",
+      "i18n_keys": [
+        "actExpFrom"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "gppAxTo",
+      "type": "date",
+      "label": "To",
+      "i18n_keys": [
+        "actExpTo"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "select",
+      "id": "gppAxResult",
+      "label": "All runs",
+      "i18n_keys": [
+        "actExpResultAll",
+        "actExpResultIssues",
+        "actExpResultOk"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "select",
+      "id": "gppAxWho",
+      "label": "All profiles & Pages",
+      "i18n_keys": [
+        "actExpWhoAll",
+        "actExpWhoCurrent"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "select",
+      "id": "gppAxType",
+      "label": "All",
+      "i18n_keys": [
+        "actExpTypeAll",
+        "actExpTypeManual",
+        "actExpTypeAuto",
+        "actExpTypeRadar"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "gppAxSearch",
+      "type": "text",
+      "label": "Post title or group name",
+      "i18n_keys": [
+        "actExpSearchPh"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppAxDownload",
+      "type": "button",
+      "label": "Download",
+      "i18n_keys": [
+        "actExpDownload"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "Run now",
+      "i18n_keys": [
+        "autoRunNow"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "Edit",
+      "i18n_keys": [
+        "btnEdit"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "Delete",
+      "i18n_keys": [
+        "btnDelete"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppPwX",
+      "type": "button",
+      "label": "Close",
+      "i18n_keys": [
+        "btnClose"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "wizFbOpenBtn",
+      "type": "button",
+      "label": "Open Facebook",
+      "i18n_keys": [
+        "setupFacebookOpen"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "wizFbRecheckBtn",
+      "type": "button",
+      "label": "Check connection",
+      "i18n_keys": [
+        "setupFacebookCheck"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "wizFbLaterBtn",
+      "type": "button",
+      "label": "Connect later",
+      "i18n_keys": [
+        "setupFacebookLater"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "wizBtnHaveKey",
+      "type": "button",
+      "label": "Already purchased? Activate your key",
+      "i18n_keys": [
+        "wizAct1HaveKey"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "wizImportIdentity",
+      "type": "button",
+      "label": "Change",
+      "i18n_keys": [
+        "wizImportIdentityChange"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "wizPickThree",
+      "type": "button",
+      "label": "Pick 3 for me",
+      "i18n_keys": [
+        "wizPickThree"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "wizImportRescan",
+      "type": "button",
+      "label": "Scan again / add more",
+      "i18n_keys": [
+        "wizImportRescan"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "wizImportPickAgain",
+      "type": "button",
+      "label": "Choose a different account",
+      "i18n_keys": [
+        "wizImportPickAgain"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "wizImportRescan2",
+      "type": "button",
+      "label": "Try again",
+      "i18n_keys": [
+        "wizImportRescan2"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "wizWarmupToggle",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "wizImportAup",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "wizImportPostNow",
+      "type": "button",
+      "label": "Write my first post",
+      "i18n_keys": [
+        "wizImportPostNow"
+      ],
+      "initially_disabled": true
+    },
+    {
+      "tag": "button",
+      "id": "wizPasteToggle",
+      "type": "button",
+      "label": "Paste group links or upload CSV",
+      "i18n_keys": [
+        "wizPasteToggle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "textarea",
+      "id": "wizPasteBox",
+      "label": "Paste one Facebook group link per line — or a spreadsheet column.",
+      "i18n_keys": [
+        "wizPastePlaceholder"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "wizPasteFile",
+      "type": "file",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "wizPasteAdd",
+      "type": "button",
+      "label": "Add these groups",
+      "i18n_keys": [
+        "wizPasteAdd"
+      ],
+      "initially_disabled": true
+    },
+    {
+      "tag": "input",
+      "id": "tutAup1",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "wizDedupeToggle",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "wizEmailInput",
+      "type": "email",
+      "label": "you@example.com",
+      "i18n_keys": [
+        "wizEmailPlaceholder"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "wizEmailConsent",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "wizEmailSend",
+      "type": "submit",
+      "label": "Continue",
+      "i18n_keys": [
+        "setupContinue"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "wizBtnChoosePlus",
+      "type": "button",
+      "label": "See Plus",
+      "i18n_keys": [
+        "setupSeePlus"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "wizBtnBack",
+      "type": "button",
+      "label": "Back",
+      "i18n_keys": [
+        "setupBack"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "wizBtnSkip",
+      "type": "button",
+      "label": "Skip setup",
+      "i18n_keys": [
+        "setupSkip"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "wizBtnVoiceNotNow",
+      "type": "button",
+      "label": "Not now",
+      "i18n_keys": [
+        "setupVoiceNotNow"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "wizBtnNext",
+      "type": "button",
+      "label": "Continue",
+      "i18n_keys": [
+        "setupContinue"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "wizBtnClaimPro",
+      "type": "button",
+      "label": "Compare plans",
+      "i18n_keys": [
+        "setupOfferCompare"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "closeAiWizardBtn",
+      "type": "button",
+      "label": "Close",
+      "i18n_keys": [
+        "btnClose"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "textarea",
+      "id": "aiWizardPrompt",
+      "label": "Describe your goal...",
+      "i18n_keys": [
+        "campWizGoalPh"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "sourceGenerate",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "sourceExisting",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "text",
+      "label": "Select templates...",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "text",
+      "label": "Select collections...",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "aiWizardAdvancedGroupBtn",
+      "label": "Advanced selector",
+      "i18n_keys": [
+        "btnAdvSelector"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "aiWizardSmartGroup",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "aiWizardLoop",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "aiWizardImmediate",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "aiWizardFileInput",
+      "type": "file",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "cancelAiWizardBtn",
+      "type": "button",
+      "label": "Cancel",
+      "i18n_keys": [
+        "btnCancel"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "generateCampaignBtn",
+      "type": "button",
+      "label": "Generate Campaign",
+      "i18n_keys": [
+        "btnGenCamp"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "Close",
+      "i18n_keys": [
+        "btnClose"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "quickImportSearchInput",
+      "type": "text",
+      "label": "Search templates...",
+      "i18n_keys": [
+        "phSearchTemp"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "type": "button",
+      "label": "Cancel",
+      "i18n_keys": [
+        "btnCancel"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "spintax-modal-close",
+      "type": "button",
+      "label": "×",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "spintax-ai-btn",
+      "type": "button",
+      "label": "Auto-Fill with AI",
+      "i18n_keys": [
+        "spinAiBtn"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "spintax-add-variation-btn",
+      "type": "button",
+      "label": "Add Another Variation",
+      "i18n_keys": [
+        "spinAdd"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "spintax-shuffle-btn",
+      "type": "button",
+      "label": "Shuffle",
+      "i18n_keys": [
+        "spinShuffle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "spintax-modal-cancel-btn",
+      "type": "button",
+      "label": "Cancel",
+      "i18n_keys": [
+        "btnCancel"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "spintax-modal-apply-btn",
+      "type": "button",
+      "label": "Insert variations",
+      "i18n_keys": [
+        "spinInsert"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "categoryModalCloseBtn",
+      "type": "button",
+      "label": "Close",
+      "i18n_keys": [
+        "btnClose"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "newCategoryName",
+      "type": "text",
+      "label": "Category Name",
+      "i18n_keys": [
+        "catPhName"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "addNewCategoryBtn",
+      "type": "button",
+      "label": "Add",
+      "i18n_keys": [
+        "btnAdd"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "categoryModalDoneBtn",
+      "type": "button",
+      "label": "Done",
+      "i18n_keys": [
+        "btnDone"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "piCloseBtn",
+      "type": "button",
+      "label": "Close",
+      "i18n_keys": [
+        "btnClose"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "piSearchInput",
+      "type": "search",
+      "label": "Search names or post text",
+      "i18n_keys": [
+        "piSearch"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "piSelectVisible",
+      "type": "button",
+      "label": "Select shown",
+      "i18n_keys": [
+        "piSelectVisible"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "piClearSelection",
+      "type": "button",
+      "label": "Clear",
+      "i18n_keys": [
+        "piClearSelection"
+      ],
+      "initially_disabled": true
+    },
+    {
+      "tag": "button",
+      "id": "piImportBtn",
+      "type": "button",
+      "label": "Import selected",
+      "i18n_keys": [
+        "piImportBtn"
+      ],
+      "initially_disabled": true
+    },
+    {
+      "tag": "button",
+      "id": "postTargeterCloseBtn",
+      "type": "button",
+      "label": "Close",
+      "i18n_keys": [
+        "btnClose"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "targeterIndividualSearch",
+      "type": "text",
+      "label": "Search across all your groups...",
+      "i18n_keys": [
+        "targeterPhSearch"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "targeterToggleReviewBtn",
+      "type": "button",
+      "label": "Show list",
+      "i18n_keys": [
+        "targeterShowList"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "targetModeAll",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "targetModeRandom",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "targeterRandomCount",
+      "type": "number",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "prioritizeFreshToggle",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "postTargeterCancelBtn",
+      "type": "button",
+      "label": "Cancel",
+      "i18n_keys": [
+        "btnCancel"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "postTargeterConfirmBtn",
+      "type": "button",
+      "label": "Confirm Selection",
+      "i18n_keys": [
+        "modalTargetConfirm"
+      ],
+      "initially_disabled": true
+    },
+    {
+      "tag": "button",
+      "id": "closePersonaModalBtn",
+      "type": "button",
+      "label": "Close",
+      "i18n_keys": [
+        "btnClose"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "personaActiveToggle",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "personaRole",
+      "type": "text",
+      "label": "e.g. Maya, local baker",
+      "i18n_keys": [
+        "aiProfileRolePlaceholder"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "textarea",
+      "id": "personaProduct",
+      "label": "e.g. Relaxed family photo sessions for people who dislike posing",
+      "i18n_keys": [
+        "aiProfileOfferPlaceholder"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "type": "radio",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "personaTone",
+      "type": "hidden",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "personaCreativity",
+      "type": "range",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "personaAttitude",
+      "type": "range",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppVoiceRefreshBtn",
+      "type": "button",
+      "label": "Re-learn",
+      "i18n_keys": [
+        "voiceRefreshBtn"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppVoiceClearBtn",
+      "type": "button",
+      "label": "Forget",
+      "i18n_keys": [
+        "voiceForgetBtn"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "gppVoiceUseToggle",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "personaLink",
+      "type": "url",
+      "label": "https://yourwebsite.com",
+      "i18n_keys": [
+        "aiProfileLinkPlaceholder"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "textarea",
+      "id": "personaCustomPrompt",
+      "label": "e.g. Never use hard-sell language. Invite people to message me with questions.",
+      "i18n_keys": [
+        "aiProfileInstructionsPlaceholder"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "gppAiProfileSkipBtn",
+      "type": "button",
+      "label": "Skip for now",
+      "i18n_keys": [
+        "aiProfileSkip"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "cancelPersonaBtn",
+      "type": "button",
+      "label": "Cancel",
+      "i18n_keys": [
+        "btnCancel"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "savePersonaBtn",
+      "type": "submit",
+      "label": "Save profile",
+      "i18n_keys": [
+        "aiProfileSave"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "closeSafetyCenterBtn",
+      "type": "button",
+      "label": "Close",
+      "i18n_keys": [
+        "btnClose"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "safetyLockoutOverrideBtn",
+      "type": "button",
+      "label": "I checked Facebook — resume posting",
+      "i18n_keys": [
+        "cooldownResumeBtn"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "warmupToggle",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "timingJitterToggle",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "busyPaceToggle",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "maxSafetyToggle",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "dedupeGuardToggle",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "periodicClassicToggle",
+      "type": "checkbox",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "runDiagnosticBtn",
+      "type": "button",
+      "label": "Check your Facebook session, Page, license and posting setup",
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "copyDiagnosticBtn",
+      "type": "button",
+      "label": "Copy diagnostic",
+      "i18n_keys": [
+        "bfvDiagCopyBtn"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "closeSafetyCenterFooterBtn",
+      "type": "button",
+      "label": "Done",
+      "i18n_keys": [
+        "btnDone"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "aiGroupFinderCloseBtn",
+      "type": "button",
+      "label": "Close",
+      "i18n_keys": [
+        "btnClose"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "agfNicheInput",
+      "type": "text",
+      "label": "e.g. handmade candles for busy moms",
+      "i18n_keys": [
+        "agfNichePlaceholder"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "input",
+      "id": "agfLocationInput",
+      "type": "text",
+      "label": "e.g. Austin, TX",
+      "i18n_keys": [
+        "agfLocationPlaceholder"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "agfDiscoverBtn",
+      "type": "button",
+      "label": "Search ideas",
+      "i18n_keys": [
+        "agfFindBtn"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "agfScoreBtn",
+      "type": "button",
+      "label": "Score my groups",
+      "i18n_keys": [
+        "agfScoreBtn"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "agfVisibleBtn",
+      "type": "button",
+      "label": "Review search results",
+      "i18n_keys": [
+        "agfReviewVisible"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "button",
+      "id": "agfDoneBtn",
+      "type": "button",
+      "label": "Done",
+      "i18n_keys": [
+        "btnDone"
+      ],
+      "initially_disabled": false
+    }
+  ],
+  "popup_headings": [
+    {
+      "tag": "h3",
+      "id": "LoadingContent",
+      "label": "Starting the posting run…",
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "label": "Settings & About",
+      "i18n_keys": [
+        "menuSettingsTip"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h6",
+      "label": "Preferences",
+      "i18n_keys": [
+        "aboutSecPrefs"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h6",
+      "id": "gppAppearanceHeading",
+      "label": "Appearance",
+      "i18n_keys": [
+        "appearanceTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h6",
+      "label": "Backup & Restore",
+      "i18n_keys": [
+        "secBackup"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h6",
+      "label": "Support",
+      "i18n_keys": [
+        "aboutSecSupport"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h2",
+      "id": "gpmHookTitle",
+      "label": "Unlock Unlimited Power",
+      "i18n_keys": [
+        "modalProTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h3",
+      "id": "pricingTabPro",
+      "label": "Pro",
+      "i18n_keys": [
+        "tabPro"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h3",
+      "id": "pricingTabBasic",
+      "label": "Plus",
+      "i18n_keys": [
+        "tabBasic"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h3",
+      "id": "pricingTabLifetime",
+      "label": "Lifetime",
+      "i18n_keys": [
+        "lblLifetime"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h3",
+      "id": "pricingTabLite",
+      "label": "Free",
+      "i18n_keys": [
+        "tabLite"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "id": "gppBillingAlertTitle",
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "id": "gppCancelSaveTitle",
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "id": "freeBudgetNoticeTitle",
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "label": "Help shape the future?",
+      "i18n_keys": [
+        "bannerFeedbackTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "label": "Facebook has paused posting on this account",
+      "i18n_keys": [
+        "lockoutBannerTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "label": "Scheduled posts are paused.",
+      "i18n_keys": [
+        "bannerPaused"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "label": "Create Template",
+      "i18n_keys": [
+        "headerCreateTemp"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "label": "Nothing running yet",
+      "i18n_keys": [
+        "autoEmptyTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "label": "No Scheduled Posts",
+      "i18n_keys": [
+        "emptySched"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "id": "timelineTitle",
+      "label": "The next 14 days",
+      "i18n_keys": [
+        "autoAgendaTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h6",
+      "label": "START FROM A RECIPE",
+      "i18n_keys": [
+        "recipesHeader",
+        "btnHideRecipes"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h6",
+      "label": "DRAG THE BUILDING BLOCKS",
+      "i18n_keys": [
+        "headerDragBlocks"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h6",
+      "label": "Sort by",
+      "i18n_keys": [
+        "lblSortBy"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h6",
+      "label": "Filter by Category",
+      "i18n_keys": [
+        "lblFilterCat"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h3",
+      "id": "gsCurrentViewTitle",
+      "label": "All groups",
+      "i18n_keys": [
+        "navAllGroups"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h2",
+      "label": "Choose your audience",
+      "i18n_keys": [
+        "composeAudienceTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h2",
+      "label": "Create your content",
+      "i18n_keys": [
+        "composeContentTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h3",
+      "label": "Pauses & protection",
+      "i18n_keys": [
+        "headerPause"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h3",
+      "label": "Posting Strategy",
+      "i18n_keys": [
+        "headerStrategy"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h3",
+      "label": "Comment Settings",
+      "i18n_keys": [
+        "headerComments"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "id": "autoQeTitle",
+      "label": "New automation",
+      "i18n_keys": [
+        "autoQeNewTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "id": "customModalTitle",
+      "label": "Modal Title",
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "id": "scheduleModalTitle",
+      "label": "Schedule Your Post",
+      "i18n_keys": [
+        "headerSchedulePost"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "label": "Write a post with AI",
+      "i18n_keys": [
+        "aiBriefTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "label": "Ideate",
+      "i18n_keys": [
+        "ideateTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "label": "Choose Enhancement Style",
+      "i18n_keys": [
+        "enhTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h4",
+      "id": "gppReviewTitle",
+      "label": "Share your experience",
+      "i18n_keys": [
+        "revAskTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "id": "gppUpdTitle",
+      "label": "What's new in Group Posting Pro",
+      "i18n_keys": [
+        "updTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "id": "gppWpTitle",
+      "label": "Write a post",
+      "i18n_keys": [
+        "wpTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "id": "gppRsTitle",
+      "label": "Share to your groups",
+      "i18n_keys": [
+        "rsWorkspaceTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h6",
+      "id": "gppRsMessageStep",
+      "label": "Your message",
+      "i18n_keys": [
+        "rsMessageStep"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h6",
+      "id": "gppRsWhereLbl",
+      "label": "Your audience",
+      "i18n_keys": [
+        "rsAudienceStep"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h2",
+      "id": "gppRsPaywallTitle",
+      "initially_disabled": false
+    },
+    {
+      "tag": "h3",
+      "label": "Everything you get with Pro",
+      "i18n_keys": [
+        "rsProIncluded"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h4",
+      "label": "AI content engine",
+      "i18n_keys": [
+        "benAI"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h4",
+      "label": "Monthly & advanced cadences",
+      "i18n_keys": [
+        "tierRowCadence"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h4",
+      "label": "Share without the credit line",
+      "i18n_keys": [
+        "rsProClean"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h4",
+      "label": "Campaigns & scheduling",
+      "i18n_keys": [
+        "benCampaigns"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h4",
+      "label": "Lead Radar",
+      "i18n_keys": [
+        "navMonitor",
+        "agfTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h4",
+      "label": "Cloud backup",
+      "i18n_keys": [
+        "tierRowBackup"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "id": "gppRfTitle",
+      "label": "Give 3 days of Plus, earn 4 days of Pro",
+      "i18n_keys": [
+        "rfTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "id": "gppPbTitle",
+      "label": "Groups that refuse this profile",
+      "i18n_keys": [
+        "pbTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "id": "gppAxTitle",
+      "label": "Export activity",
+      "i18n_keys": [
+        "actExpTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h6",
+      "label": "Post Title",
+      "initially_disabled": false
+    },
+    {
+      "tag": "h2",
+      "id": "gppPwTitle",
+      "initially_disabled": false
+    },
+    {
+      "tag": "h3",
+      "label": "A good start.",
+      "i18n_keys": [
+        "setupReadyEyebrow"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h2",
+      "id": "wizSetupTitle",
+      "label": "Who are you posting as?",
+      "i18n_keys": [
+        "setupWelcomeTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h3",
+      "id": "wizUserName",
+      "label": "Welcome aboard 👋",
+      "i18n_keys": [
+        "wizAct1WelcomeGeneric"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h2",
+      "label": "Bring your groups together",
+      "i18n_keys": [
+        "setupGroupsTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h2",
+      "label": "Posting responsibly",
+      "i18n_keys": [
+        "setupIntroHowTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h2",
+      "label": "From idea to a useful post.",
+      "i18n_keys": [
+        "setupIntroFeaturesTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h3",
+      "label": "Your account",
+      "i18n_keys": [
+        "setupStageAccount"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h3",
+      "label": "Personalize",
+      "i18n_keys": [
+        "setupRoutePersonalize"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h3",
+      "label": "Review first",
+      "i18n_keys": [
+        "tutVisualReview"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h2",
+      "label": "Make AI sound more like you.",
+      "i18n_keys": [
+        "setupVoiceTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h2",
+      "label": "Keep your next step in your inbox.",
+      "i18n_keys": [
+        "setupEmailTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h2",
+      "label": "Your groups. More possibilities.",
+      "i18n_keys": [
+        "setupReadyTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h3",
+      "label": "Less busywork. More useful posts.",
+      "i18n_keys": [
+        "setupOfferTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h3",
+      "label": "Plus",
+      "i18n_keys": [
+        "tabBasic"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h3",
+      "label": "Free",
+      "i18n_keys": [
+        "tabLite"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h4",
+      "label": "Unlock Unlimited Power",
+      "i18n_keys": [
+        "modalProTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "label": "Constructing Strategy...",
+      "i18n_keys": [
+        "lblConstructing"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "id": "quickImportPostModalLabel",
+      "label": "Your saved templates",
+      "i18n_keys": [
+        "csTplModalTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "label": "Create random variations",
+      "i18n_keys": [
+        "spinTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "id": "categoryManagementTitle",
+      "label": "Manage Categories",
+      "i18n_keys": [
+        "modalCategoryTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "id": "piDialogTitle",
+      "label": "Import collections & templates",
+      "i18n_keys": [
+        "piTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h6",
+      "label": "Copy from",
+      "i18n_keys": [
+        "piSourceLabel"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "id": "postTargeterTitle",
+      "label": "Advanced Group Selection",
+      "i18n_keys": [
+        "modalTargetTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h2",
+      "id": "gppAiProfileTitle",
+      "label": "Your voice, your way",
+      "i18n_keys": [
+        "aiStudioEditorTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h3",
+      "id": "gppAiIdentityTitle",
+      "label": "The person behind the post",
+      "i18n_keys": [
+        "aiStudioIdentityTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h3",
+      "id": "gppAiStyleTitle",
+      "label": "Shape your voice",
+      "i18n_keys": [
+        "aiStudioVoiceTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "label": "Safety Center",
+      "i18n_keys": [
+        "modalSafetyCenterTitle"
+      ],
+      "initially_disabled": false
+    },
+    {
+      "tag": "h5",
+      "id": "aiGroupFinderTitle",
+      "label": "AI Group Finder",
+      "i18n_keys": [
+        "agfTitle"
+      ],
+      "initially_disabled": false
+    }
+  ]
+}

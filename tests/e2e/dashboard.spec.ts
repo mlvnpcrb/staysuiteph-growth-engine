@@ -5,10 +5,8 @@ import { navigation } from "../../packages/types/src";
 test("responsive shell, navigation, and honest placeholders", async ({
   page,
 }) => {
-  await page.goto("/dashboard/overview");
-  await expect(
-    page.getByRole("heading", { name: "Make room for growth." }),
-  ).toBeVisible();
+  await page.goto("/dashboard/compose");
+  await expect(page.getByRole("heading", { name: "Compose" })).toBeVisible();
   await expect(page.getByText("Demo workspace", { exact: true })).toBeVisible();
   expect(
     await page.evaluate(
@@ -22,18 +20,16 @@ test("responsive shell, navigation, and honest placeholders", async ({
     await expect(
       nav.getByRole("link", { name: section.label, exact: false }),
     ).toHaveAttribute("href", `/dashboard/${section.slug}`);
-  await nav.getByRole("link", { name: "My Groups", exact: true }).click();
+  await nav.getByRole("link", { name: "All groups", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "My Groups", exact: true }),
+    page.getByRole("heading", { name: "All groups", exact: true }),
   ).toBeVisible();
   await expect(page.getByText(/Saved groups are unavailable/)).toBeVisible();
-  await page.goto("/dashboard/overview");
-  await expect(
-    page.getByRole("heading", { name: "Make room for growth." }),
-  ).toBeVisible();
+  await page.goto("/dashboard/compose");
+  await expect(page.getByRole("heading", { name: "Compose" })).toBeVisible();
 });
 test("theme selection persists across reload", async ({ page }) => {
-  await page.goto("/dashboard/overview");
+  await page.goto("/dashboard/compose");
   await page.getByRole("button", { name: "Toggle color theme" }).click();
   const theme = await page.locator("html").getAttribute("class");
   await page.reload();
@@ -55,7 +51,7 @@ test("unknown sections return not found", async ({ page }) => {
 
 test("non-demo dashboard redirects to setup login", async ({ request }) => {
   const response = await request.get(
-    "http://127.0.0.1:3001/dashboard/overview",
+    "http://127.0.0.1:3001/dashboard/compose",
     { maxRedirects: 0 },
   );
   expect(response.status()).toBe(307);
@@ -76,8 +72,7 @@ test("every section renders its own heading", async ({ page }) => {
     await page.goto(`/dashboard/${section.slug}`);
     await expect(
       page.getByRole("heading", {
-        name:
-          section.slug === "overview" ? "Make room for growth." : section.label,
+        name: section.label,
         exact: true,
       }),
     ).toBeVisible();
@@ -89,18 +84,6 @@ test("every section renders its own heading", async ({ page }) => {
   }
 });
 
-test("mobile drawer closes with Escape and returns focus", async ({ page }) => {
-  await page.goto("/dashboard/overview");
-  const menu = page.getByRole("button", { name: "Open navigation" });
-  if (!(await menu.isVisible())) return;
-  await menu.click();
-  await expect(
-    page.getByRole("navigation", { name: "Main navigation" }),
-  ).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(menu).toBeFocused();
-  await expect(menu).toHaveAttribute("aria-expanded", "false");
-});
 
 test("sync reports unavailable backend without granting a demo identity", async ({
   request,
@@ -112,32 +95,6 @@ test("sync reports unavailable backend without granting a demo identity", async 
   expect(await response.json()).toEqual({ error: "backend_not_configured" });
 });
 
-test("closed mobile navigation is absent from keyboard and accessibility navigation", async ({
-  page,
-}) => {
-  await page.goto("/dashboard/overview");
-  const menu = page.getByRole("button", { name: "Open navigation" });
-  if (!(await menu.isVisible())) return;
-  await expect(
-    page.getByRole("navigation", { name: "Main navigation" }),
-  ).toHaveCount(0);
-  await menu.focus();
-  await page.keyboard.press("Tab");
-  await expect(
-    page.getByRole("button", { name: "Toggle color theme" }),
-  ).toBeFocused();
-  await menu.click();
-  const drawer = page.getByRole("complementary", {
-    name: "Workspace navigation",
-  });
-  await expect(drawer.getByRole("link").first()).toBeFocused();
-  await page.keyboard.press("Shift+Tab");
-  await expect(drawer.getByRole("link").last()).toBeFocused();
-  await page.keyboard.press("Tab");
-  await expect(drawer.getByRole("link").first()).toBeFocused();
-  await page.setViewportSize({ width: 1280, height: 900 });
-  await expect(page.locator(".workspace-body")).not.toHaveAttribute("inert");
-});
 
 test("auth callback failure is fixed-origin and non-cacheable", async ({
   request,
@@ -153,11 +110,11 @@ test("auth callback failure is fixed-origin and non-cacheable", async ({
   expect(response.headers()["cache-control"]).toContain("no-store");
 });
 
-test("overview has no automated WCAG A/AA violations in either theme", async ({
+test("Compose has no automated WCAG A/AA violations in either theme", async ({
   page,
 }) => {
   await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
-  await page.goto("/dashboard/overview");
+  await page.goto("/dashboard/compose");
   await expect(page.locator("html")).toHaveClass(/light/);
   for (const theme of ["light", "dark"]) {
     if (theme === "dark") {
@@ -170,4 +127,36 @@ test("overview has no automated WCAG A/AA violations in either theme", async ({
       .analyze();
     expect(result.violations).toEqual([]);
   }
+});
+
+test("reference alignment removes standalone analytics and labels planned features", async ({
+  page,
+}) => {
+  await page.goto("/dashboard/compose");
+  const menu = page.getByRole("button", { name: "Open navigation" });
+  if (await menu.isVisible()) await menu.click();
+  const nav = page.getByRole("navigation", { name: "Main navigation" });
+  await expect(nav.getByRole("link", { name: "Analytics" })).toHaveCount(0);
+  for (const name of ["AI Studio", "Lead Radar"])
+    await expect(
+      nav.getByRole("link", { name: new RegExp(name) }),
+    ).toContainText("Not implemented");
+  await page.goto("/dashboard/analytics");
+  await expect(
+    page.getByRole("heading", { name: "Page not found" }),
+  ).toBeVisible();
+  await page.goto("/dashboard/ai-post-studio");
+  await expect(
+    page.getByText("Planned · not implemented", { exact: true }),
+  ).toBeVisible();
+});
+
+
+test("reference top navigation remains visible and keyboard accessible", async ({ page }) => {
+  await page.goto("/dashboard/compose");
+  const nav=page.getByRole("navigation",{name:"Main navigation"});
+  const compose=nav.getByRole("link",{name:"Compose",exact:true});
+  await expect(compose).toBeVisible();await expect(compose).toHaveAttribute("aria-current","page");
+  await compose.focus();await page.keyboard.press("Tab");await expect(nav.getByRole("link",{name:/^Templates/})).toBeFocused();
+  await expect(page.getByRole("button",{name:"Open navigation"})).toHaveCount(0);
 });

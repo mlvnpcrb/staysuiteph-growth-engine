@@ -6,6 +6,9 @@ import type { CampaignJob, CampaignCommand } from "@staysuite/validation";
 import { campaignListSchema, type CampaignList } from "@staysuite/validation";
 import { campaignCommand } from "./campaign-api";
 export function PostingQueue() {
+  const [activityView, setActivityView] = useState<"upcoming" | "history">(
+    "upcoming",
+  );
   const [list, setList] = useState<CampaignList | null>(null),
     [job, setJob] = useState<CampaignJob | null>(null),
     [error, setError] = useState(""),
@@ -74,17 +77,42 @@ export function PostingQueue() {
       setBusy(false);
     }
   }
+  const campaigns = list?.campaigns.filter((campaign) =>
+    activityView === "history"
+      ? ["completed", "cancelled"].includes(campaign.state)
+      : !["completed", "cancelled"].includes(campaign.state),
+  );
   return (
     <div className="page group-workspace">
       <div className="page-heading">
         <div>
-          <h1>Posting Queue</h1>
+          <h1>Activity</h1>
           <p className="muted">
             Saved campaigns and recorded submission outcomes.
           </p>
         </div>
         <Button asChild variant="outline">
-          <Link href="/dashboard/campaigns">Prepare campaign</Link>
+          <Link href="/dashboard/compose">Prepare campaign</Link>
+        </Button>
+      </div>
+      <div
+        className="reference-activity-switcher"
+        role="group"
+        aria-label="Activity view"
+      >
+        <Button
+          variant={activityView === "upcoming" ? "default" : "ghost"}
+          aria-pressed={activityView === "upcoming"}
+          onClick={() => setActivityView("upcoming")}
+        >
+          Upcoming
+        </Button>
+        <Button
+          variant={activityView === "history" ? "default" : "ghost"}
+          aria-pressed={activityView === "history"}
+          onClick={() => setActivityView("history")}
+        >
+          History
         </Button>
       </div>
       <section className="panel">
@@ -102,16 +130,20 @@ export function PostingQueue() {
           {error}
         </p>
       )}
-      {list && !list.campaigns.length && (
+      {list && !campaigns?.length && (
         <section className="panel empty-state">
-          <h2>No saved campaigns yet</h2>
+          <h2>
+            {activityView === "history"
+              ? "No campaign history yet"
+              : "No upcoming campaigns"}
+          </h2>
           <p>
             Save a campaign to keep its text, selected groups and media
             together.
           </p>
         </section>
       )}
-      {list?.campaigns.map((c) => (
+      {campaigns?.map((c) => (
         <article className="panel" key={c.id}>
           <h2>{c.title || c.plan.text.slice(0, 80)}</h2>
           <p>

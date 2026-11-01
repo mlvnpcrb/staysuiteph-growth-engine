@@ -34,5 +34,5 @@ export async function GET(request: Request) {
   } catch (error) {
     return failure(callbackErrorCategory(error, true));
   }
-  return redirect("/dashboard/overview");
+  return redirect("/dashboard/compose");
 }

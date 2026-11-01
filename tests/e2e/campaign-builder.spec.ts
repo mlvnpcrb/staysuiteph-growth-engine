@@ -39,7 +39,7 @@ test("campaign preparation validates attachments, binds approval and never publi
       },
     });
   });
-  await page.goto("/dashboard/campaigns");
+  await page.goto("/dashboard/compose");
   const approve = page.getByRole("button", {
     name: "Approve plan (not publish)",
   });
@@ -149,7 +149,7 @@ test("text tools, accessible help and reviewed variations work without enabling 
       json: { error: "Campaign storage activation is pending." },
     }),
   );
-  await page.goto("/dashboard/campaigns");
+  await page.goto("/dashboard/compose");
   const field = page.getByLabel("Post text", { exact: true });
   const offer = "Weekend in Makati\n₱2,500/night · 2 guests.";
   await field.fill(offer);

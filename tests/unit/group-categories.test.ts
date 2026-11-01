@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { categorizeGroupName } from "../../apps/extension/lib/group-categories";
+import { categorizeGroupName } from "../../packages/validation/src";
 it("suggests overlapping accommodation categories and explains matched terms",()=>{
   const result=categorizeGroupName("Ｃｅｂｕ AIRBNB / Staycation Hosts & Condo Owners");
   expect(result.map(item=>item.id)).toEqual(["staycation","airbnb","hosts","property"]);

@@ -16,7 +16,7 @@ export async function signIn(form: FormData) {
   const client = await supabaseServer();
   const { error } = await client.auth.signInWithPassword(result.data);
   if (error) redirect("/login?error=credentials");
-  redirect("/dashboard/overview");
+  redirect("/dashboard/compose");
 }
 export async function signOut() {
   if (environment().configured) {

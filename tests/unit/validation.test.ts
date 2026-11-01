@@ -74,7 +74,7 @@ describe("authentication and contracts", () => {
       }).success,
     ).toBe(false);
   });
-  it("defines all ten distinct sections", () => {
+  it("defines ten distinct reference-aligned sections", () => {
     expect(navigation).toHaveLength(10);
     expect(new Set(navigation.map((item) => item.slug)).size).toBe(10);
   });

@@ -44,7 +44,7 @@ it("exchanges the code and ignores caller supplied redirect destinations", async
   expect(mocks.exchange).toHaveBeenCalledWith("test-code");
   expect(mocks.client).toHaveBeenCalledWith({ requireCookieWrites: true });
   expect(response.headers.get("location")).toBe(
-    "http://localhost:3000/dashboard/overview",
+    "http://localhost:3000/dashboard/compose",
   );
   expect(response.headers.get("cache-control")).toBe("private, no-store");
   expect(console.info).not.toHaveBeenCalled();
@@ -146,7 +146,7 @@ it.each(previewHosts)(
       request("?code=sensitive-code-sentinel", `https://${host}`),
     );
     expect(response.headers.get("location")).toBe(
-      `https://${host}/dashboard/overview`,
+      `https://${host}/dashboard/compose`,
     );
     expect(mocks.exchange).toHaveBeenCalledExactlyOnceWith(
       "sensitive-code-sentinel",

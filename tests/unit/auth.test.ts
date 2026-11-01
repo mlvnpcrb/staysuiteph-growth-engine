@@ -72,7 +72,7 @@ describe("auth actions with mocked SDK (not live auth)", () => {
     mocks.login.mockResolvedValue({ error: null });
     const form = credentials();
     form.set("next", "https://evil.example");
-    await expect(signIn(form)).rejects.toThrow("redirect:/dashboard/overview");
+    await expect(signIn(form)).rejects.toThrow("redirect:/dashboard/compose");
     expect(mocks.login).toHaveBeenCalledWith({
       email: "host@example.com",
       password: "valid-test-password",

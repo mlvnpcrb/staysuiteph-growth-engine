@@ -114,13 +114,11 @@ test("popup launches a workspace with Facebook connection independent of StaySui
   await serve(context);
   await bridge(context);
   await page.goto("http://extension-fixture.test/popup.html");
-  await expect(
-    page.getByRole("heading", { name: "Your Facebook groups." }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "All groups" })).toBeVisible();
   const opened = context.waitForEvent("page");
   await page.getByRole("button", { name: "Open full workspace" }).click();
   await expect(
-    (await opened).getByRole("heading", { name: "Your Facebook groups." }),
+    (await opened).getByRole("heading", { name: "All groups" }),
   ).toBeVisible();
 });
 test("denied Facebook permission does not start collection; workspace is accessible in both themes", async ({
@@ -161,7 +159,7 @@ test("Connect Facebook automatically fills the library and reopening restores it
     page.getByText("Group-list pagination completed.", { exact: false }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Save all groups to My Groups" }),
+    page.getByRole("button", { name: "Save all groups to All groups" }),
   ).toBeDisabled();
   await page.reload();
   await expect(page.locator(".workspace-list li")).toHaveCount(12);
@@ -172,7 +170,7 @@ test("Connect Facebook automatically fills the library and reopening restores it
   await expect(page.locator(".workspace-list li")).toHaveCount(1);
 });
 
-test("smart category filters overlap, combine with search, and restore without syncing again", async ({
+test("group search restores without syncing and omits non-reference hospitality categories", async ({
   context,
   page,
 }) => {
@@ -209,19 +207,12 @@ test("smart category filters overlap, combine with search, and restore without s
   });
   await page.reload();
   await expect(page.locator(".workspace-list li")).toHaveCount(5);
-  const filters = page.getByRole("group", {
-    name: "Filter groups by category",
-  });
-  await filters.getByRole("button", { name: /^Staycation 2$/ }).click();
-  await expect(page.locator(".workspace-list li")).toHaveCount(2);
+  await expect(
+    page.getByRole("group", { name: "Filter groups by category" }),
+  ).toHaveCount(0);
   await page.getByRole("searchbox").fill("cebu");
   await expect(page.locator(".workspace-list li")).toHaveCount(1);
-  await filters.getByRole("button", { name: /^Airbnb 1$/ }).click();
-  await expect(page.locator(".workspace-list li")).toHaveCount(1);
-  await page.getByRole("searchbox").fill("");
-  const other = filters.getByRole("button", { name: /^Other 1$/ });
-  await other.focus();
-  await page.keyboard.press("Enter");
+  await page.getByRole("searchbox").fill("book");
   await expect(page.locator(".workspace-list li")).toHaveCount(1);
   await expect(page.locator(".workspace-list")).toContainText(
     "Neighborhood Book Club",
@@ -399,4 +390,3 @@ test("campaign workspace connects the scoped dashboard but never starts an unval
     ),
   ).toBe(true);
 });
-

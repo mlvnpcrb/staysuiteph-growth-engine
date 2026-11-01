@@ -88,6 +88,7 @@ test("saved queue reconciles an explicitly reviewed outcome without retrying", a
     page.getByRole("button", { name: "Review outcome for group 1" }),
   ).toHaveCount(0);
   await page.reload();
+  await page.getByRole("button", { name: "History", exact: true }).click();
   await expect(page.getByText(/completed · Saved/)).toBeVisible();
   expect(writes).toEqual(["inspect", "resolve"]);
 });

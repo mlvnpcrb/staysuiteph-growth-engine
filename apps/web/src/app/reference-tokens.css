@@ -1,0 +1,53 @@
+/* UI values observed in the owner-supplied 2.11.30 appearance.css. */
+:root {
+  color-scheme: light;
+  --font-ui: "Inter", system-ui, sans-serif;
+  --bg: #f8f9fb;
+  --surface: #ffffff;
+  --text: #202936;
+  --muted: #435063;
+  --line: #e2e7ee;
+  --accent: #0c4d9c;
+  --action: #1871e8;
+  --action-hover: #1165d6;
+  --on-action: #ffffff;
+  --selected: #eef5ff;
+  --selected-text: #0c4d9c;
+  --focus: #1871e8;
+  --success: #16634b;
+  --success-surface: #e8f5ee;
+  --warning: #855408;
+  --warning-surface: #fff5dc;
+  --danger: #a52835;
+  --danger-surface: #fff0f1;
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius: 0.75rem;
+  --motion-feedback: 160ms;
+  --background: 220 27% 98%;
+  --foreground: 215 26% 17%;
+  --primary: 214 82% 50%;
+  --primary-foreground: 0 0% 100%;
+  --border: 215 26% 91%;
+}
+.dark {
+  color-scheme: dark;
+  --bg: #202328;
+  --surface: #2a2e34;
+  --text: #f8fafc;
+  --muted: #dde4ed;
+  --line: #49515d;
+  --accent: #9bc4ff;
+  --action: #79acff;
+  --action-hover: #95bdff;
+  --on-action: #13253e;
+  --selected: #2b3a50;
+  --selected-text: #9bc4ff;
+  --focus: #79acff;
+  --success: #9ae2bd;
+  --success-surface: #153d32;
+  --warning: #f5d083;
+  --warning-surface: #3d321a;
+  --danger: #ffb6c0;
+  --danger-surface: #482735;
+}

@@ -276,7 +276,7 @@ export function CampaignTextEditor({
           setUndo(null);
           onChange(event.target.value);
         }}
-        placeholder="Describe your accommodation, location, dates and offer."
+        placeholder="Write your post here..."
       />
       <div className="campaign-editor-meta">
         <span>{value.length.toLocaleString()}/10,000 characters</span>

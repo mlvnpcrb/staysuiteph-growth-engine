@@ -1,403 +1,321 @@
 "use client";
-import { MarketingAnalysis } from "./marketing-analysis";
-import { assessPostingPriority, categorizeGroupName, groupCategories, type GroupCategoryId, rankGroupMarketing } from "@staysuite/validation";
-import { CollectionImport } from "./collection-import";
-import { useState } from "react";
-import Link from "next/link";
+import { useEffect, useState } from "react";
 import { ExternalLink } from "lucide-react";
 import { Button } from "@staysuite/ui";
 import type { SavedGroup } from "@staysuite/types";
-import { effectiveReview } from "@staysuite/validation";
+import {
+  effectiveReview,
+  marketingEvidenceSchema,
+} from "@staysuite/validation";
 import { groupRequest, useGroups } from "./use-groups";
+import { CollectionImport } from "./collection-import";
+
 function GroupEntry({
   group,
-  onRefresh,
-  onMessage,
+  reload,
+  notify,
 }: {
   group: SavedGroup;
-  onRefresh: () => Promise<void>;
-  onMessage: (s: string) => void;
+  reload: () => Promise<void>;
+  notify: (message: string) => void;
 }) {
-  const [busy, setBusy] = useState(false);
-  const [confirm, setConfirm] = useState(false);
-  const [error, setError] = useState("");
-  const [confirmReview, setConfirmReview] = useState(false);
-  const [notes, setNotes] = useState(group.notes);
+  const [open, setOpen] = useState(false);
   const [rules, setRules] = useState(group.rule_evidence);
   const [status, setStatus] = useState(group.review_status);
-  const [destination, setDestination] = useState(group.destination);
-  const [accommodation, setAccommodation] = useState(group.accommodation);
-  const [audience, setAudience] = useState(group.audience);
+  const [confirmed, setConfirmed] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [remove, setRemove] = useState(false);
+  const existing = marketingEvidenceSchema.safeParse(
+    group.marketing_evidence ?? {},
+  );
+  const [permission, setPermission] = useState(
+    existing.success && existing.data.promotion_allowed !== null
+      ? String(existing.data.promotion_allowed)
+      : "unknown",
+  );
+  useEffect(() => {
+    const reveal = () => {
+      if (window.location.hash === `#group-${group.id}`) setOpen(true);
+    };
+    reveal();
+    window.addEventListener("hashchange", reveal);
+    return () => window.removeEventListener("hashchange", reveal);
+  }, [group.id]);
+  async function save(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setError("");
+    try {
+      if (!confirmed && permission !== "unknown")
+        throw new Error(
+          "Confirm that you personally checked these requirements today.",
+        );
+      await groupRequest("PATCH", {
+        id: group.id,
+        notes: group.notes,
+        rule_evidence: rules,
+        review_status: status,
+        confirm_review: confirmed,
+      });
+      if (confirmed)
+        await groupRequest("PATCH", {
+          id: group.id,
+          operation: "marketing_evidence",
+          marketing_evidence: {
+            ...(existing.success
+              ? existing.data
+              : marketingEvidenceSchema.parse({})),
+            observed_at: new Date().toISOString(),
+            source_url: group.url,
+            promotion_allowed:
+              permission === "unknown" ? null : permission === "true",
+          },
+        });
+      setConfirmed(false);
+      notify("Posting requirements saved.");
+      await reload();
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Requirements could not be saved.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
   return (
-    <article className="panel saved-group">
-      <div className="section-heading">
-        <div>
-          <span className="subtle-badge">
-            {effectiveReview(group) === "reviewed"
-              ? "Personally reviewed"
-              : effectiveReview(group) === "not_suitable"
-                ? "Not suitable"
-                : "Rules need review"}
-          </span>
+    <article id={`group-${group.id}`} className="panel saved-group">
+      <div className="group-row reference-group-row">
+        <div className="group-row-name">
           <h2>{group.title}</h2>
+          <span className="muted">Members unavailable</span>
         </div>
-        <a
-          aria-label={`Open ${group.title} on Facebook`}
-          href={group.url}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <ExternalLink size={19} />
-        </a>
+        <span className={`review-pill review-${effectiveReview(group)}`}>
+          {effectiveReview(group) === "reviewed"
+            ? "Personally reviewed"
+            : effectiveReview(group) === "not_suitable"
+              ? "Not suitable"
+              : "Rules need review"}
+        </span>
+        <div className="group-row-actions">
+          <Button
+            variant="outline"
+            aria-label={`Posting requirements: ${group.title}`}
+            aria-expanded={open}
+            aria-controls={`requirements-${group.id}`}
+            onClick={() => setOpen(!open)}
+          >
+            Posting requirements<span className="sr-only">: {group.title}</span>
+          </Button>
+          <a
+            className="group-external"
+            href={group.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Open ${group.title} on Facebook`}
+          >
+            <ExternalLink size={18} />
+          </a>
+        </div>
       </div>
-      <div className="smart-category-labels" aria-label="Suggested categories">{categorizeGroupName(group.title).map(match=><span className="subtle-badge" key={match.id} title={match.matchedTerms.length?`Name contains: ${match.matchedTerms.join(", ")}`:"No category keyword matched this name"}>{match.label}</span>)}</div>
-      <p className="muted">
-        {[group.destination, group.accommodation, group.audience]
-          .filter(Boolean)
-          .join(" · ") || "Add hosting context when you’re ready"}
-      </p>
-      <p className="muted text-sm">
-        Source: manually supplied, not independently verified. Saved{" "}
-        {new Date(group.created_at).toLocaleDateString("en-PH", {
-          timeZone: "Asia/Manila",
-        })}
-        .
-      </p>
-      <MarketingAnalysis
-        group={group}
-        onRefresh={onRefresh}
-        onMessage={onMessage}
-      />
-      {group.evidence && (
-        <blockquote className="group-evidence">{group.evidence}</blockquote>
-      )}
-      <details>
-        <summary>Notes &amp; rule review</summary>
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            setBusy(true);
-            setError("");
-            try {
-              await groupRequest("PATCH", {
-                id: group.id,
-                notes,
-                review_status: status,
-                rule_evidence: rules,
-                confirm_review: confirmReview,
-                destination,
-                accommodation,
-                audience,
-              });
-              onMessage("Notes and review saved.");
-              await onRefresh();
-            } catch (e) {
-              setError(
-                e instanceof Error ? e.message : "Changes could not be saved.",
-              );
-            } finally {
-              setBusy(false);
-            }
-          }}
-        >
-          <h3>Hosting context (optional)</h3>
+      <div
+        id={`requirements-${group.id}`}
+        className="group-detail"
+        hidden={!open}
+      >
+        <form onSubmit={save}>
           <label>
-            Destination
-            <input
-              value={destination}
-              maxLength={100}
-              onChange={(e) => setDestination(e.target.value)}
+            Group rules
+            <textarea
+              value={rules}
+              maxLength={4000}
+              rows={3}
+              onChange={(event) => {
+                setRules(event.target.value);
+                setStatus("review_required");
+              }}
             />
           </label>
           <label>
-            Accommodation
+            Review status
             <select
-              value={accommodation}
-              onChange={(e) => setAccommodation(e.target.value)}
+              value={status}
+              onChange={(event) =>
+                setStatus(event.target.value as SavedGroup["review_status"])
+              }
             >
-              {[
-                "",
-                "Condo",
-                "Apartment",
-                "Hotel",
-                "Resort",
-                "Vacation rental",
-              ].map((v) => (
-                <option value={v} key={v}>
-                  {v || "Not set"}
-                </option>
-              ))}
+              <option value="review_required">Needs review</option>
+              <option value="reviewed">Personally reviewed</option>
+              <option value="not_suitable">Not suitable</option>
             </select>
           </label>
           <label>
-            Audience
+            Promotional posts allowed
             <select
-              value={audience}
-              onChange={(e) => setAudience(e.target.value)}
+              value={permission}
+              onChange={(event) => setPermission(event.target.value)}
             >
-              <option value="">Not set</option>
-              <option>Guests</option>
-              <option>Hosts</option>
+              <option value="unknown">Unknown</option>
+              <option value="true">Yes, personally checked</option>
+              <option value="false">No</option>
             </select>
           </label>
-          <label htmlFor={`notes-${group.id}`}>Private notes</label>
-          <textarea
-            id={`notes-${group.id}`}
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={3}
-            maxLength={4000}
-          />
-          <Button type="button" variant="outline" onClick={() => setNotes("")}>
-            Clear notes
-          </Button>
-          <p className="muted text-sm">
-            Clear the text and save changes to remove your notes.
-          </p>
-          <label htmlFor={`rules-${group.id}`}>
-            Rules you personally reviewed
-          </label>
-          <textarea
-            id={`rules-${group.id}`}
-            value={rules}
-            onChange={(e) => {
-              setRules(e.target.value);
-              setStatus("review_required");
-            }}
-            rows={4}
-            maxLength={4000}
-            placeholder="Record the rule excerpt and any approval, membership or frequency requirements."
-          />
-          <label htmlFor={`status-${group.id}`}>Review status</label>
-          <select
-            id={`status-${group.id}`}
-            value={status}
-            onChange={(e) =>
-              setStatus(e.target.value as SavedGroup["review_status"])
-            }
-          >
-            <option value="review_required">Needs review</option>
-            <option value="reviewed">Personally reviewed</option>
-            <option value="not_suitable">Not suitable</option>
-          </select>
-          <p className="muted text-sm">
-            Last personally reviewed:{" "}
-            {group.last_reviewed_at
-              ? new Date(group.last_reviewed_at).toLocaleDateString("en-PH", {
-                  timeZone: "Asia/Manila",
-                })
-              : "Not yet"}
-            . Reviews need refreshing after 30 days. Reviewed does not mean
-            permission to publish.
-          </p>
           <label className="review-confirm">
             <input
               type="checkbox"
-              checked={confirmReview}
-              onChange={(e) => setConfirmReview(e.target.checked)}
+              checked={confirmed}
+              onChange={(event) => setConfirmed(event.target.checked)}
             />
-            I personally reviewed these rules today
+            I personally checked these requirements today
           </label>
+          <p className="muted text-sm">
+            This records your review. It does not establish membership or
+            guarantee posting permission.
+          </p>
           <Button type="submit" disabled={busy}>
-            {busy ? "Saving…" : "Save changes"}
+            {busy ? "Saving…" : "Save requirements"}
           </Button>
         </form>
-      </details>
-      <div className="group-actions">
-        {confirm ? (
-          <>
-            <span>Remove from your shortlist?</span>
-            <Button
-              variant="outline"
-              disabled={busy}
-              onClick={async () => {
-                setBusy(true);
-                setError("");
-                try {
-                  await groupRequest("DELETE", { id: group.id });
-                  onMessage("Group removed from your shortlist.");
-                  await onRefresh();
-                } catch {
-                  setError("Group could not be removed. Please retry.");
-                } finally {
-                  setBusy(false);
-                  setConfirm(false);
-                }
-              }}
-            >
-              Confirm removal
+        <div className="group-actions">
+          {remove ? (
+            <>
+              <span>Remove this group from your list?</span>
+              <Button
+                variant="outline"
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  try {
+                    await groupRequest("DELETE", { id: group.id });
+                    notify("Group removed.");
+                    await reload();
+                  } catch {
+                    setError("Group could not be removed.");
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                Confirm removal
+              </Button>
+              <Button variant="outline" onClick={() => setRemove(false)}>
+                Keep group
+              </Button>
+            </>
+          ) : (
+            <Button variant="outline" onClick={() => setRemove(true)}>
+              Remove group
             </Button>
-            <Button variant="outline" onClick={() => setConfirm(false)}>
-              Keep group
-            </Button>
-          </>
-        ) : (
-          <Button variant="outline" onClick={() => setConfirm(true)}>
-            Remove group
-          </Button>
-        )}
+          )}
+        </div>
+        {error ? (
+          <p role="alert" className="group-error">
+            {error}
+          </p>
+        ) : null}
       </div>
-      {error && (
-        <p role="alert" className="group-error">
-          {error}
-        </p>
-      )}
     </article>
   );
 }
 export function MyGroups() {
   const { groups, stats, loading, error, reload } = useGroups();
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState("newest");
   const [message, setMessage] = useState("");
-  const [filter, setFilter] = useState("");
-  const [review, setReview] = useState("all");
-  const [sort, setSort] = useState("marketing");
-  const [category, setCategory] = useState<GroupCategoryId|"all">("all");
-  const categories = new Map(groups.map(group=>[group.id,categorizeGroupName(group.title)]));
-  const categoryCounts = new Map<GroupCategoryId,number>();
-  for(const matches of categories.values())for(const match of matches)categoryCounts.set(match.id,(categoryCounts.get(match.id)??0)+1);
-  const [permission, setPermission] = useState("all");
-  const reports = new Map(groups.map((g) => [g.id, rankGroupMarketing(g)]));
   const visible = groups
-    .filter(group=>category==="all"||categories.get(group.id)?.some(match=>match.id===category))
-    .filter(
-      (g) =>
-        `${g.title} ${g.destination}`
-          .toLowerCase()
-          .includes(filter.toLowerCase()) &&
-        (review === "all" || effectiveReview(g) === review),
-    )
-    .filter(
-      (g) =>
-        permission === "all" || reports.get(g.id)?.readiness === permission,
-    )
-    .sort((a, b) => {
-      if (sort === "newest") return b.created_at.localeCompare(a.created_at);
-      const left = reports.get(a.id)!,
-        right = reports.get(b.id)!;
-      if (sort === "coverage") return right.coverage - left.coverage;
-      const priority = { reviewed_permission: 2, needs_review: 1, blocked: 0 };
-      return (
-        priority[right.readiness] - priority[left.readiness] ||
-        (right.score ?? -1) - (left.score ?? -1) ||
-        right.coverage - left.coverage ||
-        assessPostingPriority(b).priority - assessPostingPriority(a).priority ||
-        a.title.localeCompare(b.title)
-      );
-    });
+    .filter((group) => group.title.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) =>
+      sort === "name"
+        ? a.title.localeCompare(b.title)
+        : sort === "oldest"
+          ? a.created_at.localeCompare(b.created_at)
+          : b.created_at.localeCompare(a.created_at),
+    );
   return (
     <div className="page group-workspace">
       <div className="page-heading">
         <div>
-          <span className="eyebrow">Your community shortlist</span>
-          <h1>My Groups</h1>
-          <p className="muted">Keep the context, not just the link.</p>
+          <h1>All groups</h1>
+          <p className="muted">Your Facebook group library.</p>
         </div>
-        <Button asChild variant="outline">
-          <Link href="/dashboard/group-finder">Find more groups</Link>
-        </Button>
       </div>
       <CollectionImport onImported={reload} />
-      <section className="panel smart-group-categories" aria-label="Smart group categories"><div role="group" aria-label="Filter groups by category" className="smart-category-filters"><button type="button" aria-pressed={category==="all"} onClick={()=>setCategory("all")}>All <span>{groups.length}</span></button>{groupCategories.map(item=><button type="button" key={item.id} aria-pressed={category===item.id} onClick={()=>setCategory(item.id)}>{item.label} <span>{categoryCounts.get(item.id)??0}</span></button>)}</div><p className="muted text-sm">Suggested from group names. Groups can appear in multiple categories. These labels do not verify rules or permission to post.</p></section>
-      <div id="saved-groups" className="panel finder-fields">
+      <div className="panel reference-group-filters">
         <label>
-          Filter saved groups
+          Search groups
           <input
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            placeholder="Name or destination"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search by name"
           />
         </label>
         <label>
-          Rules status
-          <select value={review} onChange={(e) => setReview(e.target.value)}>
-            <option value="all">All groups</option>
-            <option value="review_required">Needs review</option>
-            <option value="reviewed">Personally reviewed</option>
-            <option value="not_suitable">Not suitable</option>
-          </select>
-        </label>
-        <label>
-          Rank groups
-          <select value={sort} onChange={(e) => setSort(e.target.value)}>
-            <option value="marketing">Marketing priority</option>
-            <option value="coverage">Evidence coverage</option>
-            <option value="newest">Newest saved</option>
-          </select>
-        </label>
-        <label>
-          Permission review
+          Sort groups
           <select
-            value={permission}
-            onChange={(e) => setPermission(e.target.value)}
+            value={sort}
+            onChange={(event) => setSort(event.target.value)}
           >
-            <option value="all">All groups</option>
-            <option value="reviewed_permission">Reviewed permission</option>
-            <option value="needs_review">Needs review</option>
-            <option value="blocked">Blocked</option>
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="name">Name A–Z</option>
           </select>
         </label>
       </div>
-      <p className="muted text-sm">
-        Marketing priority puts reviewed permission first, blocked groups last,
-        then compares evidence-based scores and name-based posting recommendations. Ranking covers the loaded
-        shortlist, not predicted bookings. Unknown evidence never adds points.
-      </p>
-      {loading && (
-        <div className="panel" role="status">
-          Loading your saved groups…
-        </div>
-      )}
-      {error && (
-        <section className="panel">
+      {loading ? <p role="status">Loading groups…</p> : null}
+      {error ? (
+        <div className="panel">
           <p role="alert" className="group-error">
             {error}
           </p>
           <Button variant="outline" onClick={() => void reload()}>
             Retry loading
           </Button>
-        </section>
-      )}
-      {message && (
+        </div>
+      ) : null}
+      {message ? (
         <p role="status" className="group-success">
           {message}
         </p>
-      )}
-      {!loading &&
-        !error &&
-        (visible.length ? (
-          <>
-            <p className="muted text-sm">
-              {visible.length} of {stats.total} saved groups shown. Up to 500
-              recent groups.
-            </p>
-            <div className="saved-grid">
-              {visible.map((g) => (
-                <GroupEntry
-                  key={`${g.id}-${g.updated_at}`}
-                  group={g}
-                  onRefresh={reload}
-                  onMessage={setMessage}
-                />
-              ))}
-            </div>
-          </>
-        ) : (
-          <section className="panel empty-state">
-            <h2>
-              {groups.length
-                ? "No groups match these filters."
-                : "Your shortlist starts with one good group."}
-            </h2>
-            <p className="muted">
-              {groups.length
-                ? "Try another category, search, or review status."
-                : "Search for communities and save a real group link in Group Finder."}
-            </p>
-            <Button asChild>
-              <Link href="/dashboard/group-finder">Explore Group Finder</Link>
-            </Button>
-          </section>
-        ))}
+      ) : null}
+      {!loading && !error ? (
+        <>
+          <p className="muted text-sm">
+            {visible.length} of {stats.total} groups shown. Up to 500 recent
+            groups.
+          </p>
+          <div className="saved-grid">
+            {visible.map((group) => (
+              <GroupEntry
+                key={group.id}
+                group={group}
+                reload={reload}
+                notify={setMessage}
+              />
+            ))}
+          </div>
+          {!visible.length ? (
+            <section className="panel empty-state">
+              <h2>
+                {groups.length
+                  ? "No groups match your search."
+                  : "No groups imported yet."}
+              </h2>
+              <p>
+                {groups.length
+                  ? "Try another group name."
+                  : "Connect your extension and import your Facebook groups above."}
+              </p>
+              {groups.length ? (
+                <Button variant="outline" onClick={() => setSearch("")}>
+                  Clear search
+                </Button>
+              ) : null}
+            </section>
+          ) : null}
+        </>
+      ) : null}
     </div>
   );
 }

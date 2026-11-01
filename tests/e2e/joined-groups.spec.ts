@@ -218,16 +218,14 @@ test("My Groups previews duplicates, imports without hosting context, and preser
       exact: true,
     }),
   });
-  await entry.getByText("Notes & rule review").click();
-  await entry.getByLabel("Destination", { exact: true }).fill("Bohol");
+  await entry.getByRole("button", { name: /^Posting requirements:/ }).click();
   await entry
-    .getByRole("combobox", { name: "Accommodation", exact: true })
-    .selectOption("Resort");
-  await entry
-    .getByRole("combobox", { name: "Audience", exact: true })
-    .selectOption("Hosts");
-  await entry.getByRole("button", { name: "Save changes" }).click();
-  await expect(entry.getByText("Bohol · Resort · Hosts")).toBeVisible();
+    .getByLabel("Group rules", { exact: true })
+    .fill("Admin approval is required.");
+  await entry.getByRole("button", { name: "Save requirements" }).click();
+  await expect(
+    page.getByRole("status").filter({ hasText: "Posting requirements saved." }),
+  ).toBeVisible();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -296,7 +294,9 @@ test("connection states are honest and foreign or malformed transfers cannot wri
     importer.getByText("Extension needed", { exact: true }),
   ).toBeVisible();
   // The initial label can render before the receiver effect has subscribed.
-  await expect(page.locator("[data-staysuite-group-receiver=ready]")).toBeVisible();
+  await expect(
+    page.locator("[data-staysuite-group-receiver=ready]"),
+  ).toBeVisible();
   await page.evaluate(() =>
     window.postMessage({ type: "STAYSUITE_EXTENSION_HELLO" }, location.origin),
   );
@@ -368,7 +368,9 @@ test("import preview supports filtering, optional reselection and both accessibl
     // Audit the settled theme, rather than an intermediate transition color.
     await page.evaluate(async () => {
       await Promise.all(
-        document.getAnimations().map((animation) => animation.finished.catch(() => {})),
+        document
+          .getAnimations()
+          .map((animation) => animation.finished.catch(() => {})),
       );
     });
     expect(
@@ -378,10 +380,17 @@ test("import preview supports filtering, optional reselection and both accessibl
   }
 });
 
-test("hidden and non-modal dialogs do not impersonate an account restriction", async ({page}) => {
-  await page.route("https://www.facebook.com/**", route => route.fulfill({contentType:"text/html",body:'<main><a href="/groups/hosts/">Hosts directory</a></main><div role="dialog" hidden aria-modal="true">Hidden dialog</div><div role="dialog">Chat panel</div><iframe title="captcha" hidden></iframe>'}));
+test("hidden and non-modal dialogs do not impersonate an account restriction", async ({
+  page,
+}) => {
+  await page.route("https://www.facebook.com/**", (route) =>
+    route.fulfill({
+      contentType: "text/html",
+      body: '<main><a href="/groups/hosts/">Hosts directory</a></main><div role="dialog" hidden aria-modal="true">Hidden dialog</div><div role="dialog">Chat panel</div><iframe title="captcha" hidden></iframe>',
+    }),
+  );
   await page.goto("https://www.facebook.com/groups/joins/");
-  const result=await page.evaluate(collectVisibleGroups);
+  const result = await page.evaluate(collectVisibleGroups);
   expect(result).toHaveProperty("groups");
   expect(result).not.toHaveProperty("error");
 });

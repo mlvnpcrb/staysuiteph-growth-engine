@@ -3,7 +3,7 @@ import { Providers } from "@/components/providers";
 import "./globals.css";
 export const metadata: Metadata = {
   title: { default: "StaySuite · Growth Engine", template: "%s · StaySuite" },
-  description: "A thoughtful workspace for Philippine accommodation hosts.",
+  description: "Group posting, automations, and activity.",
 };
 export default function RootLayout({
   children,

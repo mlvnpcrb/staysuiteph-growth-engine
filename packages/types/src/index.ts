@@ -2,54 +2,80 @@ import type { CampaignJobRow, Json } from "./campaigns";
 import type { MarketingEvidence, SavedGroup } from "./groups";
 export const navigation = [
   {
-    slug: "overview",
-    label: "Overview",
-    description: "Your workspace at a glance.",
+    slug: "compose",
+    label: "Compose",
+    category: "primary",
+    availability: "available",
+    description: "Write a post and select its groups.",
   },
   {
-    slug: "group-finder",
-    label: "Group Finder",
-    description: "Find the right communities for your next stay.",
+    slug: "templates",
+    label: "Templates",
+    category: "primary",
+    availability: "planned",
+    description:
+      "Reusable post templates from the reference. Not implemented yet.",
   },
   {
-    slug: "my-groups",
-    label: "My Groups",
-    description: "Keep your communities and their rules in one place.",
-  },
-  {
-    slug: "ai-post-studio",
-    label: "AI Post Studio",
-    description: "Turn a property story into a thoughtful draft.",
-  },
-  {
-    slug: "campaigns",
-    label: "Campaigns",
-    description: "Plan meaningful outreach, one group at a time.",
-  },
-  {
-    slug: "posting-queue",
-    label: "Posting Queue",
-    description: "Review your next steps before you publish.",
+    slug: "automations",
+    label: "Automations",
+    category: "primary",
+    availability: "partial",
+    description:
+      "Saved campaigns. Recurring schedules and multi-step flows are not implemented yet.",
   },
   {
     slug: "lead-radar",
     label: "Lead Radar",
-    description: "A future home for guest enquiries you choose to save.",
+    category: "primary",
+    availability: "planned",
+    description:
+      "Keyword monitoring, lead review, and replies. Not implemented yet.",
   },
   {
-    slug: "analytics",
-    label: "Analytics",
-    description: "Understand your activity when real data is connected.",
+    slug: "activity",
+    label: "Activity",
+    category: "primary",
+    availability: "partial",
+    description:
+      "Campaign queue and recorded outcomes. Calendar and full History parity are incomplete.",
+  },
+  {
+    slug: "my-groups",
+    label: "All groups",
+    category: "tools",
+    availability: "available",
+    description: "Your Facebook group library.",
+  },
+  {
+    slug: "group-finder",
+    label: "AI Group Finder",
+    category: "tools",
+    availability: "planned",
+    description:
+      "The reference discovery and AI ranking workflow is not implemented yet.",
+  },
+  {
+    slug: "ai-post-studio",
+    label: "AI Studio",
+    category: "tools",
+    availability: "planned",
+    description: "AI writing and business context are not connected yet.",
   },
   {
     slug: "account-safety",
-    label: "Account Safety",
-    description: "Stay informed and keep every action in your control.",
+    label: "Safety",
+    category: "support",
+    availability: "available",
+    description: "Posting requirements and validation status.",
   },
   {
     slug: "settings",
     label: "Settings",
-    description: "Your workspace, preferences, and connection status.",
+    category: "support",
+    availability: "partial",
+    description:
+      "Appearance and extension connection. Full reference settings are incomplete.",
   },
 ] as const;
 export type Section = (typeof navigation)[number]["slug"];
@@ -146,4 +172,3 @@ export type {
 } from "./groups";
 
 export type { CampaignJobRow, Json } from "./campaigns";
-

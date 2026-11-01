@@ -16,12 +16,12 @@ try {
   const {id}=await session.send("Extensions.loadUnpacked",{path:extensionPath});
   const popup=await context.newPage();const errors=[];popup.on("pageerror",error=>errors.push(error.message));
   await popup.goto(`chrome-extension://${id}/popup.html`);
-  await expect(popup.getByRole("heading",{name:"Your Facebook groups."})).toBeVisible();
+  await expect(popup.getByRole("heading",{name:"All groups"})).toBeVisible();
   const opened=context.waitForEvent("page");await popup.getByRole("button",{name:"Open full workspace"}).click();
   const workspace=await opened;
-  await expect(workspace.getByRole("heading",{name:"Your Facebook groups."})).toBeVisible();
+  await expect(workspace.getByRole("heading",{name:"All groups"})).toBeVisible();
   await expect(workspace.getByRole("button",{name:"Sync Groups"})).toBeEnabled();
-  await expect(workspace.getByRole("button",{name:"Save all groups to My Groups"})).toBeDisabled();
+  await expect(workspace.getByRole("button",{name:"Save all groups to All groups"})).toBeDisabled();
   if(errors.length)throw new Error("Extension launch produced runtime errors.");
   await workspace.close();await popup.close();
 
