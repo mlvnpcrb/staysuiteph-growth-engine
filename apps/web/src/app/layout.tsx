@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Providers } from "@/components/providers";
 import "./globals.css";
+import "./reference-compose.css";
 export const metadata: Metadata = {
   title: { default: "StaySuite · Growth Engine", template: "%s · StaySuite" },
   description: "Group posting, automations, and activity.",

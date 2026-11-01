@@ -75,7 +75,7 @@ test("templates persist, edit, duplicate, reopen in Compose and delete", async (
   await expect(
     page.getByText("No templates yet.", { exact: false }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "New template" }).click();
+  await page.getByRole("button", { name: "Create Template" }).click();
   await page.getByLabel("Template name").fill("Weekend offer");
   await page
     .getByLabel("Post text", { exact: true })
@@ -98,7 +98,9 @@ test("templates persist, edit, duplicate, reopen in Compose and delete", async (
     .getByRole("button", { name: "Save template", exact: true })
     .click();
   await expect(
-    page.getByText("Updated weekend offer.", { exact: true }),
+    page
+      .locator(".reference-template-preview")
+      .getByText("Updated weekend offer.", { exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Duplicate", exact: true }).click();
   await expect(
@@ -112,11 +114,14 @@ test("templates persist, edit, duplicate, reopen in Compose and delete", async (
   await expect(page.getByLabel("Post text", { exact: true })).toHaveValue(
     "Updated weekend offer.",
   );
+  await page.getByRole("button", { name: "Preview", exact: true }).click();
   await expect(
     page.getByRole("checkbox", { name: /I reviewed this exact text/ }),
   ).not.toBeChecked();
+  await page.getByRole("button", { name: "Close post review" }).click();
   expect(writes).toBe(3);
   await page.goto("/dashboard/templates");
+  await page.getByRole("button", { name: /^Weekend offer \(copy\)/ }).click();
   page.on("dialog", (dialog) => dialog.accept());
   await page
     .getByRole("button", { name: "Delete", exact: true })
@@ -146,7 +151,7 @@ test("templates preserve unsaved text on backend errors", async ({ page }) => {
     }),
   );
   await page.goto("/dashboard/templates");
-  await page.getByRole("button", { name: "New template" }).click();
+  await page.getByRole("button", { name: "Create Template" }).click();
   await page.getByLabel("Template name").fill("Unsaved");
   await page.getByLabel("Post text", { exact: true }).fill("Keep this text");
   await page
@@ -250,7 +255,7 @@ test("template attachments upload privately, finalize and restore verified media
     return route.fulfill({ json: { template: current, viewer_id: viewer } });
   });
   await page.goto("/dashboard/templates");
-  await page.getByRole("button", { name: "New template" }).click();
+  await page.getByRole("button", { name: "Create Template" }).click();
   await page.getByLabel("Template name").fill("Photo offer");
   await page.getByLabel("Post text", { exact: true }).fill("A photo offer.");
   await page

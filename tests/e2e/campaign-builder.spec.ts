@@ -40,22 +40,34 @@ test("campaign preparation validates attachments, binds approval and never publi
     });
   });
   await page.goto("/dashboard/compose");
+  await page.getByRole("button", { name: "Preview", exact: true }).click();
   const approve = page.getByRole("button", {
     name: "Approve plan (not publish)",
+    includeHidden: true,
   });
   await expect(approve).toBeDisabled();
+  await page.getByRole("button", { name: "Close post review" }).click();
   await page
     .getByLabel("Post text", { exact: true })
     .fill("Demo accommodation offer");
+  await page
+    .getByRole("button", { name: "Advanced selector", exact: true })
+    .click();
   await page.getByRole("checkbox", { name: /Demo Staycation Group/ }).check();
+  await page
+    .getByRole("button", { name: "Done selecting groups", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Post Now", exact: true }).click();
   const consent = page.getByRole("checkbox", {
     name: /I reviewed this exact text/,
+    includeHidden: true,
   });
   await consent.check();
   await approve.click();
   await expect(page.getByRole("status")).toContainText(
     "No posts have been sent",
   );
+  await page.getByRole("button", { name: "Close post review" }).click();
   await page
     .getByLabel("Post text", { exact: true })
     .fill("Changed demo offer");
@@ -96,10 +108,15 @@ test("campaign preparation validates attachments, binds approval and never publi
     page.getByRole("img", { name: "Attachment 1: demo.png" }),
   ).toHaveCount(0);
   await expect(
-    page.getByRole("button", { name: /Start bulk posting/ }),
+    page.getByRole("button", {
+      name: /Start bulk posting/,
+      includeHidden: true,
+    }),
   ).toBeDisabled();
+  await page.getByRole("button", { name: "Preview", exact: true }).click();
   await page.getByText("Media help", { exact: true }).click();
   await expect(page.getByText(/Files stay in this browser tab/)).toBeVisible();
+  await page.getByRole("button", { name: "Close post review" }).click();
   for (const scheme of ["light", "dark"] as const) {
     if (scheme === "dark")
       await page.getByRole("button", { name: "Toggle color theme" }).click();
@@ -194,10 +211,17 @@ test("text tools, accessible help and reviewed variations work without enabling 
     page.getByRole("button", { name: "Use this variation", exact: true }),
   ).toBeDisabled();
   await expect(
-    page.getByRole("button", { name: "Save campaign privately", exact: true }),
+    page.getByRole("button", {
+      name: "Save campaign privately",
+      exact: true,
+      includeHidden: true,
+    }),
   ).toBeDisabled();
   await expect(
-    page.getByRole("button", { name: /Start bulk posting/ }),
+    page.getByRole("button", {
+      name: /Start bulk posting/,
+      includeHidden: true,
+    }),
   ).toBeDisabled();
   await page.screenshot({
     path: testInfo.outputPath("campaign-text-tools.png"),

@@ -48,3 +48,7 @@ This cleanup must not be reported as “100% similar” or “all features recre
 - Browser checks use isolated fixtures. No real Facebook publication, hosted Google session, vendor AI/license backend, or end-to-end live parity was verified.
 
 Screenshots of the actual built Compose interface and a packaged extension preview are saved as separate review artifacts. Passing these checks validates the cleanup and retained workflows, not 100% reference-feature completion.
+
+## Frontend reconstruction follow-up
+
+The subsequent Compose/Templates reconstruction follows the ZIP’s audience-first form, compact navigation, source icon font, header tools menu, editor/attachment frame, advanced-settings disclosure, and split template library. Existing template and campaign services are retained. See `REFERENCE_FRONTEND_RECONSTRUCTION.md` for verified controls and explicit gaps; this is not complete per-screen or functional parity.

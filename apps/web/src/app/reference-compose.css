@@ -1,0 +1,1077 @@
+/* Final Compose/navigation rules observed in the owner-provided 2.11.30 popup.css.
+   DOM is rebuilt in React; no vendor runtime or remote services are loaded. */
+.reference-workspace {
+  max-width: 780px;
+  padding: 15px 30px;
+  margin: 0 auto;
+}
+.reference-header {
+  height: 54px;
+  margin: -15px -30px 10px;
+  padding: 0 15px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  gap: 8px;
+}
+.reference-wordmark {
+  font-size: 20px;
+  letter-spacing: -0.5px;
+}
+.reference-primary-nav {
+  height: 46px;
+  margin: 0 0 16px;
+  padding: 4px;
+  gap: 3px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg);
+  box-shadow: none;
+  flex-wrap: nowrap;
+}
+.reference-primary-nav > .reference-nav-link {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  padding: 0 5px;
+  gap: 6px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.reference-primary-nav > .reference-nav-link svg {
+  width: 13px;
+  height: 13px;
+  flex: none;
+}
+.reference-primary-nav > .reference-nav-link.active {
+  border-color: var(--line);
+  background: var(--surface);
+  color: var(--selected-text);
+  font-weight: 750;
+  box-shadow: 0 1px 2px rgb(12 14 20 / 6%);
+}
+.reference-primary-nav > .reference-nav-link.active::after {
+  content: "";
+  position: absolute;
+  right: 28%;
+  bottom: 2px;
+  left: 28%;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--action);
+}
+.reference-tool-nav {
+  margin: 0 0 12px;
+  gap: 0;
+}
+.reference-tool-nav .reference-nav-link {
+  padding: 6px 9px;
+  min-height: 32px;
+}
+.reference-workspace .campaign-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 18px 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.reference-compose-heading {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.campaign-editor:not([hidden]) {
+  display: contents;
+}
+.reference-workspace .campaign-workspace .panel {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  margin: 0 0 20px;
+}
+.gpp-compose-top-row {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  margin-bottom: 12px;
+  width: 100%;
+}
+.posting-as-chip {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  max-width: 100%;
+  min-width: 0;
+  padding: 9px 11px 9px 13px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line);
+  border-radius: 13px;
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgb(16 24 40 / 5%);
+}
+.pa-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--muted);
+  flex: none;
+}
+.pa-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.pa-label {
+  font-size: 11px;
+  color: var(--muted);
+}
+.pa-name {
+  font-size: 13px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.gpp-identity-change {
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 8px;
+  color: var(--selected-text);
+}
+.gpp-compose-step-header {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  margin: 0 0 10px;
+}
+.gpp-compose-step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--selected);
+  color: var(--selected-text);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+}
+.gpp-compose-step-copy {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+}
+.campaign-workspace h2.gpp-compose-step-title {
+  margin: 0;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.gpp-compose-step-help {
+  min-width: 0;
+  max-width: 100%;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.35;
+}
+.gpp-audience-controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.gpp-target-summary {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  font-size: 13px;
+  text-align: left;
+}
+.gpp-target-summary span {
+  flex: 1;
+}
+.gpp-secondary {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--surface);
+  color: var(--text);
+}
+.campaign-audience > p,
+.campaign-audience > label {
+  font-size: 12px;
+}
+.campaign-audience .campaign-targets {
+  max-height: 180px;
+  margin-top: 8px;
+}
+.campaign-audience .campaign-target {
+  padding: 8px;
+}
+.campaign-audience > input {
+  font-size: 13px;
+  padding: 8px 10px;
+}
+.campaign-compose > .group-actions {
+  align-items: flex-start;
+  margin-bottom: 0;
+}
+.campaign-compose > .group-actions > button {
+  font-size: 11px;
+  padding: 4px 8px;
+  height: 28px;
+  min-height: 28px;
+}
+.reference-draft-metadata {
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+.reference-draft-metadata > input,
+.reference-draft-metadata > textarea {
+  width: 100%;
+}
+.unified-composer-box {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: none;
+  min-height: 300px;
+  overflow: visible;
+}
+.unified-composer-box:focus-within {
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px rgb(24 119 242 / 8%);
+}
+.composer-template-bar {
+  padding: 8px;
+  background: var(--bg);
+  border-radius: 10px 10px 0 0;
+}
+.template-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  padding: 9px 10px;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: left;
+}
+.template-input-wrapper span {
+  flex: 1;
+}
+.composer-divider {
+  text-align: center;
+  position: relative;
+  background: var(--bg);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.composer-divider::before {
+  content: "";
+  position: absolute;
+  top: 40%;
+  left: 15px;
+  right: 15px;
+  height: 1px;
+  background: var(--line);
+}
+.composer-divider span {
+  position: relative;
+  background: var(--bg);
+  padding: 0 10px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+.unified-composer-box .campaign-editor-toolbar {
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  padding: 6px 8px;
+  gap: 6px;
+  background: var(--surface);
+}
+.unified-composer-box .campaign-tool > button {
+  width: 29px;
+  height: 29px;
+  min-width: 29px;
+}
+.unified-composer-box .campaign-variation-toggle {
+  font-size: 11px;
+  padding: 4px;
+  gap: 4px;
+}
+.unified-composer-box .campaign-text-tools {
+  gap: 1px;
+}
+.unified-composer-box > label[for="campaign-text"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.unified-composer-box .campaign-post-editor {
+  display: block;
+  width: 100%;
+  height: 220px;
+  min-height: 220px;
+  resize: vertical;
+  border: 0;
+  border-radius: 0;
+  padding: 14px 15px;
+  font-size: 14px;
+  line-height: 1.6;
+  background: var(--surface);
+  color: var(--text);
+}
+.unified-composer-box .campaign-editor-meta {
+  padding: 4px 12px;
+  font-size: 10px;
+}
+.unified-composer-box .campaign-toolbar-help,
+.unified-composer-box > details {
+  margin: 4px 12px;
+  font-size: 11px;
+}
+.gpp-attach-strip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-top: 1px solid var(--line);
+  padding: 6px 8px;
+  flex-wrap: wrap;
+}
+.gpp-attach-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 8px;
+  border: 0;
+  background: transparent;
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.gpp-attach-btn:hover {
+  background: var(--bg);
+}
+.gpp-attach-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.gpp-attach-counts {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted);
+}
+.campaign-assets {
+  margin-top: 8px;
+}
+.campaign-assets .campaign-dropzone {
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+.campaign-assets .campaign-dropzone p {
+  margin: 4px 0 0;
+}
+.campaign-assets > details {
+  font-size: 11px;
+}
+.campaign-assets .campaign-media-list {
+  margin-top: 8px;
+}
+.reference-automation-settings {
+  width: 100%;
+  margin-bottom: 18px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.reference-automation-settings > summary {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 14px 16px;
+  background: var(--bg);
+  border-radius: 10px;
+  cursor: pointer;
+}
+.reference-settings-body {
+  padding: 16px;
+}
+.reference-settings-body > label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.reference-settings-body > label.review-confirm {
+  flex-direction: row;
+}
+.reference-settings-body select {
+  width: 100%;
+}
+.reference-connection-details {
+  width: 100%;
+  font-size: 12px;
+}
+.reference-connection-details .campaign-availability {
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.reference-dialog {
+  width: min(530px, calc(100vw - 32px));
+  max-height: 85vh;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 20%);
+}
+.reference-dialog::backdrop {
+  background: rgb(15 23 42 / 45%);
+}
+.reference-dialog header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.reference-dialog header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+.reference-dialog header button {
+  padding: 6px;
+  border-radius: 6px;
+}
+.reference-dialog label {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+}
+.reference-dialog input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  color: inherit;
+}
+.reference-dialog form > button {
+  margin-top: 14px;
+}
+.reference-template-options {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.reference-template-options button {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: left;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.reference-template-options span {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.reference-template-options small {
+  color: var(--muted);
+}
+@media (max-width: 600px) {
+  .reference-workspace {
+    padding: 12px;
+  }
+  .reference-header {
+    margin: -12px -12px 12px;
+    padding: 0 12px;
+  }
+  .reference-primary-nav {
+    height: auto;
+    flex-wrap: wrap;
+  }
+  .reference-primary-nav > .reference-nav-link {
+    flex: 1 0 28%;
+    min-height: 38px;
+    font-size: 12px;
+  }
+  .reference-workspace .campaign-workspace {
+    padding: 16px;
+  }
+  .gpp-audience-controls {
+    flex-wrap: wrap;
+  }
+  .gpp-target-summary {
+    flex-basis: 100%;
+  }
+  .campaign-compose > .group-actions {
+    flex-wrap: wrap;
+  }
+  .gpp-attach-counts {
+    width: 100%;
+    margin: 0 8px;
+  }
+  .posting-as-chip {
+    width: 100%;
+  }
+}
+.reference-selected-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.reference-selected-groups > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--selected);
+  color: var(--selected-text);
+  font-size: 12px;
+}
+.reference-selected-groups button {
+  width: 22px;
+  height: 22px;
+  font-size: 16px;
+}
+.reference-audience-dialog .campaign-targets {
+  max-height: 45vh;
+}
+.reference-audience-dialog .campaign-target {
+  display: flex;
+  gap: 10px;
+}
+.reference-audience-dialog .campaign-target > input {
+  width: 16px;
+  flex: none;
+  margin-top: 4px;
+}
+.reference-audience-dialog label[for="campaign-group-filter"] {
+  display: block;
+  margin-bottom: 6px;
+}
+.reference-audience-dialog h2 {
+  margin: 0;
+}
+.reference-primary-nav > .reference-nav-link {
+  flex: 1 1 0;
+}
+.campaign-audience .reference-selected-groups:empty {
+  display: none;
+}
+.reference-workspace .campaign-workspace .campaign-audience {
+  margin-bottom: 20px;
+}
+.reference-workspace .campaign-compose > .group-actions {
+  margin-bottom: 10px;
+}
+.campaign-workspace[data-view="compose"] .reference-draft-metadata {
+  display: none;
+}
+.reference-ai-door {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--selected-text);
+  background: var(--selected);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 5px 7px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.reference-ai-door:disabled {
+  cursor: not-allowed;
+}
+.reference-template-trigger {
+  display: flex;
+  align-items: center;
+  padding: 5px;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+.reference-score {
+  font-size: 10px;
+  white-space: nowrap;
+  color: var(--muted);
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+.unified-composer-box .campaign-editor-toolbar {
+  flex-wrap: wrap;
+}
+.unified-composer-box .campaign-post-editor {
+  min-height: 220px;
+  max-height: none;
+}
+.reference-compose-footer {
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 2px 5px rgb(12 14 20 / 4%);
+}
+.reference-compose-footer > button {
+  flex: 1;
+  min-height: 38px;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 9px;
+}
+.reference-compose-footer > button:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+  background: var(--bg);
+}
+.gpp-post-now {
+  background: var(--action);
+  color: var(--on-action);
+  border: 1px solid var(--action);
+}
+.reference-review-dialog .review-confirm {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 14px 0;
+}
+.reference-review-dialog .review-confirm input {
+  width: 18px;
+  flex: none;
+  margin-top: 3px;
+}
+.reference-review-dialog .group-actions {
+  flex-wrap: wrap;
+}
+.reference-review-dialog p {
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.reference-review-dialog > button {
+  white-space: normal;
+}
+.reference-workspace .campaign-workspace .campaign-save {
+  font-size: 12px;
+  margin-top: 12px;
+}
+.campaign-save > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.campaign-save[open] > h2 {
+  font-size: 16px;
+  margin-top: 12px;
+}
+.campaign-save[open] .group-actions {
+  flex-wrap: wrap;
+}
+.reference-automation-settings > summary::marker {
+  color: var(--muted);
+}
+@media (max-width: 600px) {
+  .reference-primary-nav > .reference-nav-link {
+    flex: 1 0 28%;
+  }
+}
+.reference-navigation {
+  position: relative;
+}
+.reference-header-actions {
+  margin-right: 36px;
+}
+.reference-tools-menu {
+  position: absolute;
+  right: -12px;
+  top: -58px;
+  z-index: 40;
+}
+.reference-tools-menu > summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  list-style: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.reference-tools-menu > summary::-webkit-details-marker {
+  display: none;
+}
+.reference-tools-menu[open] > summary {
+  background: var(--selected);
+}
+.reference-tools-menu .reference-tool-nav {
+  position: absolute;
+  right: 0;
+  top: 40px;
+  min-width: 200px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: 0 8px 24px rgb(12 14 20 / 12%);
+}
+.reference-tools-menu .reference-nav-link {
+  font-size: 13px;
+  min-height: 36px;
+}
+.reference-library-switcher {
+  display: flex;
+  width: max-content;
+  max-width: 100%;
+  margin: 0 auto 16px;
+  padding: 4px;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+}
+.reference-library-switcher button {
+  padding: 8px 24px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.reference-library-switcher .active {
+  background: var(--surface);
+  color: var(--selected-text);
+  box-shadow: 0 1px 3px rgb(12 14 20 / 8%);
+}
+.reference-library-switcher button:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+}
+.reference-template-library {
+  gap: 16px;
+}
+.gpp-tpl-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+.gpp-tpl-actions-row .gpp-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  font-size: 12px;
+  min-height: 34px;
+  white-space: nowrap;
+}
+.gpp-tpl-actions-row button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.template-sort-menu {
+  position: relative;
+}
+.template-sort-menu > summary {
+  cursor: pointer;
+  list-style: none;
+}
+.template-sort-menu > div {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 20;
+  margin-top: 8px;
+  min-width: 190px;
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgb(12 14 20 / 12%);
+}
+.template-sort-menu select {
+  padding: 8px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 6px;
+}
+.templates-split-layout {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  min-height: 480px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface);
+}
+.ts-sidebar {
+  padding: 16px 0;
+  border-right: 1px solid var(--line);
+  min-width: 0;
+  background: var(--bg);
+}
+.reference-template-search {
+  position: relative;
+  margin: 0 12px 14px;
+}
+.reference-template-search > svg {
+  position: absolute;
+  top: 12px;
+  left: 10px;
+  color: var(--muted);
+}
+.template-library .reference-template-search input {
+  padding-left: 32px;
+  font-size: 13px;
+  background: var(--surface);
+}
+.ts-tags-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 8px;
+  display: grid;
+  gap: 4px;
+}
+.ts-tags-list button {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  width: 100%;
+  padding: 11px 9px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  text-align: left;
+  min-width: 0;
+}
+.ts-tags-list button > svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--muted);
+}
+.ts-tags-list button > span {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.ts-tags-list strong {
+  font-size: 13px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.ts-tags-list small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  color: var(--muted);
+}
+.ts-tags-list button.active {
+  background: var(--surface);
+  border-color: var(--line);
+  box-shadow: 0 1px 2px rgb(12 14 20 / 4%);
+}
+.ts-main {
+  min-width: 0;
+}
+.ts-preview-container {
+  padding: 24px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.reference-template-preview {
+  width: 100%;
+  min-width: 0;
+}
+.reference-template-preview h2 {
+  font-size: 18px;
+}
+.reference-template-preview .template-excerpt {
+  max-height: none;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.reference-template-attachments {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.reference-template-preview .template-actions {
+  gap: 6px;
+  margin-top: 20px;
+}
+.reference-template-preview .template-actions > button,
+.reference-template-preview .template-actions > a {
+  font-size: 12px;
+  height: 34px;
+  padding: 6px 10px;
+}
+.reference-template-preview .template-actions > a {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--selected-text);
+  display: inline-flex;
+  align-items: center;
+}
+.reference-template-empty {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 80px;
+}
+.reference-template-editor-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.reference-template-editor-heading h2 {
+  font-size: 18px;
+  margin: 0;
+}
+.reference-template-editor-heading > span {
+  font-size: 11px;
+}
+.template-library .template-editor {
+  background: var(--surface);
+  padding: 24px;
+}
+@media (min-width: 601px) {
+  .gpp-compose-step-copy {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 9px;
+  }
+}
+@media (max-width: 600px) {
+  .templates-split-layout {
+    grid-template-columns: 1fr;
+  }
+  .ts-sidebar {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .ts-tags-list {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .ts-preview-container {
+    padding: 18px;
+  }
+  .reference-library-switcher button {
+    padding: 8px 18px;
+  }
+}
+.reference-workspace .campaign-compose > .group-actions {
+  margin: 0 0 10px;
+}
+.unified-composer-box .campaign-editor-toolbar {
+  margin-bottom: 0;
+}
+.unified-composer-box .campaign-tool > button {
+  min-height: 29px;
+}
+.unified-composer-box .campaign-editor-meta {
+  display: none;
+}
+.campaign-assets .campaign-dropzone {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  clip-path: inset(50%);
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+}
+.campaign-assets:not(:has(.campaign-media-list > li)):not(
+    :has([role="alert"])
+  ):not(:has([role="status"])) {
+  margin: 0;
+}
+.campaign-assets .campaign-media-list:empty {
+  margin: 0;
+}
+.reference-compose-footer .reference-preview {
+  flex: 0 0 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.reference-compose-footer .gpp-post-now {
+  flex: 2;
+}
+.reference-compose-footer > .gpp-secondary:not(.reference-preview) {
+  flex: 1.5;
+}
+
+@font-face {
+  font-family: "Reference Awesome";
+  src: url("/fonts/reference/fontawesome-webfont.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+.reference-nav-fa {
+  font-family: "Reference Awesome";
+  font-size: 13px;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  width: 1.2em;
+  text-align: center;
+  flex: none;
+}

@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   Settings,
   SunMoon,
+  Menu,
 } from "lucide-react";
 import { navigation, type Section } from "@staysuite/types";
 import { Button } from "@staysuite/ui";
@@ -29,6 +30,13 @@ const icons = {
   "account-safety": ShieldCheck,
   settings: Settings,
 } satisfies Record<Section, typeof FilePenLine>;
+const referenceGlyphs: Partial<Record<Section, string>> = {
+  compose: "\uf040",
+  templates: "\uf24d",
+  automations: "\uf017",
+  "lead-radar": "\uf05b",
+  activity: "\uf201",
+};
 export function DashboardShell({
   children,
   demo,
@@ -47,10 +55,16 @@ export function DashboardShell({
         aria-current={path === `/dashboard/${item.slug}` ? "page" : undefined}
         className={`reference-nav-link ${path === `/dashboard/${item.slug}` ? "active" : ""}`}
       >
-        <Icon size={17} aria-hidden="true" />
+        {referenceGlyphs[item.slug] ? (
+          <span className="reference-nav-fa" aria-hidden="true">
+            {referenceGlyphs[item.slug]}
+          </span>
+        ) : (
+          <Icon size={17} aria-hidden="true" />
+        )}
         <span>{item.label}</span>
         {item.availability === "planned" ? (
-          <span className="nav-new">Not implemented</span>
+          <span className="sr-only">Not implemented</span>
         ) : null}
       </Link>
     );
@@ -89,9 +103,14 @@ export function DashboardShell({
         <div className="reference-primary-nav">
           {navigation.filter((item) => item.category === "primary").map(link)}
         </div>
-        <div className="reference-tool-nav">
-          {navigation.filter((item) => item.category !== "primary").map(link)}
-        </div>
+        <details className="reference-tools-menu">
+          <summary aria-label="Tools and settings">
+            <Menu size={20} aria-hidden="true" />
+          </summary>
+          <div className="reference-tool-nav">
+            {navigation.filter((item) => item.category !== "primary").map(link)}
+          </div>
+        </details>
       </nav>
       <main id="main-content" tabIndex={-1}>
         {children}

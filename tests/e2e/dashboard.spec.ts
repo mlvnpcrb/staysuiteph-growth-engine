@@ -16,6 +16,7 @@ test("responsive shell, navigation, and honest placeholders", async ({
   const menu = page.getByRole("button", { name: "Open navigation" });
   if (await menu.isVisible()) await menu.click();
   const nav = page.getByRole("navigation", { name: "Main navigation" });
+  await page.getByLabel("Tools and settings", { exact: true }).click();
   for (const section of navigation)
     await expect(
       nav.getByRole("link", { name: section.label, exact: false }),
@@ -84,7 +85,6 @@ test("every section renders its own heading", async ({ page }) => {
   }
 });
 
-
 test("sync reports unavailable backend without granting a demo identity", async ({
   request,
 }) => {
@@ -94,7 +94,6 @@ test("sync reports unavailable backend without granting a demo identity", async 
   expect(response.status()).toBe(503);
   expect(await response.json()).toEqual({ error: "backend_not_configured" });
 });
-
 
 test("auth callback failure is fixed-origin and non-cacheable", async ({
   request,
@@ -136,6 +135,7 @@ test("reference alignment removes standalone analytics and labels planned featur
   const menu = page.getByRole("button", { name: "Open navigation" });
   if (await menu.isVisible()) await menu.click();
   const nav = page.getByRole("navigation", { name: "Main navigation" });
+  await page.getByLabel("Tools and settings", { exact: true }).click();
   await expect(nav.getByRole("link", { name: "Analytics" })).toHaveCount(0);
   for (const name of ["AI Studio", "Lead Radar"])
     await expect(
@@ -151,12 +151,18 @@ test("reference alignment removes standalone analytics and labels planned featur
   ).toBeVisible();
 });
 
-
-test("reference top navigation remains visible and keyboard accessible", async ({ page }) => {
+test("reference top navigation remains visible and keyboard accessible", async ({
+  page,
+}) => {
   await page.goto("/dashboard/compose");
-  const nav=page.getByRole("navigation",{name:"Main navigation"});
-  const compose=nav.getByRole("link",{name:"Compose",exact:true});
-  await expect(compose).toBeVisible();await expect(compose).toHaveAttribute("aria-current","page");
-  await compose.focus();await page.keyboard.press("Tab");await expect(nav.getByRole("link",{name:/^Templates/})).toBeFocused();
-  await expect(page.getByRole("button",{name:"Open navigation"})).toHaveCount(0);
+  const nav = page.getByRole("navigation", { name: "Main navigation" });
+  const compose = nav.getByRole("link", { name: "Compose", exact: true });
+  await expect(compose).toBeVisible();
+  await expect(compose).toHaveAttribute("aria-current", "page");
+  await compose.focus();
+  await page.keyboard.press("Tab");
+  await expect(nav.getByRole("link", { name: /^Templates/ })).toBeFocused();
+  await expect(
+    page.getByRole("button", { name: "Open navigation" }),
+  ).toHaveCount(0);
 });
