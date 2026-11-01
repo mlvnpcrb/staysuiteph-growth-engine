@@ -25,9 +25,13 @@ async function serve(context: BrowserContext) {
     });
   });
 }
-async function bridge(context: BrowserContext, denied = false) {
+async function bridge(
+  context: BrowserContext,
+  denied = false,
+  cloudOrigin?: string,
+) {
   await context.addInitScript(
-    ({ denied }) => {
+    ({ denied, cloudOrigin }) => {
       const listeners: ((changes: Record<string, unknown>) => void)[] = [];
       const cached = localStorage.getItem("fixture-library");
       let library = cached ? JSON.parse(cached) : null;
@@ -92,7 +96,24 @@ async function bridge(context: BrowserContext, denied = false) {
               window.open(url);
             },
           },
-          permissions: { request: async () => !denied },
+          permissions: {
+            request: async (request?: {
+              permissions?: string[];
+              origins?: string[];
+            }) => {
+              if (
+                request?.permissions?.includes("tabs") &&
+                localStorage.getItem("fixture-deny-tabs")
+              )
+                return false;
+              if (request?.origins)
+                localStorage.setItem(
+                  "fixture-host-permissions",
+                  JSON.stringify(request.origins),
+                );
+              return !denied;
+            },
+          },
           storage: {
             onChanged: {
               addListener: (
@@ -103,8 +124,66 @@ async function bridge(context: BrowserContext, denied = false) {
           },
         },
       });
+      if (cloudOrigin) {
+        const viewer = "11111111-1111-4111-8111-111111111111";
+        Object.assign(window.chrome.permissions, {
+          contains: async () => true,
+        });
+        Object.assign(window.chrome, {
+          tabs: {
+            query: async () => [
+              {
+                id: 10,
+                url: cloudOrigin + "/dashboard/my-groups",
+                active: true,
+                status: "complete",
+              },
+            ],
+            create: async () => ({ id: 11 }),
+          },
+          cookies: {
+            get: async ({ name }: { name: string }) =>
+              name === "c_user" ? { value: "123456789" } : null,
+          },
+          scripting: {
+            executeScript: async ({ args }: { args: unknown[] }) => {
+              const [origin, expected, group] = args;
+              const actual =
+                localStorage.getItem("fixture-cloud-viewer") ?? viewer;
+              if (expected && expected !== actual)
+                return [
+                  {
+                    result: {
+                      error:
+                        "Your StaySuite account changed. Reconnect before syncing.",
+                    },
+                  },
+                ];
+              const origins = JSON.parse(
+                localStorage.getItem("fixture-sync-origins") ?? "[]",
+              );
+              origins.push(origin);
+              localStorage.setItem(
+                "fixture-sync-origins",
+                JSON.stringify(origins),
+              );
+              if (group) {
+                localStorage.setItem(
+                  "fixture-cloud-saves",
+                  String(
+                    Number(localStorage.getItem("fixture-cloud-saves") ?? 0) +
+                      1,
+                  ),
+                );
+                return [{ result: { saved: true, duplicate: false } }];
+              }
+              return [{ result: { viewer: actual, groups: [] } }];
+            },
+          },
+        });
+      }
     },
-    { denied },
+    { denied, cloudOrigin },
   );
 }
 test("popup launches a workspace with Facebook connection independent of StaySuite", async ({
@@ -370,7 +449,7 @@ test("campaign workspace connects the scoped dashboard but never starts an unval
     });
   });
   await page.goto("http://extension-fixture.test/tabs/campaigns.html");
-  await expect(page.getByLabel("StaySuite Preview URL")).not.toBeVisible();
+  await expect(page.getByLabel("StaySuite URL")).not.toBeVisible();
   await page
     .getByRole("button", { name: "Connect StaySuite and Facebook" })
     .click();
@@ -429,4 +508,92 @@ test("campaign workspace connects the scoped dashboard but never starts an unval
       () => document.documentElement.scrollWidth <= innerWidth + 1,
     ),
   ).toBe(true);
+});
+
+test("group workspace detects a deployed dashboard and pins sync to its origin and viewer", async ({
+  context,
+  page,
+}) => {
+  const origin =
+    "https://staysuiteph-growth-engine-test-mlvnpcrbs-projects.vercel.app";
+  await serve(context);
+  await bridge(context, false, origin);
+  await page.goto("http://extension-fixture.test/tabs/groups.html");
+  await page.getByRole("button", { name: "Sync Groups", exact: true }).click();
+  await expect(page.locator(".workspace-list li")).toHaveCount(12);
+  await page
+    .getByRole("button", { name: "Connect StaySuite", exact: true })
+    .click();
+  await expect(
+    page.getByText(`StaySuite site: ${origin}`, { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Save all groups to All groups", exact: true })
+    .click();
+  await expect(
+    page.getByText("12 groups confirmed in All groups.", { exact: false }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(() => [
+      ...new Set(
+        JSON.parse(localStorage.getItem("fixture-sync-origins") ?? "[]"),
+      ),
+    ]),
+  ).toEqual([origin]);
+  expect(
+    await page.evaluate(() =>
+      JSON.parse(localStorage.getItem("fixture-host-permissions") ?? "[]"),
+    ),
+  ).toEqual([origin + "/*"]);
+  await page.evaluate(() =>
+    localStorage.setItem(
+      "fixture-cloud-viewer",
+      "22222222-2222-4222-8222-222222222222",
+    ),
+  );
+  await page
+    .getByRole("button", { name: "Save all groups to All groups", exact: true })
+    .click();
+  await expect(
+    page.getByText("Your StaySuite account changed.", { exact: false }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(() =>
+      Number(localStorage.getItem("fixture-cloud-saves")),
+    ),
+  ).toBe(12);
+});
+test("manual library connection works when tab discovery is denied", async ({
+  context,
+  page,
+}) => {
+  const origin =
+    "https://staysuiteph-growth-engine-manual-mlvnpcrbs-projects.vercel.app";
+  await serve(context);
+  await bridge(context, false, origin);
+  await page.goto("http://extension-fixture.test/tabs/groups.html");
+  await page.evaluate(() => localStorage.setItem("fixture-deny-tabs", "yes"));
+  await page
+    .getByRole("button", { name: "Connect StaySuite", exact: true })
+    .click();
+  await expect(
+    page.getByText("Tab detection was not allowed.", { exact: false }),
+  ).toBeVisible();
+  await page
+    .getByText("Manual StaySuite connection (if detection is unavailable)", {
+      exact: true,
+    })
+    .click();
+  await page
+    .getByRole("checkbox", { name: "Use a manual StaySuite URL", exact: true })
+    .check();
+  await page
+    .getByLabel("StaySuite URL", { exact: true })
+    .fill(origin + "/dashboard/my-groups");
+  await page
+    .getByRole("button", { name: "Connect StaySuite", exact: true })
+    .click();
+  await expect(
+    page.getByText(`StaySuite site: ${origin}`, { exact: true }),
+  ).toBeVisible();
 });

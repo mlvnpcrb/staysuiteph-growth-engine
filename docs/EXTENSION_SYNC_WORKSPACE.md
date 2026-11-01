@@ -43,3 +43,13 @@ built CSP-protected workspace, permissions, consent, 12-group scan/save and libr
 filtering, plus collector dialog regression and light/dark accessibility. These
 fixtures do not establish compatibility with a user's current Facebook account.
 Native extension installation may be blocked by browser administrator policy.
+
+## Deployed-site connection correction (extension 0.5.2)
+
+The group-library workspace now detects an open supported StaySuite dashboard when Connect StaySuite is clicked, instead of using the build-time localhost default. It requests the existing optional tab-discovery permission, then only the selected site's host grant. When All groups is not open, it opens a new tab without navigating away from an existing Compose draft. Declining discovery leaves a manual HTTPS/local URL fallback.
+
+The active connection stores its exact origin together with tab and validated viewer. Every sync call uses that pinned origin/viewer; editing a manual URL disconnects the prior binding, and account changes stop saving. The auto-save identity includes the origin. The Open All groups link is shown for a confirmed connection, avoiding an unintended localhost link before detection.
+
+Vercel's project-domain listing confirmed `staysuiteph-growth-engine.vercel.app` belongs to this project and is verified. The shared detector now accepts that exact production hostname in addition to supported previews and local development, and rejects hostname lookalikes. This prepares the extension for the corresponding production web release; it does not promote a Preview or merge the draft PR stack.
+
+No manifest permissions were added. The existing optional tabs/site grants are requested on explicit connection. Unit checks passed 357 tests plus both script tests; the 27 affected extension/Radar browser checks passed across desktop/tablet/mobile. Typecheck, lint, build and manifest checks passed. Native unpacked loading/live integration remain unverified because administrator policy blocks loading in this environment.
