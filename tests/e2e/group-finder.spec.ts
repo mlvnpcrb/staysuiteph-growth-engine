@@ -90,6 +90,7 @@ test("manual discovery → assessment → save → notes/review → overview →
     "already in your shortlist",
   );
   await page.getByRole("link", { name: "Open My Groups" }).click();
+  await page.getByRole("button", { name: /^Review group:/ }).click();
   await page.getByText("Notes & rule review").click();
   await page.getByLabel("Private notes").fill("Personally useful");
   await page
@@ -106,9 +107,10 @@ test("manual discovery → assessment → save → notes/review → overview →
   await page.reload();
   await expect(
     page
-      .locator("article.saved-group .subtle-badge")
+      .locator("article.saved-group .review-pill")
       .filter({ hasText: /^Personally reviewed$/ }),
   ).toBeVisible();
+  await page.getByRole("button", { name: /^Review group:/ }).click();
   await page.getByText("Notes & rule review").click();
   await expect(page.getByLabel("Private notes")).toHaveValue(
     "Personally useful",
@@ -126,6 +128,7 @@ test("manual discovery → assessment → save → notes/review → overview →
       .first(),
   ).toBeVisible();
   await page.goto("/dashboard/my-groups");
+  await page.getByRole("button", { name: /^Review group:/ }).click();
   await page.getByRole("button", { name: "Remove group" }).click();
   await page.getByRole("button", { name: "Confirm removal" }).click();
   await expect(

@@ -192,6 +192,7 @@ test("My Groups previews duplicates, imports without hosting context, and preser
 }) => {
   const data = await mockGroups(page, { existing: true });
   await page.goto("/dashboard/my-groups");
+  await page.getByText("Import groups from Facebook", { exact: true }).click();
   await transfer(page);
   const importer = page.getByRole("region", { name: "Import from Facebook" });
   await expect(
@@ -216,6 +217,7 @@ test("My Groups previews duplicates, imports without hosting context, and preser
       exact: true,
     }),
   });
+  await entry.getByRole("button", { name: /^Review group:/ }).click();
   await entry.getByText("Notes & rule review").click();
   await entry.getByLabel("Destination", { exact: true }).fill("Bohol");
   await entry
@@ -238,6 +240,7 @@ test("retry failed imports sends only failed rows and retains completed results"
 }) => {
   const data = await mockGroups(page, { failSecond: true });
   await page.goto("/dashboard/my-groups");
+  await page.getByText("Import groups from Facebook", { exact: true }).click();
   await transfer(page);
   const importer = page.getByRole("region", { name: "Import from Facebook" });
   await importer
@@ -264,6 +267,7 @@ test("duplicate-check recovery blocks unchecked imports and invalid files stay r
 }) => {
   const data = await mockGroups(page, { failCheck: true });
   await page.goto("/dashboard/my-groups");
+  await page.getByText("Import groups from Facebook", { exact: true }).click();
   await transfer(page);
   const importer = page.getByRole("region", { name: "Import from Facebook" });
   await expect(importer.getByRole("alert")).toContainText("Couldn’t check");
@@ -289,6 +293,7 @@ test("connection states are honest and foreign or malformed transfers cannot wri
 }) => {
   const data = await mockGroups(page);
   await page.goto("/dashboard/my-groups");
+  await page.getByText("Import groups from Facebook", { exact: true }).click();
   const importer = page.getByRole("region", { name: "Import from Facebook" });
   await expect(
     importer.getByText("Extension needed", { exact: true }),
@@ -346,6 +351,7 @@ test("import preview supports filtering, optional reselection and both accessibl
 }) => {
   await mockGroups(page);
   await page.goto("/dashboard/my-groups");
+  await page.getByText("Import groups from Facebook", { exact: true }).click();
   await transfer(page);
   const importer = page.getByRole("region", { name: "Import from Facebook" });
   await expect(importer.getByRole("checkbox")).toHaveCount(0);

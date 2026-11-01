@@ -1108,3 +1108,66 @@ h3 {
 .marketing-analysis .finder-fields {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
 }
+
+/* Daily workspace: quiet surfaces, clear next actions, readable group rows. */
+.growth-overview > section > .section-heading { margin-top: 0; }
+.growth-overview .metric-grid { margin-bottom: 24px; }
+.attention-panel { border-left: 3px solid var(--accent); }
+.attention-panel .section-heading { margin: 0 0 12px; }
+.attention-list { list-style: none; padding: 0; margin: 12px 0 0; }
+.attention-list li { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 16px 0; border-top: 1px solid var(--line); }
+.attention-list li > div { min-width: 0; }
+.attention-list strong, .attention-list span.muted { display: block; overflow-wrap: anywhere; }
+.attention-list span.muted { font-size: 13px; margin-top: 3px; }
+.growth-text-link { display: inline-flex; align-items: center; gap: 8px; color: var(--accent); font-weight: 600; font-size: 13px; }
+.growth-text-link:hover { text-decoration: underline; }
+.attention-list .growth-text-link { flex-shrink: 0; }
+.growth-empty { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+.growth-start { display: flex; align-items: center; gap: 20px; margin-top: 24px; }
+.growth-start-icon { color: var(--accent); }
+.growth-start p { margin-top: 6px; font-size: 13px; }
+.growth-start > a { margin-left: auto; flex-shrink: 0; }
+.growth-availability { color: var(--muted); margin: 24px 0 8px; font-size: 13px; }
+.growth-availability summary, .group-import-disclosure > summary { cursor: pointer; font-weight: 600; padding: 10px 0; }
+.growth-availability p { max-width: 75ch; margin-top: 10px; }
+.group-import-disclosure { margin-bottom: 20px; border-bottom: 1px solid var(--line); }
+.group-import-disclosure > summary { color: var(--accent); }
+.group-row { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(140px, 1fr) minmax(110px, .8fr) auto; gap: 18px; align-items: center; }
+.group-row-name { min-width: 0; }
+.group-workspace .group-row h2 { font-size: 16px; overflow-wrap: anywhere; }
+.group-row-name > span { display: block; font-size: 13px; margin-top: 4px; }
+.group-row-score { display: grid; gap: 4px; font-size: 13px; }
+.group-row-score > span { font-size: 12px; }
+.group-row-actions { display: flex; align-items: center; gap: 8px; }
+.group-external { display: grid; place-items: center; min-width: 44px; min-height: 44px; color: var(--muted); border-radius: 8px; }
+.group-external:hover { background: var(--bg); color: var(--accent); }
+.review-pill { justify-self: start; padding: 4px 9px; border-radius: 6px; font-size: 12px; font-weight: 600; background: var(--bg); border: 1px solid var(--line); }
+.review-reviewed { color: var(--accent); }
+.review-review_required { border-style: dashed; }
+.group-workspace .saved-group { padding: 20px; scroll-margin-top: 24px; }
+.saved-group:target { outline: 2px solid var(--accent); outline-offset: 3px; }
+.group-detail:not([hidden]) { border-top: 1px solid var(--line); margin-top: 20px; padding-top: 20px; }
+.group-detail > p { margin-bottom: 8px; }
+.group-workspace .finder-fields label { font-size: 13px; }
+.group-workspace .saved-grid { gap: 12px; }
+@media (max-width: 1150px) {
+  .group-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .group-row-name { grid-column: 1; }
+  .group-row .review-pill { grid-column: 1; grid-row: 2; }
+  .group-row-score { grid-column: 2; grid-row: 1; }
+  .group-row-actions { grid-column: 2; grid-row: 2; }
+  .growth-start { flex-wrap: wrap; }
+  .growth-start > a { margin-left: 46px; }
+}
+@media (max-width: 560px) {
+  .group-row { gap: 14px 8px; }
+  .group-row-name { grid-column: 1 / -1; }
+  .group-row-score { grid-column: 1; grid-row: 3; }
+  .group-row-actions { grid-column: 2; grid-row: 3; }
+  .group-row .review-pill { grid-column: 1 / -1; }
+  .group-workspace .saved-group { padding: 16px; }
+  .attention-list li { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .growth-start { gap: 12px; }
+  .growth-start > div:nth-child(2) { flex: 1; }
+  .growth-start > a { margin-left: 38px; }
+}

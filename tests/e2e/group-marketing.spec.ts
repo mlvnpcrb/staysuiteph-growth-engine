@@ -47,6 +47,7 @@ test("marketing evidence persists, explains ranking and can be cleared without c
     });
   });
   await page.goto("/dashboard/my-groups");
+  await page.getByRole("button", { name: /^Review group:/ }).first().click();
   let analysis = page.getByRole("region", {
     name: `Marketing analysis for ${group.title}`,
   });
@@ -100,6 +101,7 @@ test("marketing evidence persists, explains ranking and can be cleared without c
     fullPage: true,
   });
   await page.reload();
+  await page.getByRole("button", { name: /^Review group:/ }).click();
   await expect(analysis.getByText("100/100 marketing score")).toBeVisible();
   await analysis
     .getByText("Record marketing evidence", { exact: true })
@@ -165,6 +167,7 @@ test("permission filters and marketing sorting remain separate from score and ac
     .getByRole("combobox", { name: "Permission review", exact: true })
     .selectOption("blocked");
   await expect(page.locator("article.saved-group")).toHaveCount(1);
+  await page.getByRole("button", { name: /^Review group:/ }).click();
   await expect(
     page.getByText("Blocked for campaign planning", { exact: true }),
   ).toBeVisible();
@@ -182,4 +185,22 @@ test("permission filters and marketing sorting remain separate from score and ac
         .violations,
     ).toEqual([]);
   }
+});
+
+test("overview review action opens the matching group and filters can be reset", async ({ page }) => {
+  const group: SavedGroup = { ...base, review_status: "review_required", last_reviewed_at: null };
+  await page.route("**/api/groups", (route) => route.fulfill({ json: {
+    groups: [group], stats: { total: 1, reviewed: 0, needsReview: 1 },
+  } }));
+  await page.goto("/dashboard/overview");
+  const attention = page.getByRole("region", { name: "Needs your attention" });
+  await expect(attention.getByText(group.title)).toBeVisible();
+  await attention.getByRole("link", { name: `Review group: ${group.title}` }).click();
+  await expect(page.getByRole("button", { name: `Close details: ${group.title}` })).toHaveAttribute("aria-expanded", "true");
+  await expect(page.getByRole("region", { name: `Marketing analysis for ${group.title}` })).toBeVisible();
+  await page.getByLabel("Filter saved groups").fill("No matching destination");
+  await expect(page.getByRole("heading", { name: "No groups match these filters." })).toBeVisible();
+  await page.getByRole("button", { name: "Clear filters", exact: true }).click();
+  await expect(page.getByRole("heading", { name: group.title, exact: true })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });

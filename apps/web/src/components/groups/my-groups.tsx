@@ -2,7 +2,7 @@
 import { MarketingAnalysis } from "./marketing-analysis";
 import { rankGroupMarketing } from "@staysuite/validation";
 import { CollectionImport } from "./collection-import";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { Button } from "@staysuite/ui";
@@ -18,6 +18,16 @@ function GroupEntry({
   onRefresh: () => Promise<void>;
   onMessage: (s: string) => void;
 }) {
+  const [expanded, setExpanded] = useState(false);
+  useEffect(() => {
+    const reveal = () => {
+      if (window.location.hash === `#group-${group.id}`) setExpanded(true);
+    };
+    reveal();
+    window.addEventListener("hashchange", reveal);
+    return () => window.removeEventListener("hashchange", reveal);
+  }, [group.id]);
+  const report = rankGroupMarketing(group);
   const [busy, setBusy] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const [error, setError] = useState("");
@@ -29,27 +39,19 @@ function GroupEntry({
   const [accommodation, setAccommodation] = useState(group.accommodation);
   const [audience, setAudience] = useState(group.audience);
   return (
-    <article className="panel saved-group">
-      <div className="section-heading">
-        <div>
-          <span className="subtle-badge">
-            {effectiveReview(group) === "reviewed"
-              ? "Personally reviewed"
-              : effectiveReview(group) === "not_suitable"
-                ? "Not suitable"
-                : "Rules need review"}
-          </span>
-          <h2>{group.title}</h2>
+    <article id={`group-${group.id}`} className={`panel saved-group ${expanded ? "is-expanded" : ""}`}>
+      <div className="group-row">
+        <div className="group-row-name"><h2>{group.title}</h2><span className="muted">{group.destination || "Destination not set"}</span></div>
+        <span className={`review-pill review-${effectiveReview(group)}`}>
+          {effectiveReview(group) === "reviewed" ? "Personally reviewed" : effectiveReview(group) === "not_suitable" ? "Not suitable" : "Rules need review"}
+        </span>
+        <div className="group-row-score"><span className="muted">Marketing potential</span><strong>{report.score === null ? "Needs evidence" : `${report.score}/100`}</strong></div>
+        <div className="group-row-actions">
+          <Button variant="outline" aria-expanded={expanded} aria-controls={`group-detail-${group.id}`} onClick={() => setExpanded(!expanded)}>{expanded ? "Close details" : "Review group"}<span className="sr-only">: {group.title}</span></Button>
+          <a className="group-external" aria-label={`Open ${group.title} on Facebook`} href={group.url} target="_blank" rel="noopener noreferrer"><ExternalLink size={18} /></a>
         </div>
-        <a
-          aria-label={`Open ${group.title} on Facebook`}
-          href={group.url}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <ExternalLink size={19} />
-        </a>
       </div>
+      <div id={`group-detail-${group.id}`} className="group-detail" hidden={!expanded}>
       <p className="muted">
         {[group.destination, group.accommodation, group.audience]
           .filter(Boolean)
@@ -63,6 +65,7 @@ function GroupEntry({
         .
       </p>
       <MarketingAnalysis
+        key={group.updated_at}
         group={group}
         onRefresh={onRefresh}
         onMessage={onMessage}
@@ -88,6 +91,7 @@ function GroupEntry({
                 accommodation,
                 audience,
               });
+              setConfirmReview(false);
               onMessage("Notes and review saved.");
               await onRefresh();
             } catch (e) {
@@ -241,6 +245,7 @@ function GroupEntry({
           {error}
         </p>
       )}
+      </div>
     </article>
   );
 }
@@ -283,13 +288,13 @@ export function MyGroups() {
         <div>
           <span className="eyebrow">Your community shortlist</span>
           <h1>My Groups</h1>
-          <p className="muted">Keep the context, not just the link.</p>
+          <p className="muted">Compare your communities and review what needs attention.</p>
         </div>
         <Button asChild variant="outline">
           <Link href="/dashboard/group-finder">Find more groups</Link>
         </Button>
       </div>
-      <CollectionImport onImported={reload} />
+      <details className="group-import-disclosure"><summary>Import groups from Facebook</summary><CollectionImport onImported={reload} /></details>
       <div id="saved-groups" className="panel finder-fields">
         <label>
           Filter saved groups
@@ -365,7 +370,7 @@ export function MyGroups() {
             <div className="saved-grid">
               {visible.map((g) => (
                 <GroupEntry
-                  key={`${g.id}-${g.updated_at}`}
+                  key={g.id}
                   group={g}
                   onRefresh={reload}
                   onMessage={setMessage}
@@ -385,9 +390,7 @@ export function MyGroups() {
                 ? "Try another destination or review status."
                 : "Search for communities and save a real group link in Group Finder."}
             </p>
-            <Button asChild>
-              <Link href="/dashboard/group-finder">Explore Group Finder</Link>
-            </Button>
+            {groups.length ? <Button variant="outline" onClick={() => { setFilter(""); setReview("all"); setPermission("all"); }}>Clear filters</Button> : <Button asChild><Link href="/dashboard/group-finder">Explore Group Finder</Link></Button>}
           </section>
         ))}
     </div>
