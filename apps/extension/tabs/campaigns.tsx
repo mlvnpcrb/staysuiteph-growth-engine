@@ -1026,7 +1026,7 @@ export default function CampaignWorkspace() {
           onToggle={(event) => setManualUrl(event.currentTarget.open)}
         >
           <summary>Manual connection (if detection is unavailable)</summary>
-          <label htmlFor="campaign-origin">StaySuite Preview URL</label>
+          <label htmlFor="campaign-origin">StaySuite URL</label>
           <input
             id="campaign-origin"
             type="url"

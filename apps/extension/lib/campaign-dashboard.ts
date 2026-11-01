@@ -13,13 +13,14 @@ export function campaignDashboardOrigin(value: string) {
     url = new URL(origin);
   if (
     !["localhost", "127.0.0.1"].includes(url.hostname) &&
+    url.hostname !== "staysuiteph-growth-engine.vercel.app" &&
     !(
       url.hostname.startsWith("staysuiteph-growth-engine-") &&
       url.hostname.endsWith("-mlvnpcrbs-projects.vercel.app")
     )
   )
     throw new Error(
-      "Use your StaySuite Preview URL or local development workspace.",
+      "Use your StaySuite site URL or local development workspace.",
     );
   return origin;
 }

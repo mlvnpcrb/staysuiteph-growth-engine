@@ -6,13 +6,17 @@ import {
 } from "@staysuite/validation";
 import { facebookMessages } from "../lib/facebook-model";
 import { facebookIdentity, FACEBOOK_ORIGIN } from "../lib/facebook-store";
+import { detectCampaignDashboard } from "../lib/campaign-browser";
 import { requestDashboard } from "../lib/workspace-dashboard";
 import "../style.css";
-const origin = safeDashboardUrl(
+const defaultOrigin = safeDashboardUrl(
   process.env.PLASMO_PUBLIC_DASHBOARD_URL || "http://localhost:3000",
 );
-const appUrl = `${origin}/dashboard/my-groups`;
 export default function GroupsWorkspace() {
+  const [origin, setOrigin] = useState(defaultOrigin),
+    [manualConnection, setManualConnection] = useState(false),
+    [manualUrl, setManualUrl] = useState(defaultOrigin);
+  const appUrl = `${origin}/dashboard/my-groups`;
   const [library, setLibrary] = useState<FacebookLibrary | null>(null);
   const [actorId, setActorId] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
@@ -20,9 +24,11 @@ export default function GroupsWorkspace() {
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [shown, setShown] = useState(100);
-  const [cloud, setCloud] = useState<{ tabId: number; viewer: string } | null>(
-    null,
-  );
+  const [cloud, setCloud] = useState<{
+    tabId: number;
+    viewer: string;
+    origin: string;
+  } | null>(null);
   const [autoSave, setAutoSave] = useState(false);
   const [saving, setSaving] = useState(false);
   const [cloudStatus, setCloudStatus] = useState(
@@ -158,7 +164,22 @@ export default function GroupsWorkspace() {
     setPending(true);
     setCloud(null);
     try {
-      const destination = new URL(origin);
+      let selectedOrigin = origin;
+      if (manualConnection) selectedOrigin = safeDashboardUrl(manualUrl);
+      else {
+        if (!(await chrome.permissions.request({ permissions: ["tabs"] })))
+          throw new Error(
+            "Tab detection was not allowed. Use the manual StaySuite connection option.",
+          );
+        const dashboard = detectCampaignDashboard(await chrome.tabs.query({}));
+        if (!dashboard)
+          throw new Error(
+            "Open your signed-in StaySuite dashboard in this Chrome profile, then connect again. Use manual connection if detection is unavailable.",
+          );
+        selectedOrigin = dashboard.origin;
+      }
+      setOrigin(selectedOrigin);
+      const destination = new URL(selectedOrigin);
       if (
         !(await chrome.permissions.request({
           origins: [`${destination.protocol}//${destination.hostname}/*`],
@@ -172,22 +193,29 @@ export default function GroupsWorkspace() {
         try {
           const url = new URL(item.url ?? "");
           return (
-            url.origin === origin && url.pathname === "/dashboard/my-groups"
+            url.origin === selectedOrigin &&
+            url.pathname === "/dashboard/my-groups"
           );
         } catch {
           return false;
         }
       });
       if (tab?.id === undefined) {
-        await chrome.tabs.create({ url: appUrl });
+        await chrome.tabs.create({
+          url: `${selectedOrigin}/dashboard/my-groups`,
+        });
         throw new Error(
           "All groups is opening. Sign in, then connect StaySuite again.",
         );
       }
-      const result = await requestDashboard(tab.id, origin);
+      const result = await requestDashboard(tab.id, selectedOrigin);
       if (!result.viewer)
         throw new Error("StaySuite could not verify your account.");
-      setCloud({ tabId: tab.id, viewer: result.viewer });
+      setCloud({
+        tabId: tab.id,
+        viewer: result.viewer,
+        origin: selectedOrigin,
+      });
       setCloudStatus(
         "StaySuite account verified. Your Facebook library is ready to save.",
       );
@@ -214,7 +242,11 @@ export default function GroupsWorkspace() {
     setSaving(true);
     let saved = 0;
     try {
-      const account = await requestDashboard(cloud.tabId, origin, cloud.viewer);
+      const account = await requestDashboard(
+        cloud.tabId,
+        cloud.origin,
+        cloud.viewer,
+      );
       if (account.viewer !== cloud.viewer)
         throw new Error(
           "Your StaySuite account changed. Reconnect before saving.",
@@ -223,13 +255,13 @@ export default function GroupsWorkspace() {
         if (controller.signal.aborted) break;
         if ((await facebookIdentity()) !== library.actorId)
           throw new Error("Facebook account changed. Saving stopped.");
-        await requestDashboard(cloud.tabId, origin, cloud.viewer, group);
+        await requestDashboard(cloud.tabId, cloud.origin, cloud.viewer, group);
         saved++;
         setCloudStatus(
           `${saved} of ${library.groups.length} groups confirmed in All groups…`,
         );
       }
-      await requestDashboard(cloud.tabId, origin, cloud.viewer);
+      await requestDashboard(cloud.tabId, cloud.origin, cloud.viewer);
       setCloudStatus(
         `${saved} groups confirmed in All groups.${controller.signal.aborted ? " Stopped after the current save." : " Existing notes and rule reviews were preserved."}`,
       );
@@ -251,7 +283,7 @@ export default function GroupsWorkspace() {
       saving
     )
       return;
-    const key = `${cloud.viewer}:${library.actorId}:${library.updatedAt}`;
+    const key = `${cloud.origin}:${cloud.viewer}:${library.actorId}:${library.updatedAt}`;
     if (autoSaved.current === key) return;
     autoSaved.current = key;
     void saveGroups();
@@ -454,6 +486,40 @@ export default function GroupsWorkspace() {
       <section className="collect-panel" aria-labelledby="cloud">
         <h2 id="cloud">Save to StaySuite</h2>
         <p>Your Facebook library works independently of StaySuite login.</p>
+        <details>
+          <summary>
+            Manual StaySuite connection (if detection is unavailable)
+          </summary>
+          <label className="consent">
+            <input
+              type="checkbox"
+              checked={manualConnection}
+              disabled={pending || saving}
+              onChange={(event) => {
+                setManualConnection(event.target.checked);
+                setCloud(null);
+              }}
+            />
+            Use a manual StaySuite URL
+          </label>
+          <label>
+            StaySuite URL
+            <input
+              type="url"
+              value={manualUrl}
+              disabled={!manualConnection || pending || saving}
+              onChange={(event) => {
+                setManualUrl(event.target.value);
+                setCloud(null);
+              }}
+            />
+          </label>
+        </details>
+        {cloud && (
+          <p style={{ overflowWrap: "anywhere" }}>
+            StaySuite site: {cloud.origin}
+          </p>
+        )}
         <div className="workspace-actions">
           <button
             className="secondary"
@@ -462,9 +528,11 @@ export default function GroupsWorkspace() {
           >
             {cloud ? "Reconnect StaySuite" : "Connect StaySuite"}
           </button>
-          <a href={appUrl} target="_blank" rel="noreferrer">
-            Open All groups
-          </a>
+          {cloud && (
+            <a href={appUrl} target="_blank" rel="noreferrer">
+              Open All groups
+            </a>
+          )}
         </div>
         <label className="consent">
           <input
