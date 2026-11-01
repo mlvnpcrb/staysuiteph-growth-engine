@@ -20,12 +20,23 @@ import {
   type TemplateContent,
 } from "@staysuite/validation";
 import { templateRequest, uploadTemplateAsset } from "./template-api";
+import { useLibrary } from "../library/use-library";
+import { CollectionLibrary } from "../library/collection-library";
+import { CategoryManager } from "../library/category-manager";
 export function TemplateLibrary() {
+  const [libraryView, setLibraryView] = useState<"templates" | "groups">(
+    "templates",
+  );
   const account = useRef("");
   const [activeId, setActiveId] = useState("");
   const [sort, setSort] = useState("default");
   const [templates, setTemplates] = useState<PostTemplate[]>([]);
   const [viewer, setViewer] = useState("");
+  const library = useLibrary(viewer);
+  const [categoryReady, setCategoryReady] = useState(false);
+  const [categoryManager, setCategoryManager] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -87,6 +98,12 @@ export function TemplateLibrary() {
     return () => controller.abort();
   }, [version]);
   function open(template: PostTemplate | null) {
+    setCategoryReady(!!library.snapshot);
+    setSelectedCategories(
+      library.snapshot?.assignments
+        .filter((item) => item.template_id === template?.id)
+        .map((item) => item.category_id) ?? [],
+    );
     setEditing(template);
     setName(template?.name ?? "");
     setText(template?.text ?? "");
@@ -186,6 +203,16 @@ export function TemplateLibrary() {
         if (!finalized) throw new Error("Attachments were not finalized.");
         template = finalized.template;
       }
+      setEditing(template);
+      if (library.snapshot && categoryReady) {
+        const assigned = await library.command({
+          operation: "template_assign",
+          template_id: template.id,
+          revision: template.revision,
+          category_ids: selectedCategories,
+        });
+        if (assigned.template) template = assigned.template;
+      }
       setEditing(undefined);
       setActiveId(template.id);
       setMessage(result.warning ?? `Saved “${template.name}”.`);
@@ -215,6 +242,16 @@ export function TemplateLibrary() {
         viewer,
         operation === "delete" ? "DELETE" : "POST",
       );
+      if (result?.template && operation === "duplicate" && library.snapshot) {
+        await library.command({
+          operation: "template_assign",
+          template_id: result.template.id,
+          revision: result.template.revision,
+          category_ids: library.snapshot.assignments
+            .filter((item) => item.template_id === template.id)
+            .map((item) => item.category_id),
+        });
+      }
       if (result?.template) setActiveId(result.template.id);
       setMessage(
         result?.warning ??
@@ -231,6 +268,15 @@ export function TemplateLibrary() {
     }
   }
   const filtered = templates
+    .filter(
+      (item) =>
+        !categoryFilter ||
+        library.snapshot?.assignments.some(
+          (assignment) =>
+            assignment.template_id === item.id &&
+            assignment.category_id === categoryFilter,
+        ),
+    )
     .filter((item) =>
       `${item.name} ${item.text}`.toLowerCase().includes(search.toLowerCase()),
     )
@@ -245,273 +291,335 @@ export function TemplateLibrary() {
   return (
     <section className="template-library reference-template-library">
       <h1 className="sr-only">Templates</h1>
+      {categoryManager && (
+        <CategoryManager
+          library={library}
+          onClose={() => setCategoryManager(false)}
+          onChange={() => setVersion((value) => value + 1)}
+        />
+      )}
       <div
         className="reference-library-switcher"
         aria-label="Template library view"
       >
-        <button type="button" className="active" aria-pressed="true">
+        <button
+          type="button"
+          className={libraryView === "templates" ? "active" : ""}
+          aria-pressed={libraryView === "templates"}
+          onClick={() => setLibraryView("templates")}
+        >
           Post Templates
         </button>
         <button
           type="button"
-          disabled
-          title="Group collections are not implemented yet"
+          className={libraryView === "groups" ? "active" : ""}
+          aria-pressed={libraryView === "groups"}
+          onClick={() => setLibraryView("groups")}
         >
           Groups
         </button>
       </div>
-      {editing === undefined && (
-        <div className="gpp-tpl-actions-row">
-          <button
-            type="button"
-            className="gpp-secondary"
-            disabled={busy || !viewer}
-            onClick={() => open(null)}
-          >
-            <Plus size={14} aria-hidden="true" />
-            Create Template
-          </button>
-          <button
-            type="button"
-            className="gpp-secondary"
-            disabled
-            title="Importing posts from Facebook profiles is not implemented yet"
-          >
-            <Download size={14} aria-hidden="true" />
-            Import from profile
-          </button>
-          <button
-            type="button"
-            className="gpp-secondary"
-            disabled
-            title="Starter packs are not implemented yet"
-          >
-            <Sparkles size={14} aria-hidden="true" />
-            Starter packs
-          </button>
-          <details className="template-sort-menu">
-            <summary className="gpp-secondary">
-              <SlidersHorizontal size={14} aria-hidden="true" />
-              Sort &amp; Filter
-            </summary>
-            <div>
-              <label>
-                Sort by
-                <select
-                  aria-label="Sort by"
-                  value={sort}
-                  onChange={(event) => setSort(event.target.value)}
-                >
-                  <option value="default">Default</option>
-                  <option value="name-asc">Name (A-Z)</option>
-                  <option value="name-desc">Name (Z-A)</option>
-                </select>
-              </label>
-            </div>
-          </details>
-          <button
-            type="button"
-            className="gpp-secondary"
-            disabled
-            title="Template categories are not implemented yet"
-          >
-            <Tags size={14} aria-hidden="true" />
-            Categories
-          </button>
-        </div>
-      )}
-      {loading && <p role="status">Loading templates…</p>}
-      {error && (
-        <div role="alert">
-          <p>{error}</p>
-          <Button
-            disabled={busy}
-            onClick={() => {
-              setError("");
-              setVersion((value) => value + 1);
-            }}
-          >
-            Reload templates
-          </Button>
-        </div>
-      )}
-      {message && <p role="status">{message}</p>}
-      {editing !== undefined && (
-        <form
-          className="template-editor"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void save();
-          }}
-        >
-          <div className="reference-template-editor-heading">
-            <h2>{editing ? "Edit Template" : "Create Template"}</h2>
-            <span className="muted">{name.length}/50</span>
-          </div>
-          <label>
-            Template name
-            <input
-              required
-              maxLength={50}
-              value={name}
-              disabled={busy}
-              onChange={(event) => setName(event.target.value)}
-            />
-          </label>
-          <label>
-            Post text
-            <textarea
-              aria-label="Post text"
-              rows={8}
-              maxLength={12000}
-              value={text}
-              disabled={busy}
-              onChange={(event) => setText(event.target.value)}
-            />
-          </label>
-          <ul>
-            {kept.map((asset) => (
-              <li key={asset.id}>
-                {asset.name} {!asset.uploaded && "(upload pending)"}{" "}
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() =>
-                    setKept((items) =>
-                      items.filter((item) => item.id !== asset.id),
-                    )
-                  }
-                >
-                  Remove {asset.name}
-                </button>
-              </li>
-            ))}
-          </ul>
-          <label>
-            Attachments
-            <input
-              type="file"
-              multiple
-              accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm,video/quicktime"
-              disabled={busy}
-              onChange={(event) =>
-                setFiles(Array.from(event.target.files ?? []))
-              }
-            />
-          </label>
-          <p>Up to 10 attachments, 35 MB each.</p>
-          <Button type="submit" disabled={busy}>
-            {busy ? "Saving…" : "Save template"}
-          </Button>
-          <Button
-            type="button"
-            disabled={busy}
-            onClick={() => setEditing(undefined)}
-          >
-            Cancel
-          </Button>
-        </form>
-      )}
-      {editing === undefined &&
-        !loading &&
-        !error &&
-        templates.length === 0 && (
-          <p>
-            No templates yet. Create a template to reuse your post text and
-            media.
-          </p>
-        )}
-      {editing === undefined && (
-        <div className="templates-split-layout">
-          <aside className="ts-sidebar">
-            <label className="reference-template-search">
-              <span className="sr-only">Search templates</span>
-              <Search size={15} aria-hidden="true" />
-              <input
-                type="search"
-                placeholder="Search templates..."
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-              />
-            </label>
-            <ul className="ts-tags-list">
-              {filtered.map((template) => (
-                <li key={template.id}>
-                  <button
-                    type="button"
-                    className={current?.id === template.id ? "active" : ""}
-                    aria-pressed={current?.id === template.id}
-                    onClick={() => setActiveId(template.id)}
-                  >
-                    <FileText size={16} aria-hidden="true" />
-                    <span>
-                      <strong>{template.name}</strong>
-                      <small>
-                        {template.text.slice(0, 80) ||
-                          `${template.assets.length} attachment(s)`}
-                      </small>
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-            {!!templates.length && !filtered.length && (
-              <p>No matching templates.</p>
-            )}
-          </aside>
-          <div className="ts-main">
-            <div className="ts-preview-container">
-              {current ? (
-                <article className="reference-template-preview">
-                  <h2>{current.name}</h2>
-                  <p className="template-excerpt">{current.text}</p>
-                  <ul className="reference-template-attachments">
-                    {current.assets.map((asset) => (
-                      <li key={asset.id}>
-                        {asset.name}
-                        {!asset.uploaded && " · Upload pending"}
-                      </li>
-                    ))}
-                  </ul>
-                  <p>
-                    {current.assets.length} attachment(s)
-                    {current.state !== "ready" ? ` · ${current.state}` : ""}
-                  </p>
-                  <div className="template-actions">
-                    {current.state === "ready" && (
-                      <Link href={`/dashboard/compose?template=${current.id}`}>
-                        Use template
-                      </Link>
-                    )}
-                    <Button
-                      disabled={busy || current.state === "deleting"}
-                      onClick={() => open(current)}
+      {libraryView === "groups" ? (
+        <CollectionLibrary library={library} viewer={viewer} />
+      ) : (
+        <>
+          {editing === undefined && (
+            <div className="gpp-tpl-actions-row">
+              <button
+                type="button"
+                className="gpp-secondary"
+                disabled={busy || !viewer}
+                onClick={() => open(null)}
+              >
+                <Plus size={14} aria-hidden="true" />
+                Create Template
+              </button>
+              <button
+                type="button"
+                className="gpp-secondary"
+                disabled
+                title="Importing posts from Facebook profiles is not implemented yet"
+              >
+                <Download size={14} aria-hidden="true" />
+                Import from profile
+              </button>
+              <button
+                type="button"
+                className="gpp-secondary"
+                disabled
+                title="Starter packs are not implemented yet"
+              >
+                <Sparkles size={14} aria-hidden="true" />
+                Starter packs
+              </button>
+              <details className="template-sort-menu">
+                <summary className="gpp-secondary">
+                  <SlidersHorizontal size={14} aria-hidden="true" />
+                  Sort &amp; Filter
+                </summary>
+                <div>
+                  <label>
+                    Sort by
+                    <select
+                      aria-label="Sort by"
+                      value={sort}
+                      onChange={(event) => setSort(event.target.value)}
                     >
-                      Edit
-                    </Button>
-                    <Button
-                      disabled={busy || current.state !== "ready"}
-                      onClick={() => void action(current, "duplicate")}
+                      <option value="default">Default</option>
+                      <option value="name-asc">Name (A-Z)</option>
+                      <option value="name-desc">Name (Z-A)</option>
+                    </select>
+                  </label>
+                  <label>
+                    Category
+                    <select
+                      aria-label="Filter by category"
+                      value={categoryFilter}
+                      onChange={(event) =>
+                        setCategoryFilter(event.target.value)
+                      }
                     >
-                      Duplicate
-                    </Button>
-                    <Button
-                      disabled={busy}
-                      onClick={() => void action(current, "delete")}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </article>
-              ) : (
-                <div className="reference-template-empty">
-                  <FileText size={30} aria-hidden="true" />
-                  <p>Select a template to preview it here.</p>
+                      <option value="">All categories</option>
+                      {library.snapshot?.categories.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                 </div>
-              )}
+              </details>
+              <button
+                type="button"
+                className="gpp-secondary"
+                disabled={busy || !library.snapshot}
+                onClick={() => setCategoryManager(true)}
+              >
+                <Tags size={14} aria-hidden="true" />
+                Categories
+              </button>
             </div>
-          </div>
-        </div>
+          )}
+          {loading && <p role="status">Loading templates…</p>}
+          {error && (
+            <div role="alert">
+              <p>{error}</p>
+              <Button
+                disabled={busy}
+                onClick={() => {
+                  setError("");
+                  setVersion((value) => value + 1);
+                }}
+              >
+                Reload templates
+              </Button>
+            </div>
+          )}
+          {message && <p role="status">{message}</p>}
+          {editing !== undefined && (
+            <form
+              className="template-editor"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void save();
+              }}
+            >
+              <div className="reference-template-editor-heading">
+                <h2>{editing ? "Edit Template" : "Create Template"}</h2>
+                <span className="muted">{name.length}/50</span>
+              </div>
+              <label>
+                Template name
+                <input
+                  required
+                  maxLength={50}
+                  value={name}
+                  disabled={busy}
+                  onChange={(event) => setName(event.target.value)}
+                />
+              </label>
+              <label>
+                Post text
+                <textarea
+                  aria-label="Post text"
+                  rows={8}
+                  maxLength={12000}
+                  value={text}
+                  disabled={busy}
+                  onChange={(event) => setText(event.target.value)}
+                />
+              </label>
+              {library.snapshot && categoryReady && (
+                <fieldset disabled={busy}>
+                  <legend>Categories</legend>
+                  {library.snapshot.categories.length === 0 && (
+                    <span>No categories yet.</span>
+                  )}
+                  {library.snapshot.categories.map((category) => (
+                    <label key={category.id}>
+                      <input
+                        type="checkbox"
+                        checked={selectedCategories.includes(category.id)}
+                        onChange={(event) =>
+                          setSelectedCategories((ids) =>
+                            event.target.checked
+                              ? [...ids, category.id]
+                              : ids.filter((id) => id !== category.id),
+                          )
+                        }
+                      />
+                      {category.name}
+                    </label>
+                  ))}
+                </fieldset>
+              )}
+              <ul>
+                {kept.map((asset) => (
+                  <li key={asset.id}>
+                    {asset.name} {!asset.uploaded && "(upload pending)"}{" "}
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() =>
+                        setKept((items) =>
+                          items.filter((item) => item.id !== asset.id),
+                        )
+                      }
+                    >
+                      Remove {asset.name}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <label>
+                Attachments
+                <input
+                  type="file"
+                  multiple
+                  accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm,video/quicktime"
+                  disabled={busy}
+                  onChange={(event) =>
+                    setFiles(Array.from(event.target.files ?? []))
+                  }
+                />
+              </label>
+              <p>Up to 10 attachments, 35 MB each.</p>
+              <Button type="submit" disabled={busy}>
+                {busy ? "Saving…" : "Save template"}
+              </Button>
+              <Button
+                type="button"
+                disabled={busy}
+                onClick={() => setEditing(undefined)}
+              >
+                Cancel
+              </Button>
+            </form>
+          )}
+          {editing === undefined &&
+            !loading &&
+            !error &&
+            templates.length === 0 && (
+              <p>
+                No templates yet. Create a template to reuse your post text and
+                media.
+              </p>
+            )}
+          {editing === undefined && (
+            <div className="templates-split-layout">
+              <aside className="ts-sidebar">
+                <label className="reference-template-search">
+                  <span className="sr-only">Search templates</span>
+                  <Search size={15} aria-hidden="true" />
+                  <input
+                    type="search"
+                    placeholder="Search templates..."
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                  />
+                </label>
+                <ul className="ts-tags-list">
+                  {filtered.map((template) => (
+                    <li key={template.id}>
+                      <button
+                        type="button"
+                        className={current?.id === template.id ? "active" : ""}
+                        aria-pressed={current?.id === template.id}
+                        onClick={() => setActiveId(template.id)}
+                      >
+                        <FileText size={16} aria-hidden="true" />
+                        <span>
+                          <strong>{template.name}</strong>
+                          <small>
+                            {template.text.slice(0, 80) ||
+                              `${template.assets.length} attachment(s)`}
+                          </small>
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                {!!templates.length && !filtered.length && (
+                  <p>No matching templates.</p>
+                )}
+              </aside>
+              <div className="ts-main">
+                <div className="ts-preview-container">
+                  {current ? (
+                    <article className="reference-template-preview">
+                      <h2>{current.name}</h2>
+                      <p className="template-excerpt">{current.text}</p>
+                      <ul className="reference-template-attachments">
+                        {current.assets.map((asset) => (
+                          <li key={asset.id}>
+                            {asset.name}
+                            {!asset.uploaded && " · Upload pending"}
+                          </li>
+                        ))}
+                      </ul>
+                      <p>
+                        {current.assets.length} attachment(s)
+                        {current.state !== "ready" ? ` · ${current.state}` : ""}
+                      </p>
+                      <div className="template-actions">
+                        {current.state === "ready" && (
+                          <Link
+                            href={`/dashboard/compose?template=${current.id}`}
+                          >
+                            Use template
+                          </Link>
+                        )}
+                        <Button
+                          disabled={busy || current.state === "deleting"}
+                          onClick={() => open(current)}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          disabled={busy || current.state !== "ready"}
+                          onClick={() => void action(current, "duplicate")}
+                        >
+                          Duplicate
+                        </Button>
+                        <Button
+                          disabled={busy}
+                          onClick={() => void action(current, "delete")}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </article>
+                  ) : (
+                    <div className="reference-template-empty">
+                      <FileText size={30} aria-hidden="true" />
+                      <p>Select a template to preview it here.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </section>
   );

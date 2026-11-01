@@ -32,6 +32,7 @@ import {
   detectCampaignMediaType,
   type CampaignPlan,
 } from "@staysuite/validation";
+import { useLibrary } from "../library/use-library";
 import { useGroups } from "../groups/use-groups";
 import { CampaignLibrary, type RestoredCampaign } from "./campaign-library";
 import { CampaignTextEditor } from "./campaign-text-editor";
@@ -57,7 +58,9 @@ export function CampaignBuilder({
   const reviewDialog = useRef<HTMLDialogElement>(null);
   const audienceDialog = useRef<HTMLDialogElement>(null);
   const [editorOpen, setEditorOpen] = useState(view === "compose");
-  const { groups, loading, error, reload } = useGroups();
+  const { groups, loading, error, reload, viewer: groupViewer } = useGroups();
+  const collections = useLibrary(groupViewer);
+  const [collectionError, setCollectionError] = useState("");
   const [text, setText] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -755,6 +758,51 @@ export function CampaignBuilder({
               {selected.length}/50 selected. Selection order determines queue
               order.
             </p>
+            {collections.snapshot && (
+              <label>
+                Group collection
+                <select
+                  aria-label="Group collection"
+                  value=""
+                  onChange={(event) => {
+                    const collection = collections.snapshot?.collections.find(
+                      (item) => item.id === event.target.value,
+                    );
+                    if (!collection) return;
+                    const merged = [
+                      ...new Set([...selected, ...collection.group_ids]),
+                    ];
+                    if (merged.length > 50) {
+                      setCollectionError(
+                        "Choose up to 50 groups. This collection exceeds the remaining audience capacity.",
+                      );
+                      return;
+                    }
+                    if (
+                      collection.group_ids.some(
+                        (id) => !groups.some((group) => group.id === id),
+                      )
+                    ) {
+                      setCollectionError(
+                        "A collection group is unavailable. Reload your library before continuing.",
+                      );
+                      return;
+                    }
+                    invalidateApproval();
+                    setSelected(merged);
+                    setCollectionError("");
+                  }}
+                >
+                  <option value="">Choose a collection</option>
+                  {collections.snapshot.collections.map((collection) => (
+                    <option key={collection.id} value={collection.id}>
+                      {collection.name} ({collection.group_ids.length})
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            {collectionError && <p role="alert">{collectionError}</p>}
             <label htmlFor="campaign-group-filter">Find a target group</label>
             <input
               id="campaign-group-filter"
