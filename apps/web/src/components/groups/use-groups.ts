@@ -19,6 +19,7 @@ export async function groupRequest(method: string, body?: unknown) {
   return groupResponseSchema.parse(result);
 }
 export function useGroups() {
+  const [viewer, setViewer] = useState("");
   const [groups, setGroups] = useState<SavedGroup[]>([]);
   const [stats, setStats] = useState({ total: 0, reviewed: 0, needsReview: 0 });
   const [loading, setLoading] = useState(true);
@@ -30,9 +31,12 @@ export function useGroups() {
       const data = await groupRequest("GET");
       if (!data.groups || !data.stats)
         throw new Error("Saved group response was incomplete.");
+      setViewer(data.viewer_id ?? "");
       setGroups(data.groups);
       setStats(data.stats);
     } catch {
+      setViewer("");
+      setGroups([]);
       setError(
         "Saved groups are unavailable. Retry, or ask your administrator to connect saved groups.",
       );
@@ -42,9 +46,11 @@ export function useGroups() {
   }, []);
   useEffect(() => {
     void reload();
-    const synced = () => { void reload(); };
+    const synced = () => {
+      void reload();
+    };
     window.addEventListener("staysuite:groups-synced", synced);
     return () => window.removeEventListener("staysuite:groups-synced", synced);
   }, [reload]);
-  return { groups, stats, loading, error, reload };
+  return { groups, stats, loading, error, reload, viewer };
 }

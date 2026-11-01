@@ -1,6 +1,7 @@
 # Group Posting PRO feature inventory and StaySuite alignment
 
 > The latest strict 1:1 scope supersedes the approximate dispositions below. See `STRICT_REFERENCE_SCOPE.md` for the applied removals and current UI names. This inventory is not a claim of complete parity.
+> Newer increments: see `REFERENCE_SCHEDULING.md` for recurrence dispatch and `REFERENCE_LIBRARY_COLLECTIONS.md` for template categories and group collections. The original rows below retain the earlier inventory context.
 
 ## Reference and review boundary
 

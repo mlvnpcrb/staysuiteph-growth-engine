@@ -188,6 +188,16 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      library_snapshot: { Args: Record<string, never>; Returns: Json };
+      library_command: {
+        Args: {
+          p_id: string;
+          p_revision: number;
+          p_operation: string;
+          p_payload: Json;
+        };
+        Returns: Json;
+      };
       schedule_command: {
         Args: {
           p_id: string;

@@ -34,3 +34,5 @@ export {campaignRepository} from "./campaigns";
 export { templateRepository, TemplateConflictError } from "./templates";
 
 export * from "./schedules";
+
+export * from "./library";

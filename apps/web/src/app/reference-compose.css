@@ -1075,3 +1075,79 @@
   text-align: center;
   flex: none;
 }
+.reference-library-dialog {
+  width: min(480px, calc(100vw - 32px));
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  background: var(--background);
+  color: var(--foreground);
+}
+.reference-library-dialog::backdrop {
+  background: #0008;
+}
+.reference-library-dialog ul {
+  list-style: none;
+  padding: 0;
+  max-height: 300px;
+  overflow: auto;
+}
+.reference-library-dialog li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+.reference-library-dialog li span {
+  flex: 1;
+}
+.reference-library-dialog input {
+  display: block;
+  width: 100%;
+  margin: 8px 0;
+  padding: 8px;
+}
+.template-editor fieldset label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 12px;
+}
+.reference-collections-list {
+  padding: 0;
+  list-style: none;
+}
+.reference-collections-list li {
+  border-bottom: 1px solid var(--border);
+  padding: 12px 0;
+}
+.reference-collections-list li > button {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  padding: 12px 0;
+  text-align: left;
+}
+.reference-collections-list li div {
+  display: flex;
+  gap: 12px;
+}
+.reference-collection-library form > input,
+.reference-collection-library form > label > input {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.reference-collection-library fieldset {
+  max-height: 400px;
+  overflow: auto;
+  margin-top: 14px;
+}
+.reference-collection-library fieldset label {
+  display: flex;
+  gap: 10px;
+  padding: 8px;
+}
