@@ -10,6 +10,7 @@ import {
   Smile,
   Shuffle,
   Undo2,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@staysuite/ui";
 import {
@@ -52,9 +53,11 @@ function Tool({
 export function CampaignTextEditor({
   value,
   onChange,
+  actions,
 }: {
   value: string;
   onChange: (text: string) => void;
+  actions?: ReactNode;
 }) {
   const editor = useRef<HTMLTextAreaElement>(null);
   const selection = useRef({ start: 0, end: 0 });
@@ -107,10 +110,13 @@ export function CampaignTextEditor({
         role="toolbar"
         aria-label="Post text tools"
         onKeyDown={(event) => {
+          if ((event.target as HTMLElement).closest("dialog[open]")) return;
           if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key))
             return;
           const buttons = Array.from(
             event.currentTarget.querySelectorAll<HTMLButtonElement>("button"),
+          ).filter(
+            (button) => !button.disabled && button.getClientRects().length > 0,
           );
           const current = buttons.findIndex(
             (button) => button === document.activeElement,
@@ -129,6 +135,15 @@ export function CampaignTextEditor({
           buttons[next]?.focus();
         }}
       >
+        <button
+          type="button"
+          className="reference-ai-door"
+          disabled
+          title="AI writing is not implemented yet"
+        >
+          <Sparkles size={12} aria-hidden="true" />
+          Write with AI
+        </button>
         <div className="campaign-text-tools">
           <Tool
             label="Bold lettering"
@@ -204,6 +219,15 @@ export function CampaignTextEditor({
             <Undo2 size={18} aria-hidden="true" />
           </Tool>
         </div>
+        {actions}
+        <button
+          type="button"
+          className="reference-score"
+          disabled
+          title="Post scoring is not implemented yet"
+        >
+          Score: --
+        </button>
         <button
           type="button"
           className="campaign-variation-toggle"
@@ -287,16 +311,7 @@ export function CampaignTextEditor({
           {notice}
         </p>
       )}
-      <details className="campaign-toolbar-help">
-        <summary>Text tools help</summary>
-        <p>
-          Select text before using bold or italic lettering. These tools use
-          stylized Unicode letters; plain letters are best for screen readers.
-          Lists and emojis become visible post text. Heading sizes are not
-          supported yet. Random variations add an opening line for you to
-          review; they never post or change your offer automatically.
-        </p>
-      </details>
+
       {variationsOpen && (
         <section
           id="campaign-variations"

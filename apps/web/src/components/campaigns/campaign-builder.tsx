@@ -4,6 +4,18 @@ import { readTemplate } from "../templates/template-api";
 import Image from "next/image";
 import Link from "next/link";
 import {
+  UsersRound,
+  UserRound,
+  ChevronDown,
+  ImagePlus,
+  FileImage,
+  Eye,
+} from "lucide-react";
+import {
+  ComposeTemplatePicker,
+  ComposeLinkDialog,
+} from "./compose-template-picker";
+import {
   campaignCommand,
   CampaignApiError,
   uploadCampaignMedia,
@@ -34,6 +46,8 @@ export function CampaignBuilder({
 }: {
   view?: "compose" | "automations";
 }) {
+  const reviewDialog = useRef<HTMLDialogElement>(null);
+  const audienceDialog = useRef<HTMLDialogElement>(null);
   const [editorOpen, setEditorOpen] = useState(view === "compose");
   const { groups, loading, error, reload } = useGroups();
   const [text, setText] = useState("");
@@ -590,46 +604,30 @@ export function CampaignBuilder({
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   return (
-    <div className="page group-workspace campaign-workspace">
-      <div className="page-heading">
-        <div>
-          <span className="eyebrow">Group campaigns</span>
-          <h1>{view === "compose" ? "Compose" : "Automations"}</h1>
-          <p className="muted">
-            One post, selected communities, a clear review before publishing.
-          </p>
-        </div>
-        <span className="subtle-badge">
-          Campaign runs use your Chrome extension
-        </span>
+    <div className="page group-workspace campaign-workspace" data-view={view}>
+      <div className="page-heading reference-compose-heading">
+        <h1>{view === "compose" ? "Compose" : "Automations"}</h1>
       </div>
-      <aside
-        className="campaign-availability"
-        aria-label="Campaign availability"
-      >
-        <div>
-          <strong>
-            {storageState === "ready"
-              ? "Private saving connected"
-              : storageState === "checking"
-                ? "Checking private saving…"
-                : "Private saving needs attention"}
-          </strong>
-          <p className="muted text-sm">
-            {storageMessage ||
-              "Checking your StaySuite workspace. You can prepare your draft while we check."}
-          </p>
+      {view === "compose" && (
+        <div className="gpp-compose-top-row">
+          <div className="posting-as-chip">
+            <span className="pa-avatar">
+              <UserRound size={20} aria-hidden="true" />
+            </span>
+            <div className="pa-meta">
+              <span className="pa-label">Posting as</span>
+              <span className="pa-name">
+                {savedJob?.actor_id
+                  ? `Facebook identity ${savedJob.actor_id}`
+                  : "Choose your posting identity"}
+              </span>
+            </div>
+            <Link className="gpp-identity-change" href="/dashboard/my-groups">
+              Change
+            </Link>
+          </div>
         </div>
-        <span className="subtle-badge">Extension controls publishing</span>
-        {storageState === "unavailable" && (
-          <Button
-            variant="outline"
-            onClick={() => setStorageCheck((value) => value + 1)}
-          >
-            Retry connection
-          </Button>
-        )}
-      </aside>
+      )}
       {view === "automations" ? (
         <CampaignLibrary
           version={libraryVersion}
@@ -658,412 +656,602 @@ export function CampaignBuilder({
         </p>
       ) : null}
       <div className="campaign-editor" hidden={!editorOpen}>
-        <section className="panel campaign-compose">
-          <div className="group-actions">
-            <h2>1. Write your post</h2>
+        <section className="panel campaign-audience" id="gppTargetSection">
+          <header className="gpp-compose-step-header">
+            <span className="gpp-compose-step-number" aria-hidden="true">
+              1
+            </span>
+            <span className="gpp-compose-step-copy">
+              <h2 className="gpp-compose-step-title">Choose your audience</h2>
+              <span className="gpp-compose-step-help">
+                Pick a tag, or choose groups one by one.
+              </span>
+            </span>
+          </header>
+          <div className="gpp-audience-controls">
+            <button
+              className="gpp-target-summary"
+              type="button"
+              onClick={() => audienceDialog.current?.showModal()}
+            >
+              <UsersRound size={16} aria-hidden="true" />
+              <span>
+                {selected.length
+                  ? `${selected.length} groups selected`
+                  : "Pick a tag or choose groups"}
+              </span>
+              <ChevronDown size={16} aria-hidden="true" />
+            </button>
+            <button
+              className="gpp-secondary"
+              type="button"
+              onClick={() => audienceDialog.current?.showModal()}
+            >
+              Advanced selector
+            </button>
+          </div>
+          <div className="reference-selected-groups">
+            {selected.map((id) => {
+              const group = groups.find((item) => item.id === id);
+              return (
+                <span key={id}>
+                  {group?.title ?? "Unavailable group"}
+                  <button
+                    type="button"
+                    aria-label={`Remove ${group?.title ?? "group"} from audience`}
+                    onClick={() => {
+                      invalidateApproval();
+                      setSelected((items) =>
+                        items.filter((item) => item !== id),
+                      );
+                    }}
+                  >
+                    ×
+                  </button>
+                </span>
+              );
+            })}
+          </div>
+          <dialog
+            ref={audienceDialog}
+            className="reference-dialog reference-audience-dialog"
+            aria-labelledby="audience-dialog-title"
+          >
+            <header>
+              <h2 id="audience-dialog-title">Select groups</h2>
+              <button
+                type="button"
+                aria-label="Close group selector"
+                onClick={() => audienceDialog.current?.close()}
+              >
+                ×
+              </button>
+            </header>
+            <p className="muted">
+              {selected.length}/50 selected. Selection order determines queue
+              order.
+            </p>
+            <label htmlFor="campaign-group-filter">Find a target group</label>
+            <input
+              id="campaign-group-filter"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              placeholder="Group name"
+            />
+            {loading && <p role="status">Loading your saved groups…</p>}
+            {error && (
+              <div role="alert">
+                {error}
+                <Button variant="outline" onClick={() => void reload()}>
+                  Retry groups
+                </Button>
+              </div>
+            )}
+            {!loading && !error && !groups.length && (
+              <p className="campaign-empty">
+                Your saved group library is empty. Import or add groups in My
+                Groups, then return to select your audience.
+              </p>
+            )}
+            {!!groups.length &&
+              !groups.some((group) =>
+                group.title
+                  .toLocaleLowerCase()
+                  .includes(filter.toLocaleLowerCase()),
+              ) && (
+                <p className="campaign-empty">
+                  No groups match this search. Try another name.
+                </p>
+              )}
+            <div className="campaign-targets">
+              {groups
+                .filter((g) =>
+                  g.title
+                    .toLocaleLowerCase()
+                    .includes(filter.toLocaleLowerCase()),
+                )
+                .map((g) => (
+                  <label key={g.id} className="campaign-target">
+                    <input
+                      type="checkbox"
+                      checked={selected.includes(g.id)}
+                      disabled={
+                        !selected.includes(g.id) && selected.length >= 50
+                      }
+                      onChange={(e) => {
+                        invalidateApproval();
+                        setSelected(
+                          e.target.checked
+                            ? [...selected, g.id]
+                            : selected.filter((id) => id !== g.id),
+                        );
+                      }}
+                    />
+                    <span>
+                      <strong>{g.title}</strong>
+                      <span className="muted text-sm">
+                        {campaignGroupBlockers(g).join("; ") ||
+                          "Permission reviewed; recheck eligibility before posting"}
+                      </span>
+                    </span>
+                  </label>
+                ))}
+            </div>
             <Button
               variant="outline"
-              disabled={busy || cloudBusy}
-              onClick={newDraft}
+              onClick={() => {
+                invalidateApproval();
+                setSelected([]);
+              }}
             >
-              New draft
+              Clear selection
             </Button>
-          </div>
-          <label htmlFor="campaign-title">
-            Campaign title <span className="muted">(private)</span>
-          </label>
-          <input
-            id="campaign-title"
-            name="campaignTitle"
-            autoComplete="off"
-            maxLength={120}
-            value={title}
-            placeholder="Post title…"
-            onChange={(e) => {
-              setTitle(e.target.value);
-              invalidateApproval();
-            }}
-          />
-          <label htmlFor="campaign-description">
-            Description <span className="muted">(private notes)</span>
-          </label>
-          <textarea
-            id="campaign-description"
-            name="campaignDescription"
-            autoComplete="off"
-            maxLength={2000}
-            rows={2}
-            value={description}
-            onChange={(e) => {
-              setDescription(e.target.value);
-              invalidateApproval();
-            }}
-          />
-          <p className="muted text-sm">
-            Only the post text below is intended for Facebook. Title and notes
-            stay in StaySuite.
-          </p>
-          <CampaignTextEditor
-            value={text}
-            onChange={(next) => {
-              invalidateApproval();
-              setText(next);
-            }}
-          />
-          <details>
-            <summary>Post text help</summary>
             <p>
-              Use accurate prices, dates and availability. Check whether each
-              group permits links, contact information and promotional content.
-              Changing text, media, target order, interval or saved rule
-              evidence invalidates plan approval.
+              <Link href="/dashboard/my-groups">
+                Review group rules in All groups
+              </Link>
             </p>
-          </details>
+            <button
+              type="button"
+              className="gpp-secondary"
+              onClick={() => audienceDialog.current?.close()}
+            >
+              Done selecting groups
+            </button>
+          </dialog>
         </section>
-        <section className="panel campaign-assets">
-          <h2>2. Add photos or a video</h2>
-          {savedJob?.media.length ? (
-            <p className="muted">
-              Saved attachments are immutable. Use Duplicate to replace them.
-            </p>
-          ) : null}
-          <div
-            className="campaign-dropzone"
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => {
-              e.preventDefault();
-              void addMedia(Array.from(e.dataTransfer.files));
-            }}
-          >
-            <label htmlFor="campaign-media">
-              Choose media or drop files here
+        <section className="panel campaign-compose" id="gppComposerSection">
+          <div className="group-actions">
+            <header className="gpp-compose-step-header">
+              <span className="gpp-compose-step-number" aria-hidden="true">
+                2
+              </span>
+              <span className="gpp-compose-step-copy">
+                <h2 className="gpp-compose-step-title">Create your content</h2>
+                <span className="gpp-compose-step-help">
+                  Start fresh, edit one saved post, or add several saved posts.
+                </span>
+              </span>
+            </header>
+            {view === "automations" ? (
+              <Button
+                variant="outline"
+                disabled={busy || cloudBusy}
+                onClick={newDraft}
+              >
+                New draft
+              </Button>
+            ) : null}
+          </div>
+          <details className="reference-draft-metadata">
+            <summary>Campaign details</summary>
+            <label htmlFor="campaign-title">
+              Campaign title <span className="muted">(private)</span>
             </label>
             <input
-              id="campaign-media"
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
-              multiple
-              disabled={busy || cloudBusy || !!savedJob?.media.length}
+              id="campaign-title"
+              name="campaignTitle"
+              autoComplete="off"
+              maxLength={120}
+              value={title}
+              placeholder="Post title…"
               onChange={(e) => {
-                void addMedia(Array.from(e.target.files ?? []));
-                e.target.value = "";
+                setTitle(e.target.value);
+                invalidateApproval();
+              }}
+            />
+            <label htmlFor="campaign-description">
+              Description <span className="muted">(private notes)</span>
+            </label>
+            <textarea
+              id="campaign-description"
+              name="campaignDescription"
+              autoComplete="off"
+              maxLength={2000}
+              rows={2}
+              value={description}
+              onChange={(e) => {
+                setDescription(e.target.value);
+                invalidateApproval();
               }}
             />
             <p className="muted text-sm">
-              Up to 10 photos or one video · 50 MB total workspace limit.
-            </p>
-          </div>
-          <details>
-            <summary>Media help</summary>
-            <p>
-              Files stay in this browser tab until you choose Save campaign
-              privately. Saving uploads them to your private StaySuite
-              workspace. Nothing is sent to Facebook. Keep your originals;
-              unsaved edits are lost on reload. Facebook and individual groups
-              may impose different media limits. The downloaded plan contains
-              file names and fingerprints, not the media files.
+              Only the post text below is intended for Facebook. Title and notes
+              stay in StaySuite.
             </p>
           </details>
-          {busy && <p role="status">Checking media and preparing previews…</p>}
-          {mediaError && (
-            <p role="alert" className="group-error">
-              {mediaError}
-            </p>
-          )}
-          <ul className="campaign-media-list">
-            {media.map((item, index) => (
-              <li key={item.sha256}>
-                {item.type.startsWith("image/") ? (
-                  <Image
-                    src={item.preview}
-                    alt={`Attachment ${index + 1}: ${item.name}`}
-                    width={160}
-                    height={120}
-                    unoptimized
-                  />
-                ) : (
-                  <video
-                    src={item.preview}
-                    controls
-                    preload="metadata"
-                    aria-label={`Attachment ${index + 1}: ${item.name}`}
-                  />
-                )}
-                <span>
-                  {index + 1}. {item.name} ·{" "}
-                  {(item.size / 1024 / 1024).toFixed(1)} MB
-                </span>
-                <Button
-                  variant="outline"
-                  disabled={busy || cloudBusy || !!savedJob?.media.length}
-                  onClick={() => {
-                    invalidateApproval();
-                    URL.revokeObjectURL(item.preview);
-                    previews.current.delete(item.preview);
-                    setMedia(media.filter((m) => m !== item));
-                  }}
-                >
-                  Remove {item.name}
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </section>
-        <section className="panel campaign-audience">
-          <h2>3. Select groups</h2>
-          <p className="muted">
-            {selected.length}/50 selected. Selection order determines queue
-            order.
-          </p>
-          <label htmlFor="campaign-group-filter">Find a target group</label>
-          <input
-            id="campaign-group-filter"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            placeholder="Group name"
-          />
-          {loading && <p role="status">Loading your saved groups…</p>}
-          {error && (
-            <div role="alert">
-              {error}
-              <Button variant="outline" onClick={() => void reload()}>
-                Retry groups
-              </Button>
-            </div>
-          )}
-          {!loading && !error && !groups.length && (
-            <p className="campaign-empty">
-              Your saved group library is empty. Import or add groups in My
-              Groups, then return to select your audience.
-            </p>
-          )}
-          {!!groups.length &&
-            !groups.some((group) =>
-              group.title
-                .toLocaleLowerCase()
-                .includes(filter.toLocaleLowerCase()),
-            ) && (
-              <p className="campaign-empty">
-                No groups match this search. Try another name.
-              </p>
-            )}
-          <div className="campaign-targets">
-            {groups
-              .filter((g) =>
-                g.title
-                  .toLocaleLowerCase()
-                  .includes(filter.toLocaleLowerCase()),
-              )
-              .map((g) => (
-                <label key={g.id} className="campaign-target">
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(g.id)}
-                    disabled={!selected.includes(g.id) && selected.length >= 50}
-                    onChange={(e) => {
-                      invalidateApproval();
-                      setSelected(
-                        e.target.checked
-                          ? [...selected, g.id]
-                          : selected.filter((id) => id !== g.id),
-                      );
-                    }}
-                  />
-                  <span>
-                    <strong>{g.title}</strong>
-                    <span className="muted text-sm">
-                      {campaignGroupBlockers(g).join("; ") ||
-                        "Permission reviewed; recheck eligibility before posting"}
-                    </span>
-                  </span>
-                </label>
-              ))}
-          </div>
-          <Button
-            variant="outline"
-            onClick={() => {
-              invalidateApproval();
-              setSelected([]);
-            }}
-          >
-            Clear selection
-          </Button>
-          <p>
-            <Link href="/dashboard/my-groups">
-              Review group rules in All groups
-            </Link>
-          </p>
-        </section>
-        <section className="panel campaign-review">
-          <h2>4. Review the campaign plan</h2>
-          <label>
-            Posting method
-            <select
-              value={settings.method}
-              disabled={cloudBusy || busy}
-              onChange={(e) => {
+          <div className="unified-composer-box">
+            <CampaignTextEditor
+              actions={
+                <ComposeTemplatePicker
+                  dirty={!!text.trim() || !!media.length}
+                />
+              }
+              value={text}
+              onChange={(next) => {
                 invalidateApproval();
-                setSettings({
-                  ...settings,
-                  method: e.target.value === "direct" ? "direct" : "classic",
-                });
+                setText(next);
               }}
-            >
-              <option value="direct">
-                Direct — automatic text and photo posting
-              </option>
-              <option value="classic">Classic — browser composer</option>
-            </select>
-          </label>
-          <p className="muted text-sm">
-            Direct posts your approved campaign through the extension without
-            opening each group composer. This version supports text and photos.
-            Live compatibility must be validated separately.
-          </p>
-          <div className="finder-fields">
-            <label>
-              Pause after every (posts)
-              <input
-                type="number"
-                min={1}
-                max={50}
-                value={settings.pauseEvery}
-                onChange={(e) => {
+            />
+
+            <div className="gpp-attach-strip">
+              <button
+                type="button"
+                className="gpp-attach-btn"
+                onClick={() =>
+                  document.getElementById("campaign-media")?.click()
+                }
+              >
+                <ImagePlus size={15} aria-hidden="true" />
+                Media
+              </button>
+              <button
+                type="button"
+                className="gpp-attach-btn"
+                disabled
+                title="Image card designer is not implemented yet"
+              >
+                <FileImage size={15} aria-hidden="true" />
+                Card
+              </button>
+              <ComposeLinkDialog
+                value={text}
+                disabled={busy || cloudBusy}
+                onChange={(value) => {
                   invalidateApproval();
-                  setSettings({
-                    ...settings,
-                    pauseEvery: Number(e.target.value),
-                  });
+                  setText(value);
                 }}
               />
-            </label>
-            <label>
-              Pause length (minutes)
+              <span className="gpp-attach-counts">
+                {text.length.toLocaleString()} characters · {media.length} media
+              </span>
+            </div>
+          </div>
+          <div className="campaign-assets">
+            <h3 className="sr-only">Add photos or a video</h3>
+            {savedJob?.media.length ? (
+              <p className="muted">
+                Saved attachments are immutable. Use Duplicate to replace them.
+              </p>
+            ) : null}
+            <div
+              className="campaign-dropzone"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                void addMedia(Array.from(e.dataTransfer.files));
+              }}
+            >
+              <label htmlFor="campaign-media">
+                Choose media or drop files here
+              </label>
               <input
+                id="campaign-media"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
+                multiple
+                disabled={busy || cloudBusy || !!savedJob?.media.length}
+                onChange={(e) => {
+                  void addMedia(Array.from(e.target.files ?? []));
+                  e.target.value = "";
+                }}
+              />
+              <p className="muted text-sm">
+                Up to 10 photos or one video · 50 MB total workspace limit.
+              </p>
+            </div>
+
+            {busy && (
+              <p role="status">Checking media and preparing previews…</p>
+            )}
+            {mediaError && (
+              <p role="alert" className="group-error">
+                {mediaError}
+              </p>
+            )}
+            <ul className="campaign-media-list">
+              {media.map((item, index) => (
+                <li key={item.sha256}>
+                  {item.type.startsWith("image/") ? (
+                    <Image
+                      src={item.preview}
+                      alt={`Attachment ${index + 1}: ${item.name}`}
+                      width={160}
+                      height={120}
+                      unoptimized
+                    />
+                  ) : (
+                    <video
+                      src={item.preview}
+                      controls
+                      preload="metadata"
+                      aria-label={`Attachment ${index + 1}: ${item.name}`}
+                    />
+                  )}
+                  <span>
+                    {index + 1}. {item.name} ·{" "}
+                    {(item.size / 1024 / 1024).toFixed(1)} MB
+                  </span>
+                  <Button
+                    variant="outline"
+                    disabled={busy || cloudBusy || !!savedJob?.media.length}
+                    onClick={() => {
+                      invalidateApproval();
+                      URL.revokeObjectURL(item.preview);
+                      previews.current.delete(item.preview);
+                      setMedia(media.filter((m) => m !== item));
+                    }}
+                  >
+                    Remove {item.name}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+        <section className="panel campaign-review">
+          <details className="reference-automation-settings">
+            <summary>3. Advanced Automation Settings</summary>
+            <div className="reference-settings-body">
+              <h2>Pauses &amp; protection</h2>
+              <label>
+                Posting method
+                <select
+                  aria-label="Posting method"
+                  value={settings.method}
+                  disabled={cloudBusy || busy}
+                  onChange={(e) => {
+                    invalidateApproval();
+                    setSettings({
+                      ...settings,
+                      method:
+                        e.target.value === "direct" ? "direct" : "classic",
+                    });
+                  }}
+                >
+                  <option value="direct">
+                    Direct — automatic text and photo posting
+                  </option>
+                  <option value="classic">Classic — browser composer</option>
+                </select>
+              </label>
+              <p className="muted text-sm">
+                Direct posts your approved campaign through the extension
+                without opening each group composer. This version supports text
+                and photos. Live compatibility must be validated separately.
+              </p>
+              <div className="finder-fields">
+                <label>
+                  Pause after every (posts)
+                  <input
+                    type="number"
+                    min={1}
+                    max={50}
+                    value={settings.pauseEvery}
+                    onChange={(e) => {
+                      invalidateApproval();
+                      setSettings({
+                        ...settings,
+                        pauseEvery: Number(e.target.value),
+                      });
+                    }}
+                  />
+                </label>
+                <label>
+                  Pause length (minutes)
+                  <input
+                    type="number"
+                    min={1}
+                    max={1440}
+                    value={settings.pauseMinutes}
+                    onChange={(e) => {
+                      invalidateApproval();
+                      setSettings({
+                        ...settings,
+                        pauseMinutes: Number(e.target.value),
+                      });
+                    }}
+                  />
+                </label>
+              </div>
+              <label className="review-confirm">
+                <input
+                  type="checkbox"
+                  checked={settings.avoidNight}
+                  onChange={(e) => {
+                    invalidateApproval();
+                    setSettings({ ...settings, avoidNight: e.target.checked });
+                  }}
+                />
+                Avoid night posting (10 PM–7 AM, Asia/Manila)
+              </label>
+              <label className="review-confirm">
+                <input
+                  type="checkbox"
+                  checked={settings.delayAfterFailure}
+                  onChange={(e) => {
+                    invalidateApproval();
+                    setSettings({
+                      ...settings,
+                      delayAfterFailure: e.target.checked,
+                    });
+                  }}
+                />
+                Keep the extra pause after a failure
+              </label>
+              <p className="muted text-sm">
+                These settings organize waiting times. They cannot guarantee
+                account protection. Refused or uncertain submissions stop the
+                campaign for review.
+              </p>
+              <label htmlFor="campaign-interval">
+                Minimum interval between targets (minutes)
+              </label>
+              <input
+                id="campaign-interval"
                 type="number"
                 min={1}
                 max={1440}
-                value={settings.pauseMinutes}
+                step={1}
+                value={Number.isFinite(interval) ? interval : ""}
                 onChange={(e) => {
                   invalidateApproval();
-                  setSettings({
-                    ...settings,
-                    pauseMinutes: Number(e.target.value),
-                  });
+                  setInterval(
+                    e.target.value === "" ? NaN : Number(e.target.value),
+                  );
                 }}
               />
-            </label>
-          </div>
-          <label className="review-confirm">
-            <input
-              type="checkbox"
-              checked={settings.avoidNight}
-              onChange={(e) => {
-                invalidateApproval();
-                setSettings({ ...settings, avoidNight: e.target.checked });
-              }}
-            />
-            Avoid night posting (10 PM–7 AM, Asia/Manila)
-          </label>
-          <label className="review-confirm">
-            <input
-              type="checkbox"
-              checked={settings.delayAfterFailure}
-              onChange={(e) => {
-                invalidateApproval();
-                setSettings({
-                  ...settings,
-                  delayAfterFailure: e.target.checked,
-                });
-              }}
-            />
-            Keep the extra pause after a failure
-          </label>
-          <p className="muted text-sm">
-            These settings organize waiting times. They cannot guarantee account
-            protection. Refused or uncertain submissions stop the campaign for
-            review.
-          </p>
-          <label htmlFor="campaign-interval">
-            Minimum interval between targets (minutes)
-          </label>
-          <input
-            id="campaign-interval"
-            type="number"
-            min={1}
-            max={1440}
-            step={1}
-            value={Number.isFinite(interval) ? interval : ""}
-            onChange={(e) => {
-              invalidateApproval();
-              setInterval(e.target.value === "" ? NaN : Number(e.target.value));
-            }}
-          />
-          <details>
-            <summary>Interval help</summary>
-            <p>
-              Waiting between posts cannot guarantee that your account will
-              avoid restrictions. Group rules may require longer waits. Stop
-              when Facebook shows a warning, restriction or access denial, and
-              check uncertain results before posting again.
-            </p>
+              <details>
+                <summary>Interval help</summary>
+                <p>
+                  Waiting between posts cannot guarantee that your account will
+                  avoid restrictions. Group rules may require longer waits. Stop
+                  when Facebook shows a warning, restriction or access denial,
+                  and check uncertain results before posting again.
+                </p>
+              </details>
+            </div>
           </details>
-          <h3>Post preview</h3>
-          <p className="campaign-post-preview">
-            {text || "Your post text will appear here."}
-          </p>
-          <p>
-            {media.length} attachment(s) · {selected.length} target(s)
-          </p>
-          <ol>
-            {targets.map((g, index) => (
-              <li key={selected[index]}>{g?.title ?? "Unavailable group"}</li>
-            ))}
-          </ol>
-          <label className="review-confirm">
-            <input
-              type="checkbox"
-              checked={confirmed}
-              onChange={(e) => setConfirmed(e.target.checked)}
-            />
-            I reviewed this exact text, media and target order.
-          </label>
-          <div className="group-actions">
-            <Button
-              disabled={!snapshot || !confirmed || busy || loading || !!error}
-              onClick={() => setApproved(snapshot)}
+          <div className="reference-compose-footer">
+            <button
+              type="button"
+              className="gpp-secondary reference-preview"
+              aria-label="Preview"
+              onClick={() => reviewDialog.current?.showModal()}
             >
-              Approve plan (not publish)
-            </Button>
-            <Button
-              variant="outline"
-              disabled={!snapshot || busy || loading || !!error}
-              onClick={download}
+              <Eye size={17} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              className="gpp-secondary"
+              disabled
+              title="Date scheduling is not implemented yet"
             >
-              Download campaign plan
-            </Button>
+              Schedule
+            </button>
+            <button
+              type="button"
+              className="gpp-post-now"
+              disabled={!parsed.success || busy || loading || !!error}
+              onClick={() => reviewDialog.current?.showModal()}
+            >
+              Post Now
+            </button>
           </div>
-          <p role="status">
-            {isApproved
-              ? "This exact campaign plan is approved for preparation. No posts have been sent."
-              : approved
-                ? "Plan changed. Review and approve the current version again."
-                : "Draft plan. Nothing has been sent."}
-          </p>
-          <p className="muted">
-            {blockers.length} selected target(s) need rule or permission review.
-          </p>
-          <Button disabled>
-            Start bulk posting — use the extension workspace
-          </Button>
-          <p className="muted text-sm">
-            Bulk posting is not available in this Preview. You can prepare and
-            download a campaign plan. Nothing is sent to Facebook. Rules and
-            posting permission need checking for every selected group before
-            publishing.
-          </p>
+          <dialog
+            ref={reviewDialog}
+            className="reference-dialog reference-review-dialog"
+            aria-labelledby="post-review-title"
+          >
+            <header>
+              <h2 id="post-review-title">Review your post</h2>
+              <button
+                type="button"
+                aria-label="Close post review"
+                onClick={() => reviewDialog.current?.close()}
+              >
+                ×
+              </button>
+            </header>
+            <details>
+              <summary>Post text help</summary>
+              <p>
+                Use accurate prices, dates and availability. Check whether each
+                group permits links, contact information and promotional
+                content. Changing text, media, target order, interval or saved
+                rule evidence invalidates plan approval.
+              </p>
+            </details>
+            <details>
+              <summary>Media help</summary>
+              <p>
+                Files stay in this browser tab until you choose Save campaign
+                privately. Saving uploads them to your private StaySuite
+                workspace. Nothing is sent to Facebook. Keep your originals;
+                unsaved edits are lost on reload. Facebook and individual groups
+                may impose different media limits. The downloaded plan contains
+                file names and fingerprints, not the media files.
+              </p>
+            </details>
+            <h3>Post preview</h3>
+            <p className="campaign-post-preview">
+              {text || "Your post text will appear here."}
+            </p>
+            <p>
+              {media.length} attachment(s) · {selected.length} target(s)
+            </p>
+            <ol>
+              {targets.map((g, index) => (
+                <li key={selected[index]}>{g?.title ?? "Unavailable group"}</li>
+              ))}
+            </ol>
+            <label className="review-confirm">
+              <input
+                type="checkbox"
+                checked={confirmed}
+                onChange={(e) => setConfirmed(e.target.checked)}
+              />
+              I reviewed this exact text, media and target order.
+            </label>
+            <div className="group-actions">
+              <Button
+                disabled={!snapshot || !confirmed || busy || loading || !!error}
+                onClick={() => setApproved(snapshot)}
+              >
+                Approve plan (not publish)
+              </Button>
+              <Button
+                variant="outline"
+                disabled={!snapshot || busy || loading || !!error}
+                onClick={download}
+              >
+                Download campaign plan
+              </Button>
+            </div>
+            <p role="status">
+              {isApproved
+                ? "This exact campaign plan is approved for preparation. No posts have been sent."
+                : approved
+                  ? "Plan changed. Review and approve the current version again."
+                  : "Draft plan. Nothing has been sent."}
+            </p>
+            <p className="muted">
+              {blockers.length} selected target(s) need rule or permission
+              review.
+            </p>
+            <Button disabled>
+              Start bulk posting — use the extension workspace
+            </Button>
+            <p className="muted text-sm">
+              Bulk posting is not available in this Preview. You can prepare and
+              download a campaign plan. Nothing is sent to Facebook. Rules and
+              posting permission need checking for every selected group before
+              publishing.
+            </p>
+          </dialog>
         </section>
-        <section className="panel campaign-save" aria-label="Save campaign">
+        <details className="panel campaign-save" aria-label="Save campaign">
+          <summary>Save campaign</summary>
           <h2>Keep this campaign</h2>
           <p className="muted">
             Save text, group order and media to your private StaySuite
@@ -1108,8 +1296,38 @@ export function CampaignBuilder({
           <p aria-live="polite" className="campaign-cloud-message">
             {cloudMessage}
           </p>
-        </section>
+        </details>
       </div>
+      <details className="reference-connection-details">
+        <summary>Workspace connection</summary>
+        <aside
+          className="campaign-availability"
+          aria-label="Campaign availability"
+        >
+          <div>
+            <strong>
+              {storageState === "ready"
+                ? "Private saving connected"
+                : storageState === "checking"
+                  ? "Checking private saving…"
+                  : "Private saving needs attention"}
+            </strong>
+            <p className="muted text-sm">
+              {storageMessage ||
+                "Checking your StaySuite workspace. You can prepare your draft while we check."}
+            </p>
+          </div>
+          <span className="subtle-badge">Extension controls publishing</span>
+          {storageState === "unavailable" && (
+            <Button
+              variant="outline"
+              onClick={() => setStorageCheck((value) => value + 1)}
+            >
+              Retry connection
+            </Button>
+          )}
+        </aside>
+      </details>
     </div>
   );
 }

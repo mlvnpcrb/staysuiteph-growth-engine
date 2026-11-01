@@ -1,6 +1,15 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import {
+  Plus,
+  Download,
+  Sparkles,
+  SlidersHorizontal,
+  Tags,
+  Search,
+  FileText,
+} from "lucide-react";
 import { Button } from "@staysuite/ui";
 import {
   templateListSchema,
@@ -13,6 +22,8 @@ import {
 import { templateRequest, uploadTemplateAsset } from "./template-api";
 export function TemplateLibrary() {
   const account = useRef("");
+  const [activeId, setActiveId] = useState("");
+  const [sort, setSort] = useState("default");
   const [templates, setTemplates] = useState<PostTemplate[]>([]);
   const [viewer, setViewer] = useState("");
   const [error, setError] = useState("");
@@ -176,6 +187,7 @@ export function TemplateLibrary() {
         template = finalized.template;
       }
       setEditing(undefined);
+      setActiveId(template.id);
       setMessage(result.warning ?? `Saved “${template.name}”.`);
       setVersion((value) => value + 1);
     } catch (e) {
@@ -203,6 +215,7 @@ export function TemplateLibrary() {
         viewer,
         operation === "delete" ? "DELETE" : "POST",
       );
+      if (result?.template) setActiveId(result.template.id);
       setMessage(
         result?.warning ??
           (operation === "delete"
@@ -217,25 +230,96 @@ export function TemplateLibrary() {
       setBusy(false);
     }
   }
+  const filtered = templates
+    .filter((item) =>
+      `${item.name} ${item.text}`.toLowerCase().includes(search.toLowerCase()),
+    )
+    .sort((a, b) =>
+      sort === "default"
+        ? 0
+        : sort === "name-asc"
+          ? a.name.localeCompare(b.name)
+          : b.name.localeCompare(a.name),
+    );
+  const current = filtered.find((item) => item.id === activeId) ?? filtered[0];
   return (
-    <section className="template-library">
-      <header className="section-heading">
-        <div>
-          <h1>Templates</h1>
-          <p>Save posts and media for reuse.</p>
+    <section className="template-library reference-template-library">
+      <h1 className="sr-only">Templates</h1>
+      <div
+        className="reference-library-switcher"
+        aria-label="Template library view"
+      >
+        <button type="button" className="active" aria-pressed="true">
+          Post Templates
+        </button>
+        <button
+          type="button"
+          disabled
+          title="Group collections are not implemented yet"
+        >
+          Groups
+        </button>
+      </div>
+      {editing === undefined && (
+        <div className="gpp-tpl-actions-row">
+          <button
+            type="button"
+            className="gpp-secondary"
+            disabled={busy || !viewer}
+            onClick={() => open(null)}
+          >
+            <Plus size={14} aria-hidden="true" />
+            Create Template
+          </button>
+          <button
+            type="button"
+            className="gpp-secondary"
+            disabled
+            title="Importing posts from Facebook profiles is not implemented yet"
+          >
+            <Download size={14} aria-hidden="true" />
+            Import from profile
+          </button>
+          <button
+            type="button"
+            className="gpp-secondary"
+            disabled
+            title="Starter packs are not implemented yet"
+          >
+            <Sparkles size={14} aria-hidden="true" />
+            Starter packs
+          </button>
+          <details className="template-sort-menu">
+            <summary className="gpp-secondary">
+              <SlidersHorizontal size={14} aria-hidden="true" />
+              Sort &amp; Filter
+            </summary>
+            <div>
+              <label>
+                Sort by
+                <select
+                  aria-label="Sort by"
+                  value={sort}
+                  onChange={(event) => setSort(event.target.value)}
+                >
+                  <option value="default">Default</option>
+                  <option value="name-asc">Name (A-Z)</option>
+                  <option value="name-desc">Name (Z-A)</option>
+                </select>
+              </label>
+            </div>
+          </details>
+          <button
+            type="button"
+            className="gpp-secondary"
+            disabled
+            title="Template categories are not implemented yet"
+          >
+            <Tags size={14} aria-hidden="true" />
+            Categories
+          </button>
         </div>
-        <Button disabled={busy || !viewer} onClick={() => open(null)}>
-          New template
-        </Button>
-      </header>
-      <label>
-        Search templates
-        <input
-          type="search"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-        />
-      </label>
+      )}
       {loading && <p role="status">Loading templates…</p>}
       {error && (
         <div role="alert">
@@ -260,7 +344,10 @@ export function TemplateLibrary() {
             void save();
           }}
         >
-          <h2>{editing ? "Edit template" : "New template"}</h2>
+          <div className="reference-template-editor-heading">
+            <h2>{editing ? "Edit Template" : "Create Template"}</h2>
+            <span className="muted">{name.length}/50</span>
+          </div>
           <label>
             Template name
             <input
@@ -325,54 +412,107 @@ export function TemplateLibrary() {
           </Button>
         </form>
       )}
-      {!loading && !error && templates.length === 0 && (
-        <p>
-          No templates yet. Create a template to reuse your post text and media.
-        </p>
+      {editing === undefined &&
+        !loading &&
+        !error &&
+        templates.length === 0 && (
+          <p>
+            No templates yet. Create a template to reuse your post text and
+            media.
+          </p>
+        )}
+      {editing === undefined && (
+        <div className="templates-split-layout">
+          <aside className="ts-sidebar">
+            <label className="reference-template-search">
+              <span className="sr-only">Search templates</span>
+              <Search size={15} aria-hidden="true" />
+              <input
+                type="search"
+                placeholder="Search templates..."
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+              />
+            </label>
+            <ul className="ts-tags-list">
+              {filtered.map((template) => (
+                <li key={template.id}>
+                  <button
+                    type="button"
+                    className={current?.id === template.id ? "active" : ""}
+                    aria-pressed={current?.id === template.id}
+                    onClick={() => setActiveId(template.id)}
+                  >
+                    <FileText size={16} aria-hidden="true" />
+                    <span>
+                      <strong>{template.name}</strong>
+                      <small>
+                        {template.text.slice(0, 80) ||
+                          `${template.assets.length} attachment(s)`}
+                      </small>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            {!!templates.length && !filtered.length && (
+              <p>No matching templates.</p>
+            )}
+          </aside>
+          <div className="ts-main">
+            <div className="ts-preview-container">
+              {current ? (
+                <article className="reference-template-preview">
+                  <h2>{current.name}</h2>
+                  <p className="template-excerpt">{current.text}</p>
+                  <ul className="reference-template-attachments">
+                    {current.assets.map((asset) => (
+                      <li key={asset.id}>
+                        {asset.name}
+                        {!asset.uploaded && " · Upload pending"}
+                      </li>
+                    ))}
+                  </ul>
+                  <p>
+                    {current.assets.length} attachment(s)
+                    {current.state !== "ready" ? ` · ${current.state}` : ""}
+                  </p>
+                  <div className="template-actions">
+                    {current.state === "ready" && (
+                      <Link href={`/dashboard/compose?template=${current.id}`}>
+                        Use template
+                      </Link>
+                    )}
+                    <Button
+                      disabled={busy || current.state === "deleting"}
+                      onClick={() => open(current)}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      disabled={busy || current.state !== "ready"}
+                      onClick={() => void action(current, "duplicate")}
+                    >
+                      Duplicate
+                    </Button>
+                    <Button
+                      disabled={busy}
+                      onClick={() => void action(current, "delete")}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </article>
+              ) : (
+                <div className="reference-template-empty">
+                  <FileText size={30} aria-hidden="true" />
+                  <p>Select a template to preview it here.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
-      <ul className="template-grid">
-        {templates
-          .filter((item) =>
-            `${item.name} ${item.text}`
-              .toLowerCase()
-              .includes(search.toLowerCase()),
-          )
-          .map((template) => (
-            <li key={template.id} className="template-card">
-              <h2>{template.name}</h2>
-              <p className="template-excerpt">{template.text}</p>
-              <p>
-                {template.assets.length} attachment(s)
-                {template.state !== "ready" ? ` · ${template.state}` : ""}
-              </p>
-              <div className="template-actions">
-                {template.state === "ready" && (
-                  <Link href={`/dashboard/compose?template=${template.id}`}>
-                    Use template
-                  </Link>
-                )}
-                <Button
-                  disabled={busy || template.state === "deleting"}
-                  onClick={() => open(template)}
-                >
-                  Edit
-                </Button>
-                <Button
-                  disabled={busy || template.state !== "ready"}
-                  onClick={() => void action(template, "duplicate")}
-                >
-                  Duplicate
-                </Button>
-                <Button
-                  disabled={busy}
-                  onClick={() => void action(template, "delete")}
-                >
-                  Delete
-                </Button>
-              </div>
-            </li>
-          ))}
-      </ul>
     </section>
   );
 }
