@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { GroupReviewDemo } from "./onboarding/group-review-demo";
 import { Compass, Users, ArrowRight } from "lucide-react";
 import { Button } from "@staysuite/ui";
 import { SavedOverview } from "./groups/saved-overview";
@@ -9,24 +10,60 @@ export function Overview() {
       <div className="page-heading">
         <div>
           <h1>Make room for growth.</h1>
-          <p className="muted">Your groups, outstanding reviews, and next steps.</p>
+          <p className="muted">
+            Your groups, outstanding reviews, and next steps.
+          </p>
         </div>
         <Button asChild>
-          <Link href="/dashboard/group-finder"><Compass size={17} /> Find groups</Link>
+          <Link href="/dashboard/group-finder">
+            <Compass size={17} /> Find groups
+          </Link>
         </Button>
       </div>
       <SavedOverview />
-      <section className="growth-start panel" aria-labelledby="growth-start-title">
-        <div className="growth-start-icon"><Users size={26} /></div>
+      <section
+        className="growth-start panel"
+        aria-labelledby="growth-start-title"
+      >
+        <div className="growth-start-icon">
+          <Users size={26} />
+        </div>
         <div>
           <h2 id="growth-start-title">Build a shortlist that fits your stay</h2>
-          <p className="muted">Find a community, save its link, then record the rules you personally reviewed.</p>
+          <p className="muted">
+            Find a community, save its link, then record the rules you
+            personally reviewed.
+          </p>
         </div>
-        <Link className="growth-text-link" href="/dashboard/group-finder">Find your next group <ArrowRight size={17} /></Link>
+        <Link className="growth-text-link" href="/dashboard/group-finder">
+          Find your next group <ArrowRight size={17} />
+        </Link>
       </section>
+      <details className="growth-guide">
+        <summary>
+          See how group review works <span>Illustrated guide</span>
+        </summary>
+        <div className="growth-guide-body">
+          <div className="growth-guide-copy">
+            <h2>Keep the rules beside the community.</h2>
+            <p>
+              Record what you personally checked so your next decision starts
+              with context.
+            </p>
+            <Link className="growth-text-link" href="/dashboard/my-groups">
+              Review your saved groups <ArrowRight size={17} />
+            </Link>
+          </div>
+          <GroupReviewDemo />
+        </div>
+      </details>
       <details className="growth-availability">
         <summary>What’s available in this workspace?</summary>
-        <p>Search-assisted discovery, saved groups, personal rule reviews, and user-reported marketing evidence. Automatic discovery, AI generation, campaigns, and publishing are not connected.</p>
+        <p>
+          Search-assisted discovery, saved groups, personal rule reviews, and
+          user-reported marketing evidence. Automatic discovery, AI generation,
+          campaigns, and publishing are not connected.
+        </p>
         <p>A personal rule review does not establish permission to publish.</p>
       </details>
     </div>

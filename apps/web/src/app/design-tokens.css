@@ -1,0 +1,82 @@
+/* StaySuite Coastal. Palette values are primitives; components use semantic roles. */
+@font-face {
+  font-family: "Manrope";
+  src: url("/fonts/manrope-variable.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+}
+:root {
+  --coast-950: #03045e;
+  --coast-800: #023e8a;
+  --coast-700: #0077b6;
+  --coast-600: #0096c7;
+  --coast-500: #00b4d8;
+  --coast-400: #48cae4;
+  --coast-300: #90e0ef;
+  --coast-200: #ade8f4;
+  --coast-100: #caf0f8;
+  --font-ui: "Manrope", "Segoe UI", sans-serif;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius: 0.75rem;
+  --motion-feedback: 160ms;
+  --motion-surface: 240ms;
+  --ease-ui: cubic-bezier(0.25, 0.8, 0.25, 1);
+  color-scheme: light;
+  --bg: #f4f9fc;
+  --surface: #ffffff;
+  --text: var(--coast-950);
+  --muted: #52677d;
+  --line: #d5e3ee;
+  --accent: var(--coast-700);
+  --action: var(--coast-800);
+  --action-hover: var(--coast-950);
+  --on-action: #ffffff;
+  --selected: #e2f5fb;
+  --selected-text: var(--coast-800);
+  --focus: var(--coast-700);
+  --success: #16634b;
+  --success-surface: #e8f5ee;
+  --warning: #855408;
+  --warning-surface: #fff5dc;
+  --danger: #a52835;
+  --danger-surface: #fff0f1;
+  --background: 203 57% 97%;
+  --foreground: 239 94% 19%;
+  --primary: 214 97% 27%;
+  --primary-foreground: 0 0% 100%;
+  --border: 206 42% 88%;
+}
+.dark {
+  color-scheme: dark;
+  --bg: #081725;
+  --surface: #11263a;
+  --text: #e7f5fc;
+  --muted: #adbed0;
+  --line: #2b465d;
+  --accent: var(--coast-300);
+  --action: var(--coast-300);
+  --action-hover: var(--coast-200);
+  --on-action: var(--coast-950);
+  --selected: #123c59;
+  --selected-text: var(--coast-100);
+  --focus: var(--coast-400);
+  --success: #9ae2bd;
+  --success-surface: #153d32;
+  --warning: #f5d083;
+  --warning-surface: #3d321a;
+  --danger: #ffb6c0;
+  --danger-surface: #482735;
+  --background: 207 64% 9%;
+  --foreground: 203 78% 95%;
+  --primary: 189 75% 75%;
+  --primary-foreground: 239 94% 19%;
+  --border: 207 37% 27%;
+}

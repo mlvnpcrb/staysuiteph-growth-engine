@@ -1,30 +1,7 @@
 @import "tailwindcss";
+@import "./design-tokens.css";
 @source "../../../../packages/ui/src";
 @custom-variant dark (&:where(.dark, .dark *));
-:root {
-  color-scheme: light;
-  --bg: #f4f7f8;
-  --surface: #fff;
-  --text: #172b3a;
-  --muted: #586d7d;
-  --line: #dce6eb;
-  --accent: #106b64;
-  --radius: 0.75rem;
-  --background: 196 24% 97%;
-  --foreground: 204 40% 16%;
-  --primary: 174 74% 24%;
-  --primary-foreground: 0 0% 100%;
-  --border: 200 23% 89%;
-}
-.dark {
-  color-scheme: dark;
-  --bg: #101c26;
-  --surface: #182934;
-  --text: #e7f0f5;
-  --muted: #adc0cd;
-  --line: #314553;
-  --accent: #83dacf;
-}
 * {
   box-sizing: border-box;
 }
@@ -32,7 +9,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-family: var(--font-ui);
   font-size: 14px;
   line-height: 1.6;
 }
@@ -48,7 +25,7 @@ button {
   cursor: pointer;
 }
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus);
   outline-offset: 4px;
 }
 h1,
@@ -102,8 +79,8 @@ h3 {
   line-height: 1.2;
 }
 .brand-mark {
-  background: #106b64;
-  color: white;
+  background: var(--action);
+  color: var(--on-action);
   display: grid;
   place-items: center;
   border-radius: 11px;
@@ -141,8 +118,8 @@ h3 {
   width: 35px;
   height: 35px;
   border-radius: 50%;
-  background: #e4eeed;
-  color: #17645e;
+  background: var(--selected);
+  color: var(--selected-text);
   font-size: 11px;
   font-weight: 700;
 }
@@ -172,13 +149,13 @@ h3 {
   color: var(--text);
 }
 .nav-link.active {
-  background: #e5f2f0;
-  color: #11655f;
+  background: var(--selected);
+  color: var(--selected-text);
   font-weight: 650;
 }
 .dark .nav-link.active {
-  background: #20483f;
-  color: #a5ece0;
+  background: var(--selected);
+  color: var(--selected-text);
 }
 .nav-new {
   font-size: 9px;
@@ -427,7 +404,7 @@ h3 {
 .metric-card {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   padding: 22px;
 }
 .metric-value {
@@ -445,7 +422,7 @@ h3 {
 .panel {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   padding: 26px;
 }
 .panel .section-heading {
@@ -593,7 +570,7 @@ h3 {
 }
 .skeleton {
   background: var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   animation: pulse 1.7s ease-in-out infinite;
 }
 .skip-link {
@@ -904,7 +881,7 @@ h3 {
   padding: 0.8rem;
   margin: 0.5rem 0 1.1rem;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   background: var(--surface);
   color: var(--text);
   font: inherit;
@@ -931,7 +908,7 @@ h3 {
 .search-query {
   padding: 1rem;
   background: var(--bg);
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   margin: 1rem 0;
   overflow-wrap: anywhere;
 }
@@ -987,14 +964,14 @@ h3 {
   color: #9f1239;
   background: #fff1f2;
   padding: 1rem;
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   margin: 1rem 0;
 }
 .group-success {
   color: #115e59;
   background: #ccfbf1;
   padding: 1rem;
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   margin: 1rem 0;
 }
 .group-success a {
@@ -1145,7 +1122,7 @@ h3 {
 .review-reviewed { color: var(--accent); }
 .review-review_required { border-style: dashed; }
 .group-workspace .saved-group { padding: 20px; scroll-margin-top: 24px; }
-.saved-group:target { outline: 2px solid var(--accent); outline-offset: 3px; }
+.saved-group:target { outline: 2px solid var(--focus); outline-offset: 3px; }
 .group-detail:not([hidden]) { border-top: 1px solid var(--line); margin-top: 20px; padding-top: 20px; }
 .group-detail > p { margin-bottom: 8px; }
 .group-workspace .finder-fields label { font-size: 13px; }
@@ -1171,3 +1148,16 @@ h3 {
   .growth-start > div:nth-child(2) { flex: 1; }
   .growth-start > a { margin-left: 38px; }
 }
+
+/* Shared coastal roles, including status communication in both themes. */
+.metric-value { font-variant-numeric: tabular-nums; font-weight: 650; }
+.nav-link { font-size: 14px; }
+.nav-caption, .preview-badge, .workspace-label { font-size: 12px; }
+.brand-subtitle, .workspace-label small, .sidebar-footer { font-size: 11px; }
+.review-reviewed { color: var(--success); background: var(--success-surface); border-color: transparent; }
+.review-review_required { border-style: solid; color: var(--warning); background: var(--warning-surface); border-color: transparent; }
+.review-not_suitable { color: var(--danger); background: var(--danger-surface); border-color: transparent; }
+.group-error { color: var(--danger); background: var(--danger-surface); }
+.group-success { color: var(--success); background: var(--success-surface); }
+.status-dot { background: var(--success); }
+.growth-start-icon { color: var(--accent); }

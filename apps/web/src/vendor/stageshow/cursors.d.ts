@@ -1,0 +1,11 @@
+export declare function MacPointer(): import("react/jsx-runtime").JSX.Element;
+export declare function MacIbeam(): import("react/jsx-runtime").JSX.Element;
+export declare function MacCrosshair(): import("react/jsx-runtime").JSX.Element;
+export declare function MacPointingHand(): import("react/jsx-runtime").JSX.Element;
+export declare function MacOpenHand(): import("react/jsx-runtime").JSX.Element;
+export declare function MacGrab(): import("react/jsx-runtime").JSX.Element;
+export declare function MacWait(): import("react/jsx-runtime").JSX.Element;
+export declare const MacResizeNS: () => import("react/jsx-runtime").JSX.Element;
+export declare const MacResizeEW: () => import("react/jsx-runtime").JSX.Element;
+export declare const MacResizeNWSE: () => import("react/jsx-runtime").JSX.Element;
+export declare const MacResizeNESW: () => import("react/jsx-runtime").JSX.Element;

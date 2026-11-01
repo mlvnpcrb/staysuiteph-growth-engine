@@ -1,0 +1,166 @@
+/* Adapted from Stageshow form-error. Keep the kit's frame and row geometry. */
+.review-demo {
+  margin: 0;
+  min-width: 0;
+}
+.review-demo figcaption {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 16px;
+}
+.review-demo figcaption p {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 55ch;
+}
+.review-demo figcaption button {
+  flex-shrink: 0;
+}
+.coastal-review {
+  .ss-stage {
+    overflow: hidden;
+    background: var(--bg);
+  }
+  .coastal-review-window {
+    position: absolute;
+    top: 28px;
+    left: 60px;
+    width: 440px;
+    height: 420px;
+  }
+  .coastal-review-card {
+    display: grid;
+    align-content: start;
+    padding: 20px 28px 28px;
+    background: var(--surface);
+    height: 100%;
+  }
+  .coastal-review-status {
+    min-height: 30px;
+    margin: 8px 12px 14px;
+  }
+  .coastal-review-fields {
+    margin: 0 12px;
+  }
+  .coastal-review-excerpt {
+    display: block;
+    width: 100%;
+  }
+  .coastal-review-label {
+    margin: 0 0 8px;
+    font-size: 12px;
+    font-weight: 650;
+    color: var(--text);
+  }
+  .coastal-review-evidence {
+    min-height: 56px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-control);
+    margin: 0;
+    padding: 12px;
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--text);
+  }
+  .coastal-review-evidence[data-hover] {
+    border-color: var(--focus);
+  }
+  .coastal-review-confirm {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 18px 0;
+    font-size: 12px;
+    color: var(--text);
+  }
+  .coastal-review-save {
+    display: grid;
+    place-items: center;
+    height: 38px;
+    margin: 0;
+    padding: 0 16px;
+    background: var(--action);
+    color: var(--on-action);
+    border-radius: var(--radius-control);
+    font-size: 13px;
+    font-weight: 650;
+    transition: background-color var(--motion-feedback) var(--ease-ui);
+  }
+  .coastal-review-save[data-saved] {
+    background: var(--success);
+    color: var(--success-surface);
+  }
+  .coastal-review-example {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .coastal-review-group-row {
+    --ss-row-line: 18px;
+    --ss-row-line-2: 18px;
+  }
+  .coastal-review-compact {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    width: 326px;
+    min-height: 390px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .ss-stage[data-layout="compact"] .coastal-review-card {
+    padding: 20px 16px 28px;
+  }
+}
+.growth-guide {
+  margin-top: 24px;
+  border-top: 1px solid var(--line);
+}
+.growth-guide > summary {
+  display: list-item;
+  cursor: pointer;
+  padding: 18px 0;
+  font-size: 14px;
+  font-weight: 650;
+}
+.growth-guide > summary span {
+  margin-left: 12px;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.growth-guide-body {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.65fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 32px;
+  padding-bottom: 20px;
+}
+.growth-guide-copy p {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 14px;
+  max-width: 42ch;
+}
+.growth-guide-copy a {
+  margin-top: 20px;
+}
+@media (max-width: 1150px) {
+  .growth-guide-body {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+@media (max-width: 560px) {
+  .review-demo figcaption {
+    flex-direction: column;
+  }
+  .growth-guide > summary span {
+    display: block;
+    margin: 4px 0 0 18px;
+  }
+}

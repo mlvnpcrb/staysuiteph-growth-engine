@@ -4,6 +4,8 @@ export default ts.config(
   {
     ignores: [
       "**/.next/**",
+      "apps/web/vendor/stageshow/**",
+      "apps/web/src/vendor/stageshow/**",
       "**/.plasmo/**",
       "**/build/**",
       "**/node_modules/**",

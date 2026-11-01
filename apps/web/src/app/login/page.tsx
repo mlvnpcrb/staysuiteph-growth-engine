@@ -13,7 +13,7 @@ export default async function Login({
   return (
     <main className="auth-page">
       <div className="panel auth-panel">
-        <House className="text-teal-700" size={32} />
+        <House className="text-[var(--accent)]" size={32} />
         <h1>Welcome to StaySuite.</h1>
         <p className="muted">
           A thoughtful place to grow your hosting journey.
@@ -81,7 +81,7 @@ export default async function Login({
         ) : null}
         {env.demo ? (
           <Link
-            className="mt-5 block text-teal-700 underline dark:text-teal-300"
+            className="mt-5 block text-[var(--accent)] underline"
             href="/dashboard/overview"
           >
             Explore the demo workspace
