@@ -1,9 +1,16 @@
+import {
+  scheduleConnectionSchema,
+  SCHEDULE_CONNECTION,
+  SCHEDULE_STATUS,
+  type ScheduleConnection,
+} from "../lib/schedule-runtime";
 import { directPublisherPage } from "../lib/direct-publisher";
 import { detectCampaignDashboard } from "../lib/campaign-browser";
 import type { SavedGroup } from "@staysuite/types";
 import { useEffect, useRef, useState } from "react";
 import {
   campaignListSchema,
+  campaignIdSchema,
   groupResponseSchema,
   type CampaignJob,
   type CampaignList,
@@ -33,18 +40,26 @@ export default function CampaignWorkspace() {
   const [validationReviewed, setValidationReviewed] = useState(false);
   const [receiptReviewed, setReceiptReviewed] = useState(false);
   const [groups, setGroups] = useState<SavedGroup[]>([]);
-  const [url, setUrl] = useState(
-    process.env.PLASMO_PUBLIC_DASHBOARD_URL || "",
-  );
+  const [url, setUrl] = useState(process.env.PLASMO_PUBLIC_DASHBOARD_URL || "");
   const [manualUrl, setManualUrl] = useState(false);
   const [detected, setDetected] = useState(false);
   useEffect(() => {
     let active = true;
-    void chrome.tabs.query({}).then((tabs) => {
-      const dashboard = detectCampaignDashboard(tabs);
-      if (active && dashboard) { setUrl(dashboard.origin); setDetected(true); }
-    }).catch(() => { /* Connect requests optional tab detection if needed. */ });
-    return () => { active = false; };
+    void chrome.tabs
+      .query({})
+      .then((tabs) => {
+        const dashboard = detectCampaignDashboard(tabs);
+        if (active && dashboard) {
+          setUrl(dashboard.origin);
+          setDetected(true);
+        }
+      })
+      .catch(() => {
+        /* Connect requests optional tab detection if needed. */
+      });
+    return () => {
+      active = false;
+    };
   }, []);
   const [connection, setConnection] = useState<Connection | null>(null),
     [list, setList] = useState<CampaignList | null>(null),
@@ -60,6 +75,150 @@ export default function CampaignWorkspace() {
     [notice, setNotice] = useState(
       "Connect a signed-in StaySuite dashboard and your Facebook profile.",
     );
+  const [scheduledId, setScheduledId] = useState<string | null>(null);
+  const [backgroundArmed, setBackgroundArmed] = useState(false);
+  const [scheduleConsent, setScheduleConsent] = useState(false);
+  const autoOpened = useRef(false),
+    autoStarted = useRef(false);
+  useEffect(() => {
+    const id = new URL(location.href).searchParams.get("scheduled");
+    if (!id || !campaignIdSchema.safeParse(id).success) return;
+    let active = true;
+    void chrome.storage.local
+      .get(SCHEDULE_CONNECTION)
+      .then(async (values) => {
+        const saved = scheduleConnectionSchema.safeParse(
+          values[SCHEDULE_CONNECTION],
+        );
+        if (!saved.success)
+          throw new Error(
+            "Rearm schedules from a connected extension workspace.",
+          );
+        if (active) {
+          setScheduledId(id);
+          await connect(saved.data);
+        }
+      })
+      .catch(() => {
+        if (active)
+          setNotice(
+            "Scheduled dispatch stopped. Reconnect and review your saved schedule.",
+          );
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+  useEffect(() => {
+    if (connection && scheduledId && !autoOpened.current) {
+      autoOpened.current = true;
+      void open(scheduledId);
+    }
+  }, [connection, scheduledId]);
+  useEffect(() => {
+    if (
+      !bridge ||
+      !job ||
+      !enabled ||
+      !scheduledId ||
+      job.id !== scheduledId ||
+      autoStarted.current ||
+      job.state !== "running"
+    )
+      return;
+    autoStarted.current = true;
+    void (async () => {
+      const definitions = await bridge.schedules();
+      const schedule = definitions.schedules.find(
+        (item) =>
+          item.campaign_id === job.id &&
+          item.state === "enabled" &&
+          item.current_run_id,
+      );
+      if (!schedule) throw new Error("The schedule is no longer enabled.");
+      const identity = await readActor();
+      const ids = await bridge.scheduleTick(identity);
+      if (!ids.includes(job.id))
+        throw new Error("No current scheduled dispatch.");
+      await start(true);
+    })().catch(() =>
+      setNotice(
+        "Scheduled dispatch needs review. Nothing new was sent by this workspace.",
+      ),
+    );
+  }, [job, enabled, scheduledId, connection]);
+  useEffect(() => {
+    if (!connection || !chrome.storage?.local?.get) return;
+    let active = true;
+    const update = (value: unknown) => {
+      const saved = scheduleConnectionSchema.safeParse(value);
+      if (active)
+        setBackgroundArmed(
+          saved.success &&
+            saved.data.viewer === connection.viewer &&
+            saved.data.origin === connection.origin &&
+            saved.data.actorId === actor?.actor_id,
+        );
+    };
+    void chrome.storage.local
+      .get(SCHEDULE_CONNECTION)
+      .then((values) => update(values[SCHEDULE_CONNECTION]));
+    const changed = (
+      changes: Record<string, chrome.storage.StorageChange>,
+      area: string,
+    ) => {
+      if (area !== "local") return;
+      if (SCHEDULE_CONNECTION in changes)
+        update(changes[SCHEDULE_CONNECTION]?.newValue);
+      const status: unknown = changes[SCHEDULE_STATUS]?.newValue;
+      if (
+        status &&
+        typeof status === "object" &&
+        "status" in status &&
+        status.status === "stopped"
+      )
+        setNotice(
+          "Background schedule checks stopped. Reconnect and review unfinished runs.",
+        );
+    };
+    chrome.storage.onChanged.addListener(changed);
+    return () => {
+      active = false;
+      chrome.storage.onChanged.removeListener(changed);
+    };
+  }, [connection, actor?.actor_id]);
+  async function armSchedules() {
+    if (!connection || !actor || !scheduleConsent || !enabled) return;
+    const response: unknown = await chrome.runtime.sendMessage({
+      type: "SCHEDULE_ARM",
+      connection: {
+        ...connection,
+        actorId: actor.actor_id,
+        generation: crypto.randomUUID(),
+      },
+    });
+    if (
+      !response ||
+      typeof response !== "object" ||
+      !("ok" in response) ||
+      response.ok !== true
+    ) {
+      setNotice("Reconnect StaySuite and Facebook before arming schedules.");
+      return;
+    }
+    setBackgroundArmed(true);
+    setNotice(
+      "Background schedule checks are armed for this profile. Keep Chrome, StaySuite and Facebook signed in.",
+    );
+  }
+  async function disarmSchedules() {
+    await chrome.runtime.sendMessage({ type: "SCHEDULE_DISARM" });
+    setBackgroundArmed(false);
+    setScheduleConsent(false);
+    setNotice(
+      "Future background wakeups stopped. Pause any current campaign separately; an in-flight post may still finish.",
+    );
+  }
   const controller = useRef<AbortController | null>(null),
     activeFacebook = useRef<number | null>(null),
     pending = useRef(false);
@@ -104,7 +263,7 @@ export default function CampaignWorkspace() {
       );
     return result;
   }
-  async function connect() {
+  async function connect(scheduled?: ScheduleConnection) {
     setBusy(true);
     setConnection(null);
     setList(null);
@@ -114,12 +273,17 @@ export default function CampaignWorkspace() {
     setValidationAvailable(false);
     clearApproval();
     try {
-      let chosenUrl = url;
-      if (!manualUrl) {
-        if (!(await chrome.permissions.request({permissions: ["tabs"]})))
-          throw new Error("Tab detection was not allowed. Use the manual connection option.");
+      let chosenUrl = scheduled?.origin ?? url;
+      if (!scheduled && !manualUrl) {
+        if (!(await chrome.permissions.request({ permissions: ["tabs"] })))
+          throw new Error(
+            "Tab detection was not allowed. Use the manual connection option.",
+          );
         const dashboard = detectCampaignDashboard(await chrome.tabs.query({}));
-        if (!dashboard) throw new Error("Open StaySuite and sign in in this Chrome profile, then click Connect again. Your dashboard will be detected automatically.");
+        if (!dashboard)
+          throw new Error(
+            "Open StaySuite and sign in in this Chrome profile, then click Connect again. Your dashboard will be detected automatically.",
+          );
         chosenUrl = dashboard.origin;
         setUrl(chosenUrl);
         setDetected(true);
@@ -128,9 +292,13 @@ export default function CampaignWorkspace() {
         host = new URL(origin);
       const pattern = `${host.protocol}//${host.hostname}/*`;
       if (
-        !(await chrome.permissions.request({
-          origins: [pattern, "https://www.facebook.com/*"],
-        }))
+        !(await (scheduled
+          ? chrome.permissions.contains({
+              origins: [pattern, "https://www.facebook.com/*"],
+            })
+          : chrome.permissions.request({
+              origins: [pattern, "https://www.facebook.com/*"],
+            })))
       )
         throw new Error(
           "Allow this StaySuite site and Facebook to connect the campaign workspace.",
@@ -151,13 +319,21 @@ export default function CampaignWorkspace() {
       const first = campaignDashboard(tab.id, origin, "");
       const campaigns = await first.list();
       const session = { tabId: tab.id, origin, viewer: campaigns.viewer_id };
+      if (scheduled && session.viewer !== scheduled.viewer)
+        throw new Error(
+          "StaySuite account changed. Reconnect before scheduling.",
+        );
       activeFacebook.current = null;
       const identity = await readActor();
+      if (scheduled && identity.actor_id !== scheduled.actorId)
+        throw new Error("Facebook profile changed. Rearm schedules.");
       const publisher = await campaignDashboard(
         tab.id,
         origin,
         session.viewer,
-      ).read(`/api/campaigns/publisher?actor_id=${identity.actor_id}&method=direct`);
+      ).read(
+        `/api/campaigns/publisher?actor_id=${identity.actor_id}&method=direct`,
+      );
       if (
         !publisher ||
         typeof publisher !== "object" ||
@@ -266,8 +442,12 @@ export default function CampaignWorkspace() {
       );
     if (current.settings.method === "direct") {
       const identity = await readActor();
-      if (identity.actor_id !== current.actor_id || activeFacebook.current === null) throw new Error("Facebook profile changed. Reconnect.");
-      return {tabId: activeFacebook.current, group};
+      if (
+        identity.actor_id !== current.actor_id ||
+        activeFacebook.current === null
+      )
+        throw new Error("Facebook profile changed. Reconnect.");
+      return { tabId: activeFacebook.current, group };
     }
     const targetUrl = new URL(group.url);
     const matches = (value: string | undefined) => {
@@ -335,7 +515,10 @@ export default function CampaignWorkspace() {
         await chrome.scripting.executeScript({
           target: { tabId },
           world: "MAIN",
-          func: job.settings.method === "direct" ? directPublisherPage : classicPublisherPage,
+          func:
+            job.settings.method === "direct"
+              ? directPublisherPage
+              : classicPublisherPage,
           args: [
             {
               actorId: identity.actor_id,
@@ -353,8 +536,8 @@ export default function CampaignWorkspace() {
         job.settings.method === "direct"
           ? `Direct connection check: ${result?.code || "unavailable"}. Nothing was uploaded or published.`
           : result?.outcome === "ready"
-          ? "Facebook composer detected. No text was inserted and no post was sent. Actual media attachment and submission confirmation still require a live validation campaign."
-          : `Composer check stopped: ${result?.code || "unavailable"}. No post was sent.`,
+            ? "Facebook composer detected. No text was inserted and no post was sent. Actual media attachment and submission confirmation still require a live validation campaign."
+            : `Composer check stopped: ${result?.code || "unavailable"}. No post was sent.`,
       );
     } catch (e) {
       setNotice(
@@ -371,12 +554,28 @@ export default function CampaignWorkspace() {
     setBusy(true);
     clearApproval();
     try {
-      const changed = await bridge.command({id: job.id, revision: job.revision, command: "edit", payload: {plan: job.plan, settings: {...job.settings, method: "direct"}, title: job.title, description: job.description}});
+      const changed = await bridge.command({
+        id: job.id,
+        revision: job.revision,
+        command: "edit",
+        payload: {
+          plan: job.plan,
+          settings: { ...job.settings, method: "direct" },
+          title: job.title,
+          description: job.description,
+        },
+      });
       setJob(changed);
-      setNotice("Direct posting selected. Review this version; the earlier approval was cleared. Nothing was published.");
+      setNotice(
+        "Direct posting selected. Review this version; the earlier approval was cleared. Nothing was published.",
+      );
     } catch (e) {
-      setNotice(e instanceof Error ? e.message : "Could not change posting method.");
-    } finally {setBusy(false);}
+      setNotice(
+        e instanceof Error ? e.message : "Could not change posting method.",
+      );
+    } finally {
+      setBusy(false);
+    }
   }
   async function publish(
     current: CampaignJob,
@@ -461,7 +660,10 @@ export default function CampaignWorkspace() {
       await chrome.scripting.executeScript({
         target: { tabId },
         world: "MAIN",
-        func: current.settings.method === "direct" ? directPublisherPage : classicPublisherPage,
+        func:
+          current.settings.method === "direct"
+            ? directPublisherPage
+            : classicPublisherPage,
         args: [
           {
             actorId: current.actor_id!,
@@ -483,7 +685,12 @@ export default function CampaignWorkspace() {
   async function validateOne() {
     if (!bridge || !job || !actor || !validationReviewed || pending.current)
       return;
-    if (job.settings.method !== "direct") { setNotice("Select Direct posting in the dashboard and save this draft before validation."); return; }
+    if (job.settings.method !== "direct") {
+      setNotice(
+        "Select Direct posting in the dashboard and save this draft before validation.",
+      );
+      return;
+    }
     const target = job.targets[0];
     if (!target) return;
     const group = groups.find((g) => g.id === target.group_id);
@@ -605,8 +812,17 @@ export default function CampaignWorkspace() {
       setBusy(false);
     }
   }
-  async function start() {
-    if (!bridge || !job || !confirmed || !enabled || pending.current) return;
+  async function start(scheduled = false) {
+    if (
+      !bridge ||
+      !job ||
+      (!confirmed && !scheduled) ||
+      !enabled ||
+      pending.current
+    )
+      return;
+    if (scheduled && (job.id !== scheduledId || job.state !== "running"))
+      return;
     pending.current = true;
     controller.current = new AbortController();
     setRunning(true);
@@ -669,6 +885,14 @@ export default function CampaignWorkspace() {
         });
       }
       setNotice(current.stop_reason || `Campaign is ${current.state}.`);
+      if (scheduled && current.state !== "running") {
+        const tab = await chrome.tabs.getCurrent();
+        if (
+          tab?.id !== undefined &&
+          tab.url?.startsWith(chrome.runtime.getURL("tabs/campaigns.html"))
+        )
+          await chrome.tabs.remove(tab.id);
+      }
     } catch (e) {
       setNotice(
         e instanceof Error
@@ -709,6 +933,40 @@ export default function CampaignWorkspace() {
   }
   return (
     <main className="groups-workspace campaign-extension">
+      {connection && (
+        <section className="panel">
+          <h2>Scheduled runs</h2>
+          <p>
+            Background checks: {backgroundArmed ? "armed" : "off"}. Only enabled
+            schedules with current campaign approval can dispatch. Wakeups are
+            checked about once per minute while Chrome is running.
+          </p>
+          <label>
+            <input
+              type="checkbox"
+              checked={scheduleConsent}
+              onChange={(event) => setScheduleConsent(event.target.checked)}
+            />
+            Run my enabled schedules for this Facebook profile while Chrome is
+            open.
+          </label>
+          <div className="toolbar">
+            <button
+              disabled={!scheduleConsent || !enabled || busy || backgroundArmed}
+              onClick={() => void armSchedules()}
+            >
+              Arm background schedules
+            </button>
+            <button
+              disabled={!backgroundArmed}
+              onClick={() => void disarmSchedules()}
+            >
+              Disarm background schedules
+            </button>
+          </div>
+        </section>
+      )}
+
       <header className="brand-header">
         <div className="brand">
           <span className="brand-icon">⌂</span>
@@ -727,17 +985,24 @@ export default function CampaignWorkspace() {
       </section>
       <section className="collect-panel">
         <h2>1. Connect your browser</h2>
-        <p>{detected && !manualUrl ? "StaySuite dashboard detected. Connect to load your saved campaigns and Facebook profile." : "Open your signed-in StaySuite dashboard and Facebook in this Chrome profile. Connect detects them automatically."}</p>
-        <details open={manualUrl} onToggle={(event) => setManualUrl(event.currentTarget.open)}>
-        <summary>Manual connection (if detection is unavailable)</summary>
-        <label htmlFor="campaign-origin">StaySuite Preview URL</label>
-        <input
-          id="campaign-origin"
-          type="url"
-          value={url}
-          disabled={busy || running}
-          onChange={(e) => setUrl(e.target.value)}
-        />
+        <p>
+          {detected && !manualUrl
+            ? "StaySuite dashboard detected. Connect to load your saved campaigns and Facebook profile."
+            : "Open your signed-in StaySuite dashboard and Facebook in this Chrome profile. Connect detects them automatically."}
+        </p>
+        <details
+          open={manualUrl}
+          onToggle={(event) => setManualUrl(event.currentTarget.open)}
+        >
+          <summary>Manual connection (if detection is unavailable)</summary>
+          <label htmlFor="campaign-origin">StaySuite Preview URL</label>
+          <input
+            id="campaign-origin"
+            type="url"
+            value={url}
+            disabled={busy || running}
+            onChange={(e) => setUrl(e.target.value)}
+          />
         </details>
         <button disabled={busy || running} onClick={() => void connect()}>
           Connect StaySuite and Facebook
@@ -770,9 +1035,29 @@ export default function CampaignWorkspace() {
         <section className="collect-panel">
           <h2>3. Review this exact version</h2>
           <h3>{job.title || "Untitled campaign"}</h3>
-          <p>Posting method: {job.settings.method === "direct" ? "Direct — no group composer navigation" : "Classic composer"}</p>
-          {job.settings.method !== "direct" && <button disabled={busy || running || !["draft", "ready"].includes(job.state)} onClick={() => void useDirect()}>Use Direct posting for this draft</button>}
-          {job.settings.method === "direct" && job.plan.media.some((m) => !m.type.startsWith("image/")) && <p role="alert">Direct 0.4.0 supports photos. Create a photo or text campaign to use this method.</p>}
+          <p>
+            Posting method:{" "}
+            {job.settings.method === "direct"
+              ? "Direct — no group composer navigation"
+              : "Classic composer"}
+          </p>
+          {job.settings.method !== "direct" && (
+            <button
+              disabled={
+                busy || running || !["draft", "ready"].includes(job.state)
+              }
+              onClick={() => void useDirect()}
+            >
+              Use Direct posting for this draft
+            </button>
+          )}
+          {job.settings.method === "direct" &&
+            job.plan.media.some((m) => !m.type.startsWith("image/")) && (
+              <p role="alert">
+                Direct 0.4.0 supports photos. Create a photo or text campaign to
+                use this method.
+              </p>
+            )}
           <p className="campaign-extension-text">{job.plan.text}</p>
           <p>
             {job.plan.media.length} attachment(s) · {job.targets.length}{" "}
@@ -812,7 +1097,9 @@ export default function CampaignWorkspace() {
             disabled={busy || running}
             onClick={() => void preflight()}
           >
-            {job.settings.method === "direct" ? "Check Direct connection — no publishing" : "Check Facebook composer — no publishing"}
+            {job.settings.method === "direct"
+              ? "Check Direct connection — no publishing"
+              : "Check Facebook composer — no publishing"}
           </button>
           <button
             className="secondary"
@@ -984,10 +1271,10 @@ export default function CampaignWorkspace() {
             Download posting diagnostics
           </button>
           <p>
-            Direct photo posting supports up to 20 MB total attachments. Keep this
-            workspace and the signed-in StaySuite tab open during a run. Closing
-            them stops processing; inspect the queue before restarting. Delays
-            do not guarantee avoidance of restrictions.
+            Direct photo posting supports up to 20 MB total attachments. Keep
+            this workspace and the signed-in StaySuite tab open during a run.
+            Closing them stops processing; inspect the queue before restarting.
+            Delays do not guarantee avoidance of restrictions.
           </p>
           <button
             className="secondary"
@@ -1015,4 +1302,3 @@ export default function CampaignWorkspace() {
     </main>
   );
 }
-

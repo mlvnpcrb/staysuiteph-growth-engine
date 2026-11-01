@@ -1,5 +1,7 @@
 import {
   safeDashboardUrl,
+  scheduleListSchema,
+  scheduleTickReplySchema,
   campaignCommandSchema,
   campaignCommandReplySchema,
   campaignListSchema,
@@ -26,7 +28,10 @@ export async function campaignDashboardRequest(
   origin: string,
   viewer: string,
   path: string,
-  command: CampaignCommand | null,
+  command:
+    | CampaignCommand
+    | { operation: "tick"; actor_id: string; actor_type: "personal" | "page" }
+    | null,
 ) {
   if (
     location.origin !== origin ||
@@ -34,11 +39,19 @@ export async function campaignDashboardRequest(
   )
     return { error: "Open a signed-in StaySuite dashboard tab first." };
   if (
-    !/^\/api\/(campaigns(?:\?id=[0-9a-f-]+|\/publisher(?:\?actor_id=[1-9][0-9]{0,79}(?:&method=direct)?)?)?|groups)$/.test(
+    !/^\/api\/(campaigns(?:\?id=[0-9a-f-]+|\/publisher(?:\?actor_id=[1-9][0-9]{0,79}(?:&method=direct)?)?)?|groups|schedules)$/.test(
       path,
     )
   )
     return { error: "Unsupported campaign request." };
+  if (
+    path === "/api/schedules" &&
+    command &&
+    (!("operation" in command) || command.operation !== "tick")
+  )
+    return { error: "Unsupported schedule command." };
+  if (path !== "/api/schedules" && command && "operation" in command)
+    return { error: "Unsupported campaign command." };
   try {
     const response = await fetch(path, {
       method: command ? "POST" : "GET",
@@ -79,7 +92,13 @@ export function campaignDashboard(
 ) {
   if (campaignDashboardOrigin(origin) !== origin)
     throw new Error("Invalid campaign workspace origin.");
-  const read = async (path: string, command: CampaignCommand | null = null) => {
+  const read = async (
+    path: string,
+    command:
+      | CampaignCommand
+      | { operation: "tick"; actor_id: string; actor_type: "personal" | "page" }
+      | null = null,
+  ) => {
     const response = (
       await chrome.scripting.executeScript({
         target: { tabId },
@@ -96,6 +115,23 @@ export function campaignDashboard(
   };
   return {
     read,
+    async schedules() {
+      const result = scheduleListSchema.parse(await read("/api/schedules"));
+      if (result.viewer_id !== viewer)
+        throw new Error("StaySuite account changed. Reconnect.");
+      return result;
+    },
+    async scheduleTick(actor: {
+      actor_id: string;
+      actor_type: "personal" | "page";
+    }) {
+      const result = scheduleTickReplySchema.parse(
+        await read("/api/schedules", { operation: "tick", ...actor }),
+      );
+      if (result.viewer_id !== viewer)
+        throw new Error("StaySuite account changed. Reconnect.");
+      return result.result.campaign_ids;
+    },
     async list() {
       return campaignListSchema.parse(await read("/api/campaigns"));
     },
@@ -166,4 +202,3 @@ export function campaignFacebookActor() {
     return null;
   }
 }
-

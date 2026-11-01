@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { ScheduleEditor } from "../automations/schedule-editor";
 import { readTemplate } from "../templates/template-api";
 import Image from "next/image";
 import Link from "next/link";
@@ -43,9 +44,16 @@ const metadata = (item: Media): CampaignPlan["media"][number] => ({
 });
 export function CampaignBuilder({
   view = "compose",
+  showHeading = true,
 }: {
   view?: "compose" | "automations";
+  showHeading?: boolean;
 }) {
+  const scheduleDialog = useRef<HTMLDialogElement>(null);
+  const [scheduling, setScheduling] = useState<{
+    id: string;
+    revision: number;
+  } | null>(null);
   const reviewDialog = useRef<HTMLDialogElement>(null);
   const audienceDialog = useRef<HTMLDialogElement>(null);
   const [editorOpen, setEditorOpen] = useState(view === "compose");
@@ -561,6 +569,7 @@ export function CampaignBuilder({
           ? "Campaign and attachments saved privately. Nothing was sent to Facebook."
           : "The earlier version was saved. Your current edits still need saving.",
       );
+      return current;
     } catch (e) {
       setCloudMessage(
         e instanceof Error
@@ -570,6 +579,19 @@ export function CampaignBuilder({
     } finally {
       setCloudBusy(false);
     }
+  }
+  async function openSchedule() {
+    const version = liveDraft.current;
+    const saved = await saveCampaign();
+    if (!saved) return;
+    if (version !== liveDraft.current) {
+      setCloudMessage(
+        "Your earlier draft was saved. Review your latest changes before scheduling.",
+      );
+      return;
+    }
+    setScheduling({ id: saved.id, revision: saved.revision });
+    scheduleDialog.current?.showModal();
   }
   function download() {
     if (!parsed.success || !snapshot) return;
@@ -605,9 +627,11 @@ export function CampaignBuilder({
   }
   return (
     <div className="page group-workspace campaign-workspace" data-view={view}>
-      <div className="page-heading reference-compose-heading">
-        <h1>{view === "compose" ? "Compose" : "Automations"}</h1>
-      </div>
+      {showHeading && (
+        <div className="page-heading reference-compose-heading">
+          <h1>{view === "compose" ? "Compose" : "Automations"}</h1>
+        </div>
+      )}
       {view === "compose" && (
         <div className="gpp-compose-top-row">
           <div className="posting-as-chip">
@@ -650,8 +674,8 @@ export function CampaignBuilder({
       ) : null}
       {view === "automations" ? (
         <p className="panel">
-          Saved campaigns are available below. Recurring schedules and
-          multi-step automation flows from the reference are not implemented.{" "}
+          Edit saved campaigns here and manage their timing in Automations.
+          Multi-step automation flows are not available yet.{" "}
           <a href="/dashboard/compose">Compose a new post</a>
         </p>
       ) : null}
@@ -1144,8 +1168,17 @@ export function CampaignBuilder({
             <button
               type="button"
               className="gpp-secondary"
-              disabled
-              title="Date scheduling is not implemented yet"
+              disabled={
+                !snapshot ||
+                !settingsValid ||
+                storageState !== "ready" ||
+                busy ||
+                cloudBusy ||
+                loading ||
+                !!error
+              }
+              title="Save this draft and choose a schedule"
+              onClick={() => void openSchedule()}
             >
               Schedule
             </button>
@@ -1328,6 +1361,34 @@ export function CampaignBuilder({
           )}
         </aside>
       </details>
+      <dialog
+        ref={scheduleDialog}
+        className="reference-dialog schedule-dialog"
+        aria-labelledby="compose-schedule-title"
+      >
+        <header>
+          <h2 id="compose-schedule-title">Schedule Post</h2>
+          <button
+            type="button"
+            aria-label="Close schedule"
+            onClick={() => scheduleDialog.current?.close()}
+          >
+            ×
+          </button>
+        </header>
+        {scheduling && (
+          <ScheduleEditor
+            key={scheduling.id}
+            campaignId={scheduling.id}
+            campaignRevision={scheduling.revision}
+            onSaved={(schedule) =>
+              setCloudMessage(
+                `Schedule ${schedule.state}. Open Automations to manage future runs.`,
+              )
+            }
+          />
+        )}
+      </dialog>
     </div>
   );
 }

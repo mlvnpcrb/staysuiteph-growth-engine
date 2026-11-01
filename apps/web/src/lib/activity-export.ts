@@ -1,16 +1,17 @@
 import type { CampaignList } from "@staysuite/validation";
+export function csvCell(value: string) {
+  let start = 0;
+  while (
+    start < value.length &&
+    (value.charCodeAt(start) <= 32 || value[start]?.trim() === "")
+  )
+    start++;
+  const safe = /^[=+@-]/u.test(value.slice(start)) ? `'${value}` : value;
+  return `"${safe.replaceAll('"', '""')}"`;
+}
+
 /** Quote RFC 4180 cells and neutralize spreadsheet formula prefixes. */
 export function activityCsv(campaigns: CampaignList["campaigns"]) {
-  const cell = (value: string) => {
-    let start = 0;
-    while (
-      start < value.length &&
-      (value.charCodeAt(start) <= 32 || value[start]?.trim() === "")
-    )
-      start++;
-    const safe = /^[=+@-]/u.test(value.slice(start)) ? `'${value}` : value;
-    return `"${safe.replaceAll('"', '""')}"`;
-  };
   return (
     "\uFEFF" +
     [
@@ -23,7 +24,7 @@ export function activityCsv(campaigns: CampaignList["campaigns"]) {
         item.created_at,
       ]),
     ]
-      .map((row) => row.map(cell).join(","))
+      .map((row) => row.map(csvCell).join(","))
       .join("\r\n") +
     "\r\n"
   );

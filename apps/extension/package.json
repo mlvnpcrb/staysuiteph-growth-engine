@@ -1,9 +1,9 @@
 {
   "name": "@staysuite/extension",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "private": true,
   "displayName": "StaySuite Growth Engine",
-  "description": "Account-scoped group library and approved sequential campaigns with experimental Direct text and photo publishing.",
+  "description": "Account-scoped group library, approved Direct campaigns, and owner-enabled scheduled runs with background wakeups.",
   "author": "StaySuite",
   "scripts": {
     "dev": "plasmo dev --target=chrome-mv3 --serve-host localhost --hmr-host localhost",
@@ -24,6 +24,7 @@
   },
   "manifest": {
     "permissions": [
+      "alarms",
       "scripting",
       "storage"
     ],

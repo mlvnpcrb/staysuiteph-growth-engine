@@ -5,6 +5,7 @@ const manifest = JSON.parse(readFileSync(`${directory}/manifest.json`, "utf8"));
 assert.equal(manifest.manifest_version, 3);
 assert.equal(manifest.action.default_popup, "popup.html");
 assert.deepEqual([...(manifest.permissions ?? [])].sort(), [
+  "alarms",
   "scripting",
   "storage",
 ]);

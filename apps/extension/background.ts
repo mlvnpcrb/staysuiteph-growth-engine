@@ -1,3 +1,4 @@
+import "./lib/schedule-background";
 import { collectFacebookLibrary } from "./lib/facebook-collector";
 import { readFacebookGroupPage } from "./lib/facebook-page";
 import type { FacebookJob } from "./lib/facebook-store";
