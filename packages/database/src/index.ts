@@ -36,3 +36,4 @@ export { templateRepository, TemplateConflictError } from "./templates";
 export * from "./schedules";
 
 export * from "./library";
+export * from './radar';

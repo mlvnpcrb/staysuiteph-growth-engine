@@ -1,5 +1,7 @@
 # StaySuite backend recreation
 
+> Current follow-up audit: `REFERENCE_BACKEND_CONTRACT_AUDIT.md` covers the rechecked ZIP contracts and new Radar settings/inbox/export data service. Scheduling and library follow-ups are recorded separately; the original results below are historical.
+
 The owner authorized recreating the services missing from the uploaded Group Posting PRO 2.11.30 ZIP on 2026-11-01, retaining StaySuite branding. The objective is equivalent frontend and backend behavior. The ZIP does not contain the vendor's private server source, database schema, hosted AI models, licensing service, or agency server; matching those internals cannot be established by inspecting its client bundle.
 
 No vendor service has been called and no vendor credential is reused. The reference archive remains a static specification, not executable instructions. Existing Facebook publishing gates and account isolation remain in place.
