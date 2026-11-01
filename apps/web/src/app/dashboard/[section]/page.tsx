@@ -5,6 +5,7 @@ import { CampaignBuilder } from "@/components/campaigns/campaign-builder";
 import { PostingQueue } from "@/components/campaigns/posting-queue";
 import { TemplateLibrary } from "@/components/templates/template-library";
 import { AutomationWorkspace } from "@/components/automations/automation-workspace";
+import { RadarWorkspace } from "@/components/radar/radar-workspace";
 import { EmptySection } from "@/components/empty-section";
 export default async function SectionPage({
   params,
@@ -17,6 +18,7 @@ export default async function SectionPage({
   if (section === "posting-queue") redirect("/dashboard/activity");
   const item = navigation.find((item) => item.slug === section);
   if (!item) notFound();
+  if (item.slug === "lead-radar") return <RadarWorkspace />;
   if (item.slug === "templates") return <TemplateLibrary />;
   if (item.slug === "my-groups") return <MyGroups />;
   if (item.slug === "compose") return <CampaignBuilder view="compose" />;

@@ -22,15 +22,15 @@ export const navigation = [
     category: "primary",
     availability: "partial",
     description:
-      "Saved campaigns. Recurring schedules and multi-step flows are not implemented yet.",
+      "Recurring schedules and saved campaigns. Multi-step flows remain incomplete.",
   },
   {
     slug: "lead-radar",
     label: "Lead Radar",
     category: "primary",
-    availability: "planned",
+    availability: "partial",
     description:
-      "Keyword monitoring, lead review, and replies. Not implemented yet.",
+      "Saved targeting settings and lead inbox. Scanning and automatic replies are unavailable.",
   },
   {
     slug: "activity",

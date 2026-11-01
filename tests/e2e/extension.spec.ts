@@ -294,6 +294,14 @@ test("campaign workspace connects the scoped dashboard but never starts an unval
         },
         permissions: { request: async () => true },
         tabs: {
+          create: async ({ url }: { url: string }) => {
+            const opened = JSON.parse(
+              localStorage.getItem("fixture-radar-tabs") ?? "[]",
+            );
+            opened.push(url);
+            localStorage.setItem("fixture-radar-tabs", JSON.stringify(opened));
+            return { id: 3 };
+          },
           query: async ({ url }: { url?: string }) =>
             url?.includes("facebook")
               ? [
@@ -315,7 +323,13 @@ test("campaign workspace connects the scoped dashboard but never starts an unval
           executeScript: async ({ args }: { args?: unknown[] }) => {
             if (!args)
               return [
-                { result: { actor_id: "12345", actor_type: "personal" } },
+                {
+                  result: {
+                    actor_id:
+                      localStorage.getItem("fixture-actor-override") ?? "12345",
+                    actor_type: "personal",
+                  },
+                },
               ];
             const path = args[2],
               command = args[3] as { command: string } | null;
@@ -363,6 +377,32 @@ test("campaign workspace connects the scoped dashboard but never starts an unval
   await expect(page.getByRole("status")).toContainText(
     "Automatic submission is disabled",
   );
+  await page
+    .getByRole("button", { name: "Open Lead Radar", exact: true })
+    .click();
+  expect(
+    await page.evaluate(() =>
+      JSON.parse(localStorage.getItem("fixture-radar-tabs") ?? "[]"),
+    ),
+  ).toEqual([
+    "http://localhost:3000/dashboard/lead-radar?scope=personal%3A12345&viewer=11111111-1111-4111-8111-111111111111",
+  ]);
+  await page.evaluate(() =>
+    localStorage.setItem("fixture-actor-override", "54321"),
+  );
+  await page
+    .getByRole("button", { name: "Open Lead Radar", exact: true })
+    .click();
+  await expect(page.getByRole("status")).toContainText(
+    "Facebook profile changed",
+  );
+  expect(
+    await page.evaluate(
+      () =>
+        JSON.parse(localStorage.getItem("fixture-radar-tabs") ?? "[]").length,
+    ),
+  ).toBe(1);
+  await page.evaluate(() => localStorage.removeItem("fixture-actor-override"));
   await page
     .getByRole("button", { name: "Review campaign", exact: true })
     .click();

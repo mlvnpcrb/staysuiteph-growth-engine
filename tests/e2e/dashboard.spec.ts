@@ -137,7 +137,7 @@ test("reference alignment removes standalone analytics and labels planned featur
   const nav = page.getByRole("navigation", { name: "Main navigation" });
   await page.getByLabel("Tools and settings", { exact: true }).click();
   await expect(nav.getByRole("link", { name: "Analytics" })).toHaveCount(0);
-  for (const name of ["AI Studio", "Lead Radar"])
+  for (const name of ["AI Studio"])
     await expect(
       nav.getByRole("link", { name: new RegExp(name) }),
     ).toContainText("Not implemented");

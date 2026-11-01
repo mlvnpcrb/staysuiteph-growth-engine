@@ -1,5 +1,7 @@
 # Backend contract audit against the uploaded ZIP
 
+> Follow-up: `REFERENCE_RADAR_WORKSPACE.md` connects the Radar settings/inbox UI and extension profile handoff. Scanner, AI, replies and connections remain unavailable. The backend checkpoint details below retain their original scope.
+
 This is a source-based behavioral reconstruction checklist, not a claim that StaySuite contains the vendor's private server source or has reached 100% parity. The owner authorized recreating the backend while retaining StaySuite branding. AI remains unavailable by explicit owner choice.
 
 The uploaded Group Posting PRO 2.11.30 ZIP has SHA-256 `961a77059db7198e9610dd1a81c9a84556759c013bf4ac6305895533406a52e1`. Rechecking the extracted files against the archive found no byte differences. ZIP content was inspected as data; no vendor scripts were run, no vendor credentials reused and no vendor endpoints called.
