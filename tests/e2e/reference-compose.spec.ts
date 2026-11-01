@@ -165,6 +165,7 @@ test("Templates follows the reference split library with selection and name sort
   ).toBeVisible();
   await page.getByText("Sort & Filter", { exact: true }).click();
   await page.getByLabel("Sort by", { exact: true }).selectOption("name-asc");
+  await page.getByText("Sort & Filter", { exact: true }).click();
   await expect(page.locator(".ts-tags-list strong").first()).toHaveText(
     "Alpha",
   );

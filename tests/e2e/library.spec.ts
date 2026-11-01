@@ -1,10 +1,12 @@
 import { test, expect } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
+import { settleTheme } from "./helpers/settle-theme";
 const viewer = "11111111-1111-4111-8111-111111111111",
   catId = "22222222-2222-4222-8222-222222222222",
   collectionId = "33333333-3333-4333-8333-333333333333";
 test("category manager and group collection CRUD persist through reload", async ({
   page,
-}) => {
+}, testInfo) => {
   const stamp = new Date().toISOString();
   let categories: {
     id: string;
@@ -87,6 +89,30 @@ test("category manager and group collection CRUD persist through reload", async 
   await dialog.getByLabel("Category Name", { exact: true }).fill("Holiday");
   await dialog.getByRole("button", { name: "Add", exact: true }).click();
   await expect(dialog.getByText("Holiday", { exact: true })).toBeVisible();
+  for (const theme of ["light", "dark"]) {
+    await page.evaluate((value) => {
+      document.documentElement.classList.remove("light", "dark");
+      document.documentElement.classList.add(value);
+    }, theme);
+    await settleTheme(page, theme);
+    await page.screenshot({
+      path: testInfo.outputPath(`categories-${theme}.png`),
+      fullPage: true,
+    });
+    expect(
+      (
+        await new AxeBuilder({ page })
+          .include(".reference-library-dialog")
+          .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+          .analyze()
+      ).violations,
+    ).toEqual([]);
+  }
+  await page.evaluate(() => {
+    document.documentElement.classList.remove("dark");
+    document.documentElement.classList.add("light");
+  });
+  await settleTheme(page, "light");
   await dialog.getByRole("button", { name: "Done" }).click();
   await page.getByRole("button", { name: "Groups", exact: true }).click();
   await page
