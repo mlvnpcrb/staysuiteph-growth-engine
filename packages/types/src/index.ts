@@ -87,6 +87,41 @@ export type SyncSnapshot = {
 export type Database = {
   public: {
     Tables: {
+      campaign_schedules: {
+        Row: {
+          id: string;
+          user_id: string;
+          campaign_id: string;
+          cadence: Json;
+          state: string;
+          revision: number;
+          approved_digest: string | null;
+          next_run_at: string | null;
+          current_run_id: string | null;
+          stop_reason: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      campaign_schedule_runs: {
+        Row: {
+          id: string;
+          user_id: string;
+          schedule_id: string | null;
+          campaign_id: string | null;
+          scheduled_at: string;
+          started_at: string | null;
+          finished_at: string | null;
+          state: string;
+          outcomes: Json;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       post_templates: {
         Row: PostTemplateRow;
         Insert: Pick<
@@ -153,6 +188,15 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      schedule_command: {
+        Args: {
+          p_id: string;
+          p_revision: number;
+          p_operation: string;
+          p_payload: Json;
+        };
+        Returns: Json;
+      };
       campaign_direct_publisher_ready: {
         Args: { p_actor_id: string };
         Returns: boolean;

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Button } from "@staysuite/ui";
 import type { CampaignJob, CampaignCommand } from "@staysuite/validation";
 import { campaignListSchema, type CampaignList } from "@staysuite/validation";
+import { ScheduleHistory } from "../automations/schedule-history";
 import { activityCsv } from "@/lib/activity-export";
 import { campaignCommand } from "./campaign-api";
 export function PostingQueue() {
@@ -186,6 +187,7 @@ export function PostingQueue() {
           </p>
         </section>
       )}
+      {activityView === "history" && <ScheduleHistory search={search} />}
       {campaigns?.map((c) => (
         <article className="panel" key={c.id}>
           <h2>{c.title || c.plan.text.slice(0, 80)}</h2>

@@ -22,7 +22,7 @@ Reference: Group Posting PRO 2.11.30, 159 archive entries, SHA-256 `961a77059db7
 Matching the section names and deleting extra features does **not** make this a 100% reconstruction. Missing reference functionality is explicitly marked incomplete rather than being presented as working:
 
 - Full Templates control parity and tags/collections. Basic persistent text/media CRUD and reuse were subsequently added; see `REFERENCE_BACKEND_RECREATION.md`.
-- Full automation trigger/wait/loop editing, date scheduling, recurrence, and calendar projection.
+- Full automation trigger/wait/loop editing and remaining calendar controls. Simple date scheduling, once/daily/weekly/monthly recurrence, recorded runs and calendar projection were added in `REFERENCE_SCHEDULING.md`.
 - Full per-submission Activity history/filter/export. Search and CSV export of the loaded campaign summaries were subsequently added; see `REFERENCE_BACKEND_RECREATION.md`.
 - AI Studio generation/rewriting, business memory, AI Group Finder and ranking.
 - Lead Radar monitoring, intent scoring, lead capture/export, and reply workflows.
@@ -52,3 +52,7 @@ Screenshots of the actual built Compose interface and a packaged extension previ
 ## Frontend reconstruction follow-up
 
 The subsequent Compose/Templates reconstruction follows the ZIP’s audience-first form, compact navigation, source icon font, header tools menu, editor/attachment frame, advanced-settings disclosure, and split template library. Existing template and campaign services are retained. See `REFERENCE_FRONTEND_RECONSTRUCTION.md` for verified controls and explicit gaps; this is not complete per-screen or functional parity.
+
+## Scheduling follow-up
+
+`REFERENCE_SCHEDULING.md` records the applied owner-scoped cadence/run migration, guarded Direct schedule dispatcher, Chrome alarm wakeups, recorded history, Calendar/Agenda and extension 0.5.0. Full flow-builder, native/live acceptance and remaining UI parity are still unfinished. The owner explicitly chose to leave AI unavailable for now.

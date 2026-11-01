@@ -4,6 +4,7 @@ import { MyGroups } from "@/components/groups/my-groups";
 import { CampaignBuilder } from "@/components/campaigns/campaign-builder";
 import { PostingQueue } from "@/components/campaigns/posting-queue";
 import { TemplateLibrary } from "@/components/templates/template-library";
+import { AutomationWorkspace } from "@/components/automations/automation-workspace";
 import { EmptySection } from "@/components/empty-section";
 export default async function SectionPage({
   params,
@@ -19,8 +20,7 @@ export default async function SectionPage({
   if (item.slug === "templates") return <TemplateLibrary />;
   if (item.slug === "my-groups") return <MyGroups />;
   if (item.slug === "compose") return <CampaignBuilder view="compose" />;
-  if (item.slug === "automations")
-    return <CampaignBuilder view="automations" />;
+  if (item.slug === "automations") return <AutomationWorkspace />;
   if (item.slug === "activity") return <PostingQueue />;
   return (
     <EmptySection
