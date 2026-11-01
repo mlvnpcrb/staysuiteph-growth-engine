@@ -78,3 +78,4 @@ export {
 } from "./campaign-execution";
 
 export { campaignActorIdSchema } from "./campaign-execution";
+export * from "./templates";

@@ -1,3 +1,4 @@
+import type { PostTemplateRow } from "./templates";
 import type { CampaignJobRow, Json } from "./campaigns";
 import type { MarketingEvidence, SavedGroup } from "./groups";
 export const navigation = [
@@ -12,9 +13,8 @@ export const navigation = [
     slug: "templates",
     label: "Templates",
     category: "primary",
-    availability: "planned",
-    description:
-      "Reusable post templates from the reference. Not implemented yet.",
+    availability: "partial",
+    description: "Save, edit and reuse post text and private media.",
   },
   {
     slug: "automations",
@@ -87,6 +87,21 @@ export type SyncSnapshot = {
 export type Database = {
   public: {
     Tables: {
+      post_templates: {
+        Row: PostTemplateRow;
+        Insert: Pick<
+          PostTemplateRow,
+          "id" | "user_id" | "name" | "text" | "assets"
+        > &
+          Partial<Pick<PostTemplateRow, "state">>;
+        Update: Partial<
+          Pick<
+            PostTemplateRow,
+            "name" | "text" | "assets" | "revision" | "state"
+          >
+        >;
+        Relationships: [];
+      };
       campaign_publishers: {
         Row: {
           method: "classic" | "direct";
@@ -172,3 +187,5 @@ export type {
 } from "./groups";
 
 export type { CampaignJobRow, Json } from "./campaigns";
+
+export type { PostTemplateRow } from "./templates";

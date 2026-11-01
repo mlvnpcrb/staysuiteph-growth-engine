@@ -21,7 +21,7 @@ StaySuite baseline: **d550c77**, the latest fetched `feat/direct-campaign-postin
 | Compose a post | `popup.html` / `navCompose` entry and editor toolbar | `campaign-builder.tsx`, `campaign-text-editor.tsx` | Implemented within Campaigns. Keep. |
 | Text formatting, emoji, variations | `popup.html` toolbar, variation helper; `popup.js` | `text-tools.ts`, campaign editor | Partial: manual formatting and editable opening variations. This is not AI generation or full vendor spintax. Keep. |
 | Photo/video attachments and previews | `popup.html`, `db.js`, media editor | Campaign media selection/validation and private storage | Implemented preparation; publishers have different media support. Keep. |
-| Reusable Templates library | `navTemplates`, `headerCreateTemp`, `saveTag` in `popup.html` and English strings | Saved campaign duplication is related, but no standalone template library | Missing. Do not relabel campaign drafts as Templates. |
+| Reusable Templates library | `navTemplates`, `headerCreateTemp`, `saveTag` in `popup.html` and English strings | `template-library.tsx`, authenticated Templates API, `post_templates`, private `template-media` bucket | Partial reconstruction added on 2026-11-01: text/media CRUD, duplication, search and Compose reuse. Tags/collections and full editor/control parity remain missing. |
 | Save, open, duplicate, delete campaign drafts | `db.js`, campaign/automation editors | `campaign-library.tsx`, authenticated campaign API | Implemented. Keep. |
 | Select groups and batch a post | `popup.html`, `native-batch-plan.js` | Ordered campaign targets and approval | Implemented preparation. Keep. |
 | Sequential automatic runs and intervals | `background.js`, `schedule-store.js`, `posting-outcomes.js` | Durable campaign commands, extension runner, persisted eligibility intervals | Partial, gated by method/profile validation. Keep; no live acceptance claim. |
@@ -31,7 +31,7 @@ StaySuite baseline: **d550c77**, the latest fetched `feat/direct-campaign-postin
 | Upcoming scheduled posts | `navUpcoming`, `activitySwitcherTrack`, `schedule-store.js` | Posting Queue shows saved campaign items and eligibility | Partial. No date/time scheduling UI parity. Keep queue; do not call it a full scheduler. |
 | Recurring daily/weekly/monthly scheduling | `schedule-store.js`, `automation-calendar-core.js` frequency/cadence logic | No corresponding recurrence editor/runtime contract | Missing. |
 | Calendar and multi-step automation flows | `automation-calendar-core.js`, automation editors | One ordered campaign plan with interval controls | Partial. No full calendar/trigger/wait/loop builder. |
-| History | `navHistory`, `subNavHistoryBtn`, `posting-outcomes.js` | Queue details retain individual submission outcomes | Partial. No dedicated searchable/filterable History workspace. |
+| History | `navHistory`, `subNavHistoryBtn`, `posting-outcomes.js` | Queue details retain individual submission outcomes | Partial. Upcoming/History now supports loaded campaign-summary search and CSV export; full submission history/type/identity/issues filtering remains missing. |
 | Activity | `navActivity`, Upcoming/History switcher | Posting Queue | Partial counterpart. Keep the real queue rather than an empty general Analytics page. |
 | All groups / joined-group library | `navAllGroups`, group-storage modules | My Groups, account-scoped import and batches | Implemented, with experimental provider compatibility. Keep. |
 | Group categories and shortlist | `group-shortlist-core.js`, `group-shortlist-ui.js` | Smart category filters, notes, saved shortlist | Implemented rule/name-based subset. Keep; not AI discovery. |
@@ -67,3 +67,7 @@ The subsequent owner instruction requires ZIP-only product scope. Applied remova
 6. **Advanced tools**: card designer, richer discovery, coaching, agency tools, and localization according to the owner's priorities.
 
 This order is a backlog, not a claim that those features have been built in this pass. There are no database deletions, schema migrations, live Facebook actions, copied vendor permissions, or Production changes in this alignment.
+
+## Backend recreation follow-up
+
+The owner subsequently authorized recreating StaySuite-owned backend equivalents for the ZIP’s hosted services. The additive Templates migration is applied to Supabase; its implementation, verification and remaining limits are recorded in `REFERENCE_BACKEND_RECREATION.md`. The no-migration statement above describes the earlier cleanup, not this follow-up. No claim of complete frontend/backend parity is made.

@@ -21,15 +21,15 @@ Reference: Group Posting PRO 2.11.30, 159 archive entries, SHA-256 `961a77059db7
 
 Matching the section names and deleting extra features does **not** make this a 100% reconstruction. Missing reference functionality is explicitly marked incomplete rather than being presented as working:
 
-- Reusable text/media Templates and tags/collections.
+- Full Templates control parity and tags/collections. Basic persistent text/media CRUD and reuse were subsequently added; see `REFERENCE_BACKEND_RECREATION.md`.
 - Full automation trigger/wait/loop editing, date scheduling, recurrence, and calendar projection.
-- Full Activity history search/filter/export, beyond partitioning existing campaign records.
+- Full per-submission Activity history/filter/export. Search and CSV export of the loaded campaign summaries were subsequently added; see `REFERENCE_BACKEND_RECREATION.md`.
 - AI Studio generation/rewriting, business memory, AI Group Finder and ranking.
 - Lead Radar monitoring, intent scoring, lead capture/export, and reply workflows.
 - Image-card designer, coaching/assistant/Autopilot, multilingual interface, cloud backup, agency/team tools, plan/trial/activation/referral flows, and other inventory items.
 - Exact per-screen geometry, control placement, all component states, and live adapter behavior need further reference-by-reference implementation and verification.
 
-The underlying authenticated Next.js/Supabase hosting and ownership controls remain infrastructure; they are not extra customer product modules. No data was deleted, no schema migration was applied, no vendor backend was contacted, and no live Facebook action was performed. The ZIP's scripts were inspected as data, not run as agent instructions. No vendor JavaScript was copied into the application.
+The underlying authenticated Next.js/Supabase hosting and ownership controls remain infrastructure; they are not extra customer product modules. At the cleanup commit no data was deleted and no schema migration was applied; the subsequent backend recreation applies the additive Templates migration described in `REFERENCE_BACKEND_RECREATION.md`. No vendor backend was contacted and no live Facebook action was performed. The ZIP's scripts were inspected as data, not run as agent instructions. No vendor JavaScript was copied into the application.
 
 This cleanup must not be reported as “100% similar” or “all features recreated.” The full audited inventory is in `GROUP_POSTING_FEATURE_PARITY.md`; its earlier approximate dispositions are superseded by this strict scope.
 

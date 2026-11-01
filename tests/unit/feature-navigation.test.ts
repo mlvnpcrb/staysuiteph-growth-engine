@@ -12,7 +12,7 @@ it("matches the ZIP primary navigation and excludes custom product sections", ()
     navigation
       .filter((item) => item.availability === "planned")
       .map((item) => item.slug),
-  ).toEqual(["templates", "lead-radar", "group-finder", "ai-post-studio"]);
+  ).toEqual(["lead-radar", "group-finder", "ai-post-studio"]);
   expect(new Set(navigation.map((item) => item.slug)).size).toBe(
     navigation.length,
   );

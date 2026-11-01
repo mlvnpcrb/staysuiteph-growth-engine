@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { readTemplate } from "../templates/template-api";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -111,6 +112,102 @@ export function CampaignBuilder({
       for (const url of urls) URL.revokeObjectURL(url);
     };
   }, []);
+  useEffect(() => {
+    if (view !== "compose") return;
+    const id = new URL(window.location.href).searchParams.get("template");
+    if (!id) return;
+    const controller = new AbortController();
+    const created: string[] = [];
+    setBusy(true);
+    processing.current = true;
+    void (async () => {
+      try {
+        const result = await readTemplate(id, controller.signal);
+        if (result.template.state !== "ready")
+          throw new Error("Finish saving this template before using it.");
+        const restored: Media[] = [];
+        for (const asset of result.template.assets) {
+          const signed = result.assets?.find((item) => item.id === asset.id);
+          if (!signed) throw new Error("A template attachment is unavailable.");
+          const url = new URL(signed.url);
+          if (
+            url.protocol !== "https:" ||
+            url.username ||
+            url.password ||
+            !url.pathname.startsWith("/storage/v1/object/sign/template-media/")
+          )
+            throw new Error("Attachment destination was not accepted.");
+          const response = await fetch(url, {
+            signal: controller.signal,
+            credentials: "omit",
+            redirect: "error",
+            referrerPolicy: "no-referrer",
+          });
+          if (!response.ok)
+            throw new Error("Template attachments could not be downloaded.");
+          const bytes = await response.arrayBuffer();
+          const sha256 = Array.from(
+            new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)),
+            (v) => v.toString(16).padStart(2, "0"),
+          ).join("");
+          if (
+            bytes.byteLength !== asset.size ||
+            sha256 !== asset.sha256 ||
+            detectCampaignMediaType(new Uint8Array(bytes).subarray(0, 256)) !==
+              asset.content_type
+          )
+            throw new Error("Template attachment verification failed.");
+          const preview = URL.createObjectURL(
+            new Blob([bytes], { type: asset.content_type }),
+          );
+          created.push(preview);
+          restored.push({
+            name: asset.name,
+            type: asset.content_type,
+            size: asset.size,
+            sha256: asset.sha256,
+            preview,
+          });
+        }
+        if (controller.signal.aborted) return;
+        if (
+          !campaignPlanSchema.shape.media.safeParse(restored.map(metadata))
+            .success ||
+          (restored.some((item) => item.type.startsWith("video/")) &&
+            restored.length !== 1)
+        )
+          throw new Error(
+            "This template's attachment combination cannot be used in Compose.",
+          );
+        for (const preview of created) previews.current.add(preview);
+        setText(result.template.text);
+        setTitle(result.template.name);
+        setMedia(restored);
+        setApproved("");
+        setConfirmed(false);
+        setCloudMessage(
+          "Template opened. Choose groups and review before posting.",
+        );
+        const url = new URL(window.location.href);
+        url.searchParams.delete("template");
+        window.history.replaceState(null, "", url);
+      } catch (error) {
+        for (const preview of created) URL.revokeObjectURL(preview);
+        if (!controller.signal.aborted)
+          setCloudMessage(
+            error instanceof Error
+              ? error.message
+              : "Template could not be opened.",
+          );
+      } finally {
+        if (!controller.signal.aborted) {
+          setBusy(false);
+          processing.current = false;
+        } else for (const preview of created) URL.revokeObjectURL(preview);
+      }
+    })();
+    return () => controller.abort();
+  }, [view]);
   const plan = {
     version: 1 as const,
     text,
