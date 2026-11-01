@@ -4,11 +4,13 @@ import Link from "next/link";
 import { Button } from "@staysuite/ui";
 import type { CampaignJob, CampaignCommand } from "@staysuite/validation";
 import { campaignListSchema, type CampaignList } from "@staysuite/validation";
+import { activityCsv } from "@/lib/activity-export";
 import { campaignCommand } from "./campaign-api";
 export function PostingQueue() {
   const [activityView, setActivityView] = useState<"upcoming" | "history">(
     "upcoming",
   );
+  const [search, setSearch] = useState("");
   const [list, setList] = useState<CampaignList | null>(null),
     [job, setJob] = useState<CampaignJob | null>(null),
     [error, setError] = useState(""),
@@ -77,11 +79,26 @@ export function PostingQueue() {
       setBusy(false);
     }
   }
-  const campaigns = list?.campaigns.filter((campaign) =>
-    activityView === "history"
-      ? ["completed", "cancelled"].includes(campaign.state)
-      : !["completed", "cancelled"].includes(campaign.state),
+  const campaigns = list?.campaigns.filter(
+    (campaign) =>
+      (activityView === "history"
+        ? ["completed", "cancelled"].includes(campaign.state)
+        : !["completed", "cancelled"].includes(campaign.state)) &&
+      `${campaign.title} ${campaign.plan.text} ${campaign.state}`
+        .toLowerCase()
+        .includes(search.toLowerCase()),
   );
+  function exportActivity() {
+    if (!campaigns?.length) return;
+    const url = URL.createObjectURL(
+      new Blob([activityCsv(campaigns)], { type: "text/csv;charset=utf-8" }),
+    );
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `staysuite-${activityView}-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
   return (
     <div className="page group-workspace">
       <div className="page-heading">
@@ -115,6 +132,30 @@ export function PostingQueue() {
           History
         </Button>
       </div>
+      <section className="panel activity-toolbar">
+        <label htmlFor="activity-search">
+          Search {activityView === "history" ? "history" : "upcoming"}
+        </label>
+        <input
+          id="activity-search"
+          type="search"
+          placeholder={
+            activityView === "history" ? "Search history…" : "Search upcoming…"
+          }
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+        />
+        <Button
+          variant="outline"
+          disabled={!campaigns?.length}
+          onClick={exportActivity}
+        >
+          Export CSV
+        </Button>
+        <p className="muted">
+          Search and export include the latest 100 saved campaigns loaded here.
+        </p>
+      </section>
       <section className="panel">
         <p className="muted">
           Run and pause campaigns from your connected Chrome extension. A
@@ -133,9 +174,11 @@ export function PostingQueue() {
       {list && !campaigns?.length && (
         <section className="panel empty-state">
           <h2>
-            {activityView === "history"
-              ? "No campaign history yet"
-              : "No upcoming campaigns"}
+            {search
+              ? "No matching campaigns"
+              : activityView === "history"
+                ? "No campaign history yet"
+                : "No upcoming campaigns"}
           </h2>
           <p>
             Save a campaign to keep its text, selected groups and media

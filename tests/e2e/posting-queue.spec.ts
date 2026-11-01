@@ -92,3 +92,59 @@ test("saved queue reconciles an explicitly reviewed outcome without retrying", a
   await expect(page.getByText(/completed · Saved/)).toBeVisible();
   expect(writes).toEqual(["inspect", "resolve"]);
 });
+
+test("Activity searches saved records and exports the filtered view", async ({
+  page,
+}) => {
+  const fixture = {
+    id: "22222222-2222-4222-8222-222222222222",
+    revision: 1,
+    state: "completed",
+    title: "Weekend offer",
+    description: "",
+    plan: { text: "=Example text" },
+    created_at: "2026-11-01T00:00:00Z",
+  };
+  await page.route("**/api/campaigns", (route) =>
+    route.fulfill({
+      json: {
+        viewer_id: "11111111-1111-4111-8111-111111111111",
+        campaigns: [
+          fixture,
+          {
+            ...fixture,
+            id: "33333333-3333-4333-8333-333333333333",
+            title: "Draft",
+            state: "draft",
+            plan: { text: "Draft content" },
+          },
+        ],
+      },
+    }),
+  );
+  await page.goto("/dashboard/activity");
+  await expect(
+    page.getByRole("heading", { name: "Draft", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "History", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Weekend offer", exact: true }),
+  ).toBeVisible();
+  await page.getByLabel("Search history").fill("missing");
+  await expect(
+    page.getByRole("heading", { name: "No matching campaigns" }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Export CSV" })).toBeDisabled();
+  await page.getByLabel("Search history").fill("weekend");
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export CSV" }).click();
+  const file = await download;
+  expect(file.suggestedFilename()).toMatch(/^staysuite-history-.*\.csv$/);
+  const stream = await file.createReadStream();
+  const parts: Buffer[] = [];
+  for await (const part of stream) parts.push(Buffer.from(part));
+  const csv = Buffer.concat(parts).toString("utf8");
+  expect(csv).toContain("Weekend offer");
+  expect(csv).toContain("'=Example text");
+  expect(csv).not.toContain("Draft content");
+});
