@@ -236,6 +236,37 @@ export default function CampaignWorkspace() {
     setValidationReviewed(false);
     setReceiptReviewed(false);
   }
+  async function openRadar() {
+    if (!connection || !actor || !bridge) return;
+    setBusy(true);
+    try {
+      const fresh = await readActor();
+      if (
+        fresh.actor_id !== actor.actor_id ||
+        fresh.actor_type !== actor.actor_type
+      )
+        throw new Error(
+          "Facebook profile changed. Reconnect before opening Lead Radar.",
+        );
+      await bridge.list();
+      const query = new URLSearchParams({
+        scope: `${fresh.actor_type}:${fresh.actor_id}`,
+        viewer: connection.viewer,
+      });
+      await chrome.tabs.create({
+        url: `${connection.origin}/dashboard/lead-radar?${query.toString()}`,
+        active: true,
+      });
+    } catch (error) {
+      setNotice(
+        error instanceof Error
+          ? error.message
+          : "Lead Radar could not be opened.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
   async function readActor() {
     if (activeFacebook.current === null) {
       const tabs = await chrome.tabs.query({
@@ -1008,6 +1039,11 @@ export default function CampaignWorkspace() {
           Connect StaySuite and Facebook
         </button>
         {actor && <p>Facebook personal profile: {actor.actor_id}</p>}
+        {actor && connection && (
+          <button disabled={busy || running} onClick={() => void openRadar()}>
+            Open Lead Radar
+          </button>
+        )}
         <p role="status" aria-live="polite">
           {notice}
         </p>
