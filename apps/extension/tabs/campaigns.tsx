@@ -81,7 +81,8 @@ export default function CampaignWorkspace() {
   const autoOpened = useRef(false),
     autoStarted = useRef(false);
   useEffect(() => {
-    const id = new URL(location.href).searchParams.get("scheduled");
+    const params = new URL(location.href).searchParams;
+    const id = params.get("scheduled");
     if (!id || !campaignIdSchema.safeParse(id).success) return;
     let active = true;
     void chrome.storage.local
@@ -110,9 +111,10 @@ export default function CampaignWorkspace() {
     };
   }, []);
   useEffect(() => {
-    if (connection && scheduledId && !autoOpened.current) {
+    const id = scheduledId;
+    if (connection && id && !autoOpened.current) {
       autoOpened.current = true;
-      void open(scheduledId);
+      void open(id);
     }
   }, [connection, scheduledId]);
   useEffect(() => {
@@ -339,7 +341,11 @@ export default function CampaignWorkspace() {
       const tab = tabs.find((t) => {
         try {
           const u = new URL(t.url || "");
-          return u.origin === origin && u.pathname.startsWith("/dashboard/");
+          return (
+            u.origin === origin &&
+            u.pathname.startsWith("/dashboard/") &&
+            (!scheduled || t.id === scheduled.tabId)
+          );
         } catch {
           return false;
         }
@@ -382,6 +388,25 @@ export default function CampaignWorkspace() {
       );
       if (savedGroups.viewer_id !== session.viewer)
         throw new Error("StaySuite account changed. Reconnect.");
+      if (chrome.runtime.sendMessage) {
+        const registration: unknown = await chrome.runtime.sendMessage({
+          type: "COMPOSE_ENGINE_CONNECT",
+          connection: {
+            ...session,
+            actorId: identity.actor_id,
+            generation: crypto.randomUUID(),
+          },
+        });
+        if (
+          !registration ||
+          typeof registration !== "object" ||
+          !("ok" in registration) ||
+          registration.ok !== true
+        )
+          throw new Error(
+            "The Compose posting-engine connection was not confirmed. Reconnect.",
+          );
+      }
       setGroups(savedGroups.groups ?? []);
       setActor(identity);
       setConnection(session);
@@ -917,7 +942,7 @@ export default function CampaignWorkspace() {
         });
       }
       setNotice(current.stop_reason || `Campaign is ${current.state}.`);
-      if (scheduled && current.state !== "running") {
+      if (scheduled && scheduledId && current.state !== "running") {
         const tab = await chrome.tabs.getCurrent();
         if (
           tab?.id !== undefined &&
@@ -1011,8 +1036,8 @@ export default function CampaignWorkspace() {
       <section className="intro">
         <h1>Your campaign, one group at a time.</h1>
         <p>
-          Use your saved draft and your current Facebook profile. No automatic
-          run starts without your exact approval and Start action.
+          Connect this browser to Compose or review a saved campaign. Compose
+          Post Now runs its approved queue in the extension background.
         </p>
       </section>
       <section className="collect-panel">

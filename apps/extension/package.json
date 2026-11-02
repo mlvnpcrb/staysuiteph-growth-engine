@@ -1,6 +1,6 @@
 {
   "name": "@staysuite/extension",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "private": true,
   "displayName": "StaySuite Growth Engine",
   "description": "Account-scoped group library, approved Direct campaigns, and owner-enabled scheduled runs with background wakeups.",

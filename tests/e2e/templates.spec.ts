@@ -3,6 +3,17 @@ import AxeBuilder from "@axe-core/playwright";
 import { settleTheme } from "./helpers/settle-theme";
 const viewer = "11111111-1111-4111-8111-111111111111";
 const id = "22222222-2222-4222-8222-222222222222";
+test.beforeEach(async ({ page }) => {
+  await page.route("**/api/groups", (route) =>
+    route.fulfill({
+      json: {
+        viewer_id: viewer,
+        groups: [],
+        stats: { total: 0, reviewed: 0, needsReview: 0 },
+      },
+    }),
+  );
+});
 test("templates persist, edit, duplicate, reopen in Compose and delete", async ({
   page,
 }) => {

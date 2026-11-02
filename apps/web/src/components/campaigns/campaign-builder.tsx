@@ -1,5 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { ComposeSaveTemplate } from "./compose-save-template";
+import { useComposeEngine } from "./compose-engine";
+import { ComposeEngineProgress } from "./compose-engine-progress";
 import { ScheduleEditor } from "../automations/schedule-editor";
 import { readTemplate } from "../templates/template-api";
 import Image from "next/image";
@@ -60,6 +63,24 @@ export function CampaignBuilder({
   const [editorOpen, setEditorOpen] = useState(view === "compose");
   const { groups, loading, error, reload, viewer: groupViewer } = useGroups();
   const collections = useLibrary(groupViewer);
+  const engine = useComposeEngine(view === "compose" ? groupViewer : "");
+  const engineConnectionDialog = useRef<HTMLDialogElement>(null);
+  const [engineBusy, setEngineBusy] = useState(false),
+    [engineMessage, setEngineMessage] = useState("");
+  const [engineRun, setEngineRun] = useState<{
+    id: string;
+    viewer: string;
+  } | null>(null);
+  const engineAttempt = useRef<{
+    fingerprint: string;
+    requestId: string;
+  } | null>(null);
+  const liveOwner = useRef(groupViewer);
+  liveOwner.current = groupViewer;
+  const lastOwner = useRef("");
+  const [templateSelection, setTemplateSelection] = useState<{
+    id: string;
+  } | null>(null);
   const [collectionError, setCollectionError] = useState("");
   const [text, setText] = useState("");
   const [title, setTitle] = useState("");
@@ -75,6 +96,11 @@ export function CampaignBuilder({
   const [savedJob, setSavedJob] = useState<CampaignJob | null>(null);
   const [cloudBusy, setCloudBusy] = useState(false);
   const [cloudMessage, setCloudMessage] = useState("");
+  const saveError = useRef("");
+  const [templateNotice, setTemplateNotice] = useState<{
+    text: string;
+    error: boolean;
+  } | null>(null);
   const [storageState, setStorageState] = useState<
     "checking" | "ready" | "unavailable"
   >("checking");
@@ -129,6 +155,41 @@ export function CampaignBuilder({
   const previews = useRef(new Set<string>());
   const active = useRef(true);
   const processing = useRef(false);
+  const liveContent = useRef("");
+  liveContent.current = JSON.stringify({
+    text,
+    title,
+    media: media.map(metadata),
+  });
+  useEffect(() => {
+    if (view !== "compose") return;
+    const id = new URL(location.href).searchParams.get("template");
+    setTemplateSelection(id ? { id } : null);
+  }, [view]);
+  useEffect(() => {
+    if (!groupViewer) return;
+    if (lastOwner.current && lastOwner.current !== groupViewer) {
+      setText("");
+      setTitle("");
+      setDescription("");
+      setSelected([]);
+      setMedia([]);
+      for (const url of previews.current) URL.revokeObjectURL(url);
+      previews.current.clear();
+      setSavedJob(null);
+      pendingId.current = null;
+      remotePlan.current = "";
+      setApproved("");
+      setConfirmed(false);
+      setEngineRun(null);
+      setTemplateNotice(null);
+      setTemplateSelection(null);
+      engineAttempt.current = null;
+      setEngineMessage("");
+      reviewDialog.current?.close();
+    }
+    lastOwner.current = groupViewer;
+  }, [groupViewer]);
   useEffect(() => {
     active.current = true;
     const urls = previews.current;
@@ -139,15 +200,25 @@ export function CampaignBuilder({
   }, []);
   useEffect(() => {
     if (view !== "compose") return;
-    const id = new URL(window.location.href).searchParams.get("template");
-    if (!id) return;
+    const id = templateSelection?.id;
+    if (!id || !groupViewer) return;
+    const loadingOwner = groupViewer,
+      loadingContent = liveContent.current;
     const controller = new AbortController();
     const created: string[] = [];
     setBusy(true);
+    setTemplateNotice({ text: "Loading template…", error: false });
     processing.current = true;
     void (async () => {
       try {
         const result = await readTemplate(id, controller.signal);
+        if (
+          result.viewer_id !== loadingOwner ||
+          result.template.user_id !== loadingOwner
+        )
+          throw new Error(
+            "Your account changed. Reopen Compose before loading a template.",
+          );
         if (result.template.state !== "ready")
           throw new Error("Finish saving this template before using it.");
         const restored: Media[] = [];
@@ -204,7 +275,23 @@ export function CampaignBuilder({
           throw new Error(
             "This template's attachment combination cannot be used in Compose.",
           );
+        if (liveOwner.current !== loadingOwner)
+          throw new Error("Your account changed. Reopen Compose.");
+        if (liveContent.current !== loadingContent)
+          throw new Error(
+            "Your draft changed while the template was loading. The current draft was kept.",
+          );
+        for (const preview of previews.current) URL.revokeObjectURL(preview);
+        previews.current.clear();
         for (const preview of created) previews.current.add(preview);
+        setSavedJob(null);
+        pendingId.current = null;
+        remotePlan.current = "";
+        viewer.current = loadingOwner;
+        setTemplateNotice({
+          text: `Loaded “${result.template.name}”. Your audience and settings were kept.`,
+          error: false,
+        });
         setText(result.template.text);
         setTitle(result.template.name);
         setMedia(restored);
@@ -218,12 +305,14 @@ export function CampaignBuilder({
         window.history.replaceState(null, "", url);
       } catch (error) {
         for (const preview of created) URL.revokeObjectURL(preview);
-        if (!controller.signal.aborted)
-          setCloudMessage(
+        if (!controller.signal.aborted) {
+          const message =
             error instanceof Error
               ? error.message
-              : "Template could not be opened.",
-          );
+              : "Template could not be opened.";
+          setCloudMessage(message);
+          setTemplateNotice({ text: message, error: true });
+        }
       } finally {
         if (!controller.signal.aborted) {
           setBusy(false);
@@ -232,7 +321,7 @@ export function CampaignBuilder({
       }
     })();
     return () => controller.abort();
-  }, [view]);
+  }, [view, templateSelection, groupViewer]);
   const plan = {
     version: 1 as const,
     text,
@@ -341,6 +430,7 @@ export function CampaignBuilder({
     setDescription("");
     setSelected([]);
     setMedia([]);
+    setTemplateSelection(null);
     setSavedJob(null);
     pendingId.current = null;
     remotePlan.current = "";
@@ -438,6 +528,19 @@ export function CampaignBuilder({
       title,
       description,
     });
+    const savingOwner = groupViewer;
+    if (!savingOwner || (viewer.current && viewer.current !== savingOwner)) {
+      setCloudMessage("Your account changed. Reload Compose before saving.");
+      return;
+    }
+    viewer.current = savingOwner;
+    const run: typeof campaignCommand = async (input, owner) => {
+      const result = await campaignCommand(input, owner);
+      if (liveOwner.current !== savingOwner)
+        throw new Error("Your account changed. Reload Compose.");
+      return result;
+    };
+    saveError.current = "";
     setCloudBusy(true);
     setCloudMessage("");
     try {
@@ -447,7 +550,7 @@ export function CampaignBuilder({
         pendingId.current = id;
         if (remotePlan.current === "creation-attempted") {
           try {
-            const recovered = await campaignCommand(
+            const recovered = await run(
               { id, revision: 0, command: "inspect", payload: {} },
               viewer.current,
             );
@@ -456,7 +559,7 @@ export function CampaignBuilder({
           } catch (error) {
             if (!(error instanceof CampaignApiError) || error.status !== 403)
               throw error;
-            const created = await campaignCommand(
+            const created = await run(
               {
                 id,
                 revision: 0,
@@ -470,7 +573,7 @@ export function CampaignBuilder({
           }
         } else {
           remotePlan.current = "creation-attempted";
-          const created = await campaignCommand(
+          const created = await run(
             {
               id,
               revision: 0,
@@ -495,7 +598,7 @@ export function CampaignBuilder({
         remotePlan.current !==
         JSON.stringify({ plan, settings, title, description })
       ) {
-        const updated = await campaignCommand(
+        const updated = await run(
           {
             id: current.id,
             revision: current.revision,
@@ -516,7 +619,7 @@ export function CampaignBuilder({
       for (let position = 0; position < media.length; position++) {
         if (current.media.some((m) => m.position === position && m.uploaded))
           continue;
-        const reserved = await campaignCommand(
+        const reserved = await run(
           {
             id: current.id,
             revision: current.revision,
@@ -531,7 +634,7 @@ export function CampaignBuilder({
         if (!asset || !reserved.upload)
           throw new Error("Media reservation unavailable.");
         try {
-          const reconciled = await campaignCommand(
+          const reconciled = await run(
             {
               id: current.id,
               revision: current.revision,
@@ -554,7 +657,7 @@ export function CampaignBuilder({
         if (reserved.upload.path !== asset.object_path)
           throw new Error("Upload target changed. Reload before retrying.");
         await uploadCampaignMedia(reserved.upload.signedUrl, bytes);
-        const done = await campaignCommand(
+        const done = await run(
           {
             id: current.id,
             revision: current.revision,
@@ -574,11 +677,11 @@ export function CampaignBuilder({
       );
       return current;
     } catch (e) {
-      setCloudMessage(
+      saveError.current =
         e instanceof Error
           ? e.message
-          : "Campaign could not be saved. Reload before retrying.",
-      );
+          : "Campaign could not be saved. Reload before retrying.";
+      setCloudMessage(saveError.current);
     } finally {
       setCloudBusy(false);
     }
@@ -586,7 +689,15 @@ export function CampaignBuilder({
   async function openSchedule() {
     const version = liveDraft.current;
     const saved = await saveCampaign();
-    if (!saved) return;
+    if (!saved) {
+      if (view === "compose")
+        setEngineMessage(
+          saveError.current ||
+            storageMessage ||
+            "Saving was not confirmed. Check the draft before retrying.",
+        );
+      return;
+    }
     if (version !== liveDraft.current) {
       setCloudMessage(
         "Your earlier draft was saved. Review your latest changes before scheduling.",
@@ -595,6 +706,107 @@ export function CampaignBuilder({
     }
     setScheduling({ id: saved.id, revision: saved.revision });
     scheduleDialog.current?.showModal();
+  }
+  async function launchPostingEngine() {
+    if (engineBusy || cloudBusy || busy || !parsed.success) return;
+    const owner = groupViewer,
+      version = liveDraft.current,
+      reviewedActor = engine.status?.actor_id;
+    setEngineBusy(true);
+    setEngineMessage("");
+    try {
+      if (settings.method !== "direct")
+        throw new Error("Choose Direct posting to use this posting engine.");
+      if (storageState !== "ready")
+        throw new Error(storageMessage || "Posting storage is not connected.");
+      const identity = await engine.refresh();
+      if (!identity || identity.viewer_id !== owner)
+        throw new Error(
+          "Connect StaySuite and Facebook in extension 0.5.4+ before posting.",
+        );
+      if (owner !== liveOwner.current || version !== liveDraft.current)
+        throw new Error(
+          "Your post or account changed. Review the current draft before posting.",
+        );
+      if (identity.actor_id !== reviewedActor)
+        throw new Error(
+          "Facebook identity changed. Review the posting identity before posting.",
+        );
+      if (!identity.publisher_ready)
+        throw new Error(
+          "This Facebook profile needs Direct publisher validation in the extension workspace before posting. No posting tab was opened.",
+        );
+      let current = await saveCampaign();
+      if (!current)
+        throw new Error(
+          saveError.current ||
+            "Save was not confirmed. Check the saved post before retrying.",
+        );
+      if (owner !== liveOwner.current || version !== liveDraft.current)
+        throw new Error(
+          "Your post changed while saving. Review the current draft before posting.",
+        );
+      if (
+        current.actor_id !== identity.actor_id ||
+        current.actor_type !== identity.actor_type
+      ) {
+        const bound = await campaignCommand(
+          {
+            id: current.id,
+            revision: current.revision,
+            command: "bind_actor",
+            payload: {
+              actor_id: identity.actor_id,
+              actor_type: identity.actor_type,
+            },
+          },
+          owner,
+        );
+        current = bound.job;
+      }
+      if (owner !== liveOwner.current || version !== liveDraft.current)
+        throw new Error("Your post or account changed. Review before posting.");
+      setSavedJob(current);
+      const fingerprint = JSON.stringify({
+        id: current.id,
+        revision: current.revision,
+        digest: current.digest,
+        actor: identity.actor_id,
+        owner,
+      });
+      if (engineAttempt.current?.fingerprint !== fingerprint)
+        engineAttempt.current = { fingerprint, requestId: crypto.randomUUID() };
+      setEngineRun({ id: current.id, viewer: owner });
+      setCloudMessage(
+        "Saved for posting-engine dispatch. Check the engine and confirmed results before retrying.",
+      );
+      await engine.open({
+        request_id: engineAttempt.current.requestId,
+        campaign_id: current.id,
+        revision: current.revision,
+        digest: current.digest,
+        actor_id: identity.actor_id,
+        actor_type: identity.actor_type,
+        viewer_id: owner,
+        reviewed: true,
+      });
+      if (owner !== liveOwner.current) return;
+      reviewDialog.current?.close();
+      setEngineMessage(
+        identity.publisher_ready
+          ? "Posting started in the extension background. Follow the confirmed results below; keep StaySuite and your signed-in Facebook tab open."
+          : "Publisher validation is required in the extension workspace before posting.",
+      );
+    } catch (error) {
+      if (owner === liveOwner.current)
+        setEngineMessage(
+          error instanceof Error
+            ? error.message
+            : "The posting queue could not start. Check saved execution history before retrying.",
+        );
+    } finally {
+      setEngineBusy(false);
+    }
   }
   function download() {
     if (!parsed.success || !snapshot) return;
@@ -628,6 +840,22 @@ export function CampaignBuilder({
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
+  if (lastOwner.current && groupViewer !== lastOwner.current)
+    return (
+      <section className="page group-workspace">
+        <h1>{view === "compose" ? "Compose" : "Automations"}</h1>
+        <p role={error ? "alert" : "status"}>
+          {error || "Checking your current StaySuite account…"}
+        </p>
+        <button
+          type="button"
+          className="gpp-secondary"
+          onClick={() => void reload()}
+        >
+          Reconnect workspace
+        </button>
+      </section>
+    );
   return (
     <div className="page group-workspace campaign-workspace" data-view={view}>
       {showHeading && (
@@ -644,14 +872,19 @@ export function CampaignBuilder({
             <div className="pa-meta">
               <span className="pa-label">Posting as</span>
               <span className="pa-name">
-                {savedJob?.actor_id
-                  ? `Facebook identity ${savedJob.actor_id}`
-                  : "Choose your posting identity"}
+                {engine.status?.actor_name ??
+                  (engine.status?.actor_id || savedJob?.actor_id
+                    ? `Facebook identity ${engine.status?.actor_id ?? savedJob?.actor_id}`
+                    : "Choose your posting identity")}
               </span>
             </div>
-            <Link className="gpp-identity-change" href="/dashboard/my-groups">
+            <button
+              type="button"
+              className="gpp-identity-change"
+              onClick={() => engineConnectionDialog.current?.showModal()}
+            >
               Change
-            </Link>
+            </button>
           </div>
         </div>
       )}
@@ -915,49 +1148,82 @@ export function CampaignBuilder({
               </Button>
             ) : null}
           </div>
-          <details className="reference-draft-metadata">
-            <summary>Campaign details</summary>
-            <label htmlFor="campaign-title">
-              Campaign title <span className="muted">(private)</span>
-            </label>
-            <input
-              id="campaign-title"
-              name="campaignTitle"
-              autoComplete="off"
-              maxLength={120}
-              value={title}
-              placeholder="Post title…"
-              onChange={(e) => {
-                setTitle(e.target.value);
-                invalidateApproval();
-              }}
-            />
-            <label htmlFor="campaign-description">
-              Description <span className="muted">(private notes)</span>
-            </label>
-            <textarea
-              id="campaign-description"
-              name="campaignDescription"
-              autoComplete="off"
-              maxLength={2000}
-              rows={2}
-              value={description}
-              onChange={(e) => {
-                setDescription(e.target.value);
-                invalidateApproval();
-              }}
-            />
-            <p className="muted text-sm">
-              Only the post text below is intended for Facebook. Title and notes
-              stay in StaySuite.
-            </p>
-          </details>
+          {view === "automations" && (
+            <details className="reference-draft-metadata">
+              <summary>Campaign details</summary>
+              <label htmlFor="campaign-title">
+                Campaign title <span className="muted">(private)</span>
+              </label>
+              <input
+                id="campaign-title"
+                name="campaignTitle"
+                autoComplete="off"
+                maxLength={120}
+                value={title}
+                placeholder="Post title…"
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  invalidateApproval();
+                }}
+              />
+              <label htmlFor="campaign-description">
+                Description <span className="muted">(private notes)</span>
+              </label>
+              <textarea
+                id="campaign-description"
+                name="campaignDescription"
+                autoComplete="off"
+                maxLength={2000}
+                rows={2}
+                value={description}
+                onChange={(e) => {
+                  setDescription(e.target.value);
+                  invalidateApproval();
+                }}
+              />
+              <p className="muted text-sm">
+                Only the post text below is intended for Facebook. Title and
+                notes stay in StaySuite.
+              </p>
+            </details>
+          )}
           <div className="unified-composer-box">
+            <div className="composer-template-bar">
+              <ComposeTemplatePicker
+                variant="source"
+                viewer={groupViewer}
+                dirty={!!text.trim() || !!media.length}
+                disabled={busy || cloudBusy || engineBusy}
+                onSelect={(id) => setTemplateSelection({ id })}
+              />
+            </div>
+            <div className="composer-divider">
+              <span>OR WRITE A FRESH POST</span>
+            </div>
+            {templateNotice && (
+              <p
+                className="compose-template-notice"
+                role={templateNotice.error ? "alert" : "status"}
+              >
+                {templateNotice.text}
+              </p>
+            )}
             <CampaignTextEditor
               actions={
-                <ComposeTemplatePicker
-                  dirty={!!text.trim() || !!media.length}
-                />
+                <>
+                  <ComposeTemplatePicker
+                    dirty={!!text.trim() || !!media.length}
+                    viewer={groupViewer}
+                    disabled={busy || cloudBusy || engineBusy}
+                    onSelect={(id) => setTemplateSelection({ id })}
+                  />
+                  <ComposeSaveTemplate
+                    text={text}
+                    media={media}
+                    viewer={groupViewer}
+                    disabled={busy || cloudBusy || engineBusy}
+                  />
+                </>
               }
               value={text}
               onChange={(next) => {
@@ -1083,7 +1349,7 @@ export function CampaignBuilder({
         </section>
         <section className="panel campaign-review">
           <details className="reference-automation-settings">
-            <summary>3. Advanced Automation Settings</summary>
+            <summary>Advanced Automation Settings</summary>
             <div className="reference-settings-body">
               <h2>Pauses &amp; protection</h2>
               <label>
@@ -1233,10 +1499,24 @@ export function CampaignBuilder({
             <button
               type="button"
               className="gpp-post-now"
-              disabled={!parsed.success || busy || loading || !!error}
-              onClick={() => reviewDialog.current?.showModal()}
+              disabled={
+                !parsed.success ||
+                busy ||
+                loading ||
+                !!error ||
+                engineBusy ||
+                cloudBusy
+              }
+              onClick={() => {
+                if (view !== "compose") {
+                  reviewDialog.current?.showModal();
+                  return;
+                }
+                if (!engine.status) engineConnectionDialog.current?.showModal();
+                else void launchPostingEngine();
+              }}
             >
-              Post Now
+              {engineBusy ? "Opening engine…" : "Post Now"}
             </button>
           </div>
           <dialog
@@ -1254,30 +1534,78 @@ export function CampaignBuilder({
                 ×
               </button>
             </header>
-            <details>
-              <summary>Post text help</summary>
-              <p>
-                Use accurate prices, dates and availability. Check whether each
-                group permits links, contact information and promotional
-                content. Changing text, media, target order, interval or saved
-                rule evidence invalidates plan approval.
-              </p>
-            </details>
-            <details>
-              <summary>Media help</summary>
-              <p>
-                Files stay in this browser tab until you choose Save campaign
-                privately. Saving uploads them to your private StaySuite
-                workspace. Nothing is sent to Facebook. Keep your originals;
-                unsaved edits are lost on reload. Facebook and individual groups
-                may impose different media limits. The downloaded plan contains
-                file names and fingerprints, not the media files.
-              </p>
-            </details>
+            {view === "automations" && (
+              <>
+                {" "}
+                <details>
+                  <summary>Post text help</summary>
+                  <p>
+                    Use accurate prices, dates and availability. Check whether
+                    each group permits links, contact information and
+                    promotional content. Changing text, media, target order,
+                    interval or saved rule evidence invalidates plan approval.
+                  </p>
+                </details>
+                <details>
+                  <summary>Media help</summary>
+                  <p>
+                    Files stay in this browser tab until you choose Save
+                    campaign privately. Saving uploads them to your private
+                    StaySuite workspace. Nothing is sent to Facebook. Keep your
+                    originals; unsaved edits are lost on reload. Facebook and
+                    individual groups may impose different media limits. The
+                    downloaded plan contains file names and fingerprints, not
+                    the media files.
+                  </p>
+                </details>
+              </>
+            )}{" "}
             <h3>Post preview</h3>
-            <p className="campaign-post-preview">
-              {text || "Your post text will appear here."}
-            </p>
+            <div
+              className="compose-facebook-preview"
+              aria-label="Facebook post preview"
+            >
+              <header>
+                <span className="compose-preview-avatar">
+                  <UserRound size={22} aria-hidden="true" />
+                </span>
+                <div>
+                  <strong>
+                    {engine.status?.actor_name ??
+                      (engine.status?.actor_id
+                        ? `Facebook identity ${engine.status.actor_id}`
+                        : "Your posting identity")}
+                  </strong>
+                  <span>Preview · Selected Facebook groups</span>
+                </div>
+              </header>
+              <p className="campaign-post-preview">
+                {text || "Your post text will appear here."}
+              </p>
+              {!!media.length && (
+                <div className="compose-preview-media">
+                  {media.map((asset, index) =>
+                    asset.type.startsWith("video/") ? (
+                      <video
+                        key={asset.preview}
+                        src={asset.preview}
+                        controls
+                        aria-label={`Preview attachment ${index + 1}: ${asset.name}`}
+                      />
+                    ) : (
+                      <Image
+                        key={asset.preview}
+                        src={asset.preview}
+                        width={600}
+                        height={400}
+                        unoptimized
+                        alt={`Preview attachment ${index + 1}: ${asset.name}`}
+                      />
+                    ),
+                  )}
+                </div>
+              )}
+            </div>
             <p>
               {media.length} attachment(s) · {selected.length} target(s)
             </p>
@@ -1294,121 +1622,208 @@ export function CampaignBuilder({
               />
               I reviewed this exact text, media and target order.
             </label>
-            <div className="group-actions">
-              <Button
-                disabled={!snapshot || !confirmed || busy || loading || !!error}
-                onClick={() => setApproved(snapshot)}
-              >
-                Approve plan (not publish)
-              </Button>
-              <Button
-                variant="outline"
-                disabled={!snapshot || busy || loading || !!error}
-                onClick={download}
-              >
-                Download campaign plan
-              </Button>
-            </div>
-            <p role="status">
-              {isApproved
-                ? "This exact campaign plan is approved for preparation. No posts have been sent."
-                : approved
-                  ? "Plan changed. Review and approve the current version again."
-                  : "Draft plan. Nothing has been sent."}
-            </p>
-            <p className="muted">
-              {blockers.length} selected target(s) need rule or permission
-              review.
-            </p>
-            <Button disabled>
-              Start bulk posting — use the extension workspace
-            </Button>
-            <p className="muted text-sm">
-              Bulk posting is not available in this Preview. You can prepare and
-              download a campaign plan. Nothing is sent to Facebook. Rules and
-              posting permission need checking for every selected group before
-              publishing.
-            </p>
+            {view === "compose" ? (
+              <>
+                <p>
+                  Post Now opens the posting engine and submits this exact saved
+                  post to the selected groups using your connected Facebook
+                  identity.
+                </p>
+                <Button
+                  disabled={
+                    !parsed.success ||
+                    !confirmed ||
+                    busy ||
+                    cloudBusy ||
+                    engineBusy ||
+                    !engine.status
+                  }
+                  onClick={() => void launchPostingEngine()}
+                >
+                  Post Now
+                </Button>
+                <p>
+                  {blockers.length} selected target(s) need rule or permission
+                  review. Unreviewed targets cannot be published.
+                </p>
+              </>
+            ) : (
+              <>
+                {" "}
+                <div className="group-actions">
+                  <Button
+                    disabled={
+                      !snapshot || !confirmed || busy || loading || !!error
+                    }
+                    onClick={() => setApproved(snapshot)}
+                  >
+                    Approve plan (not publish)
+                  </Button>
+                  <Button
+                    variant="outline"
+                    disabled={!snapshot || busy || loading || !!error}
+                    onClick={download}
+                  >
+                    Download campaign plan
+                  </Button>
+                </div>
+                <p role="status">
+                  {isApproved
+                    ? "This exact campaign plan is approved for preparation. No posts have been sent."
+                    : approved
+                      ? "Plan changed. Review and approve the current version again."
+                      : "Draft plan. Nothing has been sent."}
+                </p>
+                <p className="muted">
+                  {blockers.length} selected target(s) need rule or permission
+                  review.
+                </p>
+                <Button disabled>
+                  Start bulk posting — use the extension workspace
+                </Button>
+                <p className="muted text-sm">
+                  Bulk posting is not available in this Preview. You can prepare
+                  and download a campaign plan. Nothing is sent to Facebook.
+                  Rules and posting permission need checking for every selected
+                  group before publishing.
+                </p>
+              </>
+            )}
           </dialog>
         </section>
-        <details className="panel campaign-save" aria-label="Save campaign">
-          <summary>Save campaign</summary>
-          <h2>Keep this campaign</h2>
-          <p className="muted">
-            Save text, group order and media to your private StaySuite
-            workspace. This does not approve or start publishing.
-          </p>
-          <div className="group-actions">
-            <Button
-              disabled={
-                !snapshot ||
-                !settingsValid ||
-                storageState !== "ready" ||
-                busy ||
-                cloudBusy ||
-                loading ||
-                !!error
-              }
-              onClick={() => void saveCampaign()}
+        {view === "compose" && (
+          <>
+            <p role="status" className="compose-engine-message">
+              {engineMessage}
+            </p>
+            {engineRun?.viewer === groupViewer && (
+              <ComposeEngineProgress id={engineRun.id} viewer={groupViewer} />
+            )}
+            <dialog
+              ref={engineConnectionDialog}
+              className="reference-dialog"
+              aria-labelledby="compose-engine-connection-title"
             >
-              {cloudBusy ? "Saving campaign…" : "Save campaign privately"}
-            </Button>
-            <Button asChild variant="outline">
-              <Link href="/dashboard/activity">Open Activity</Link>
-            </Button>
-          </div>
-          {storageState !== "ready" && (
-            <p className="campaign-save-hint">
-              Saving is{" "}
-              {storageState === "checking" ? "being checked" : "unavailable"}.
-              Unsaved text and attachments stay in this tab and are lost on
-              reload. You can download the plan metadata from the review
-              section.
+              <header>
+                <h2 id="compose-engine-connection-title">
+                  Connect posting engine
+                </h2>
+                <button
+                  type="button"
+                  aria-label="Close engine connection"
+                  onClick={() => engineConnectionDialog.current?.close()}
+                >
+                  ×
+                </button>
+              </header>
+              <p>
+                In Chrome, open StaySuite extension 0.5.4+ and choose the
+                campaign workspace. Click Connect StaySuite and Facebook with
+                this dashboard and Facebook open. This pairs the engine with
+                your account and posting identity.
+              </p>
+              <button
+                type="button"
+                className="gpp-secondary"
+                disabled={engine.checking}
+                onClick={() => void engine.refresh()}
+              >
+                Check engine connection
+              </button>
+              {engine.error && <p role="alert">{engine.error}</p>}
+              {engine.status && (
+                <p role="status">
+                  Connected: Facebook identity {engine.status.actor_id}.{" "}
+                  {engine.status.publisher_ready
+                    ? "Direct publishing is verified for this profile."
+                    : "Complete Direct publisher validation in the extension workspace before posting."}
+                </p>
+              )}
+            </dialog>
+          </>
+        )}
+        {view === "automations" && (
+          <details className="panel campaign-save" aria-label="Save campaign">
+            <summary>Save campaign</summary>
+            <h2>Keep this campaign</h2>
+            <p className="muted">
+              Save text, group order and media to your private StaySuite
+              workspace. This does not approve or start publishing.
             </p>
-          )}
-          {savedJob && (
-            <p className="muted text-sm">
-              Saved campaign version {savedJob.revision}.{" "}
-              {savedJob.actor_id
-                ? "Facebook identity selected; live verification still required."
-                : "Connect a Facebook identity before publication approval."}
+            <div className="group-actions">
+              <Button
+                disabled={
+                  !snapshot ||
+                  !settingsValid ||
+                  storageState !== "ready" ||
+                  busy ||
+                  cloudBusy ||
+                  loading ||
+                  !!error
+                }
+                onClick={() => void saveCampaign()}
+              >
+                {cloudBusy ? "Saving campaign…" : "Save campaign privately"}
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/dashboard/activity">Open Activity</Link>
+              </Button>
+            </div>
+            {storageState !== "ready" && (
+              <p className="campaign-save-hint">
+                Saving is{" "}
+                {storageState === "checking" ? "being checked" : "unavailable"}.
+                Unsaved text and attachments stay in this tab and are lost on
+                reload. You can download the plan metadata from the review
+                section.
+              </p>
+            )}
+            {savedJob && (
+              <p className="muted text-sm">
+                Saved campaign version {savedJob.revision}.{" "}
+                {savedJob.actor_id
+                  ? "Facebook identity selected; live verification still required."
+                  : "Connect a Facebook identity before publication approval."}
+              </p>
+            )}
+            <p aria-live="polite" className="campaign-cloud-message">
+              {cloudMessage}
             </p>
-          )}
-          <p aria-live="polite" className="campaign-cloud-message">
-            {cloudMessage}
-          </p>
-        </details>
+          </details>
+        )}
       </div>
-      <details className="reference-connection-details">
-        <summary>Workspace connection</summary>
-        <aside
-          className="campaign-availability"
-          aria-label="Campaign availability"
-        >
-          <div>
-            <strong>
-              {storageState === "ready"
-                ? "Private saving connected"
-                : storageState === "checking"
-                  ? "Checking private saving…"
-                  : "Private saving needs attention"}
-            </strong>
-            <p className="muted text-sm">
-              {storageMessage ||
-                "Checking your StaySuite workspace. You can prepare your draft while we check."}
-            </p>
-          </div>
-          <span className="subtle-badge">Extension controls publishing</span>
-          {storageState === "unavailable" && (
-            <Button
-              variant="outline"
-              onClick={() => setStorageCheck((value) => value + 1)}
-            >
-              Retry connection
-            </Button>
-          )}
-        </aside>
-      </details>
+      {view === "automations" && (
+        <details className="reference-connection-details">
+          <summary>Workspace connection</summary>
+          <aside
+            className="campaign-availability"
+            aria-label="Campaign availability"
+          >
+            <div>
+              <strong>
+                {storageState === "ready"
+                  ? "Private saving connected"
+                  : storageState === "checking"
+                    ? "Checking private saving…"
+                    : "Private saving needs attention"}
+              </strong>
+              <p className="muted text-sm">
+                {storageMessage ||
+                  "Checking your StaySuite workspace. You can prepare your draft while we check."}
+              </p>
+            </div>
+            <span className="subtle-badge">Extension controls publishing</span>
+            {storageState === "unavailable" && (
+              <Button
+                variant="outline"
+                onClick={() => setStorageCheck((value) => value + 1)}
+              >
+                Retry connection
+              </Button>
+            )}
+          </aside>
+        </details>
+      )}
       <dialog
         ref={scheduleDialog}
         className="reference-dialog schedule-dialog"

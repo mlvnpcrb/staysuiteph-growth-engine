@@ -1,3 +1,4 @@
+import "./lib/compose-engine-background";
 import "./lib/schedule-background";
 import { collectFacebookLibrary } from "./lib/facebook-collector";
 import { readFacebookGroupPage } from "./lib/facebook-page";

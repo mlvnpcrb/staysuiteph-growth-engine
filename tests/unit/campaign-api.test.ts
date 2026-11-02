@@ -184,3 +184,16 @@ it("signs template source media only under the authenticated owner's exact templ
   expect(mocks.bucket).not.toHaveBeenCalled();
   expect(mocks.download).not.toHaveBeenCalled();
 });
+it("polls owned execution progress without minting private media URLs", async () => {
+  mocks.command.mockResolvedValue({
+    id,
+    media: [{ id: owner, uploaded: true, object_path: `${owner}/${id}/asset` }],
+  });
+  const response = await GET(
+    new Request(`http://localhost/api/campaigns?id=${id}&view=progress`),
+  );
+  expect(response.status).toBe(200);
+  expect(await response.json()).toMatchObject({ viewer_id: owner, assets: [] });
+  expect(mocks.bucket).not.toHaveBeenCalled();
+  expect(response.headers.get("cache-control")).toContain("no-store");
+});

@@ -172,6 +172,7 @@ test("Compose saves the exact draft before planning a paused schedule without ap
   await page.route("**/api/groups", (route) =>
     route.fulfill({
       json: {
+        viewer_id: viewer,
         groups: [
           {
             id: groupId,

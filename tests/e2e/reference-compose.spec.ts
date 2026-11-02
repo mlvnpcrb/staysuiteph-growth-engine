@@ -42,15 +42,11 @@ test("reference Compose uses audience first, real dialogs and a working link act
   await expect(page.getByLabel("Post text", { exact: true })).toHaveValue(
     "https://example.com/offer",
   );
-  await page
-    .getByText("3. Advanced Automation Settings", { exact: true })
-    .click();
+  await page.getByText("Advanced Automation Settings", { exact: true }).click();
   await expect(
     page.getByLabel("Posting method", { exact: true }),
   ).toBeVisible();
-  await page
-    .getByText("3. Advanced Automation Settings", { exact: true })
-    .click();
+  await page.getByText("Advanced Automation Settings", { exact: true }).click();
   await expect(
     page.getByLabel("Posting method", { exact: true }),
   ).not.toBeVisible();
@@ -62,8 +58,8 @@ test("reference Compose uses audience first, real dialogs and a working link act
     page.getByRole("dialog", { name: "Review your post", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", {
-      name: "Approve plan (not publish)",
+    page.getByRole("dialog", { name: "Review your post", exact: true }).getByRole("button", {
+      name: "Post Now",
       exact: true,
     }),
   ).toBeDisabled();
@@ -97,6 +93,35 @@ test("saved-template picker preserves a dirty post until replacement is confirme
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
+  const groupId = "66666666-6666-4666-8666-666666666666";
+  await page.route("**/api/groups", (route) =>
+    route.fulfill({
+      json: {
+        viewer_id: owner,
+        groups: [
+          {
+            id: groupId,
+            user_id: owner,
+            identity: "12345",
+            url: "https://www.facebook.com/groups/12345/",
+            title: "Fixture audience",
+            destination: "",
+            accommodation: "",
+            audience: "",
+            evidence: "",
+            source: "manual",
+            notes: "",
+            review_status: "review_required",
+            rule_evidence: "",
+            last_reviewed_at: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        ],
+        stats: { total: 1, reviewed: 0, needsReview: 1 },
+      },
+    }),
+  );
   let writes = 0;
   await page.route("**/api/templates**", (route) => {
     if (route.request().method() !== "GET") writes++;
@@ -110,6 +135,16 @@ test("saved-template picker preserves a dirty post until replacement is confirme
   await page
     .getByLabel("Post text", { exact: true })
     .fill("Keep my current draft");
+  await page
+    .getByRole("button", { name: "Advanced selector", exact: true })
+    .click();
+  await page.getByRole("checkbox", { name: /Fixture audience/ }).check();
+  await page
+    .getByRole("button", { name: "Done selecting groups", exact: true })
+    .click();
+  await page.getByText("Advanced Automation Settings", { exact: true }).click();
+  await page.getByLabel("Pause length (minutes)", { exact: true }).fill("3");
+  await page.getByText("Advanced Automation Settings", { exact: true }).click();
   await page
     .getByRole("button", { name: "Post saved templates", exact: true })
     .click();
@@ -130,6 +165,17 @@ test("saved-template picker preserves a dirty post until replacement is confirme
   await expect(page.getByLabel("Post text", { exact: true })).toHaveValue(
     "Saved post body",
   );
+  await expect(
+    page.getByRole("button", {
+      name: "Remove Fixture audience from audience",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page.getByText("Advanced Automation Settings", { exact: true }).click();
+  await expect(
+    page.getByLabel("Pause length (minutes)", { exact: true }),
+  ).toHaveValue("3");
+  await expect(page).toHaveURL(/\/dashboard\/compose$/);
   expect(writes).toBe(0);
 });
 test("Templates follows the reference split library with selection and name sorting", async ({

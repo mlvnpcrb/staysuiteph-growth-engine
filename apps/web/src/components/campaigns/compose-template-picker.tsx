@@ -1,10 +1,37 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import { FolderOpen, X, Link2 } from "lucide-react";
+import { useEffect, useId, useRef, useState } from "react";
+import { FolderOpen, X, Link2, ChevronDown } from "lucide-react";
 import { templateListSchema, type PostTemplate } from "@staysuite/validation";
-export function ComposeTemplatePicker({ dirty }: { dirty: boolean }) {
+export function ComposeTemplatePicker({
+  dirty,
+  variant = "toolbar",
+  viewer,
+  disabled = false,
+  onSelect,
+}: {
+  dirty: boolean;
+  variant?: "source" | "toolbar";
+  viewer: string;
+  disabled?: boolean;
+  onSelect: (id: string) => void;
+}) {
+  const titleId = useId(),
+    dialogId = useId();
+  const [isOpen, setIsOpen] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const request = useRef<AbortController | null>(null);
+  const currentViewer = useRef(viewer);
+  currentViewer.current = viewer;
+  const [dataOwner, setDataOwner] = useState("");
+  useEffect(() => {
+    request.current?.abort();
+    setTemplates([]);
+    setDataOwner("");
+    setSearch("");
+    setError("");
+    dialog.current?.close();
+    setIsOpen(false);
+  }, [viewer]);
   useEffect(() => () => request.current?.abort(), []);
   const [templates, setTemplates] = useState<PostTemplate[]>([]),
     [search, setSearch] = useState(""),
@@ -15,12 +42,14 @@ export function ComposeTemplatePicker({ dirty }: { dirty: boolean }) {
     const controller = new AbortController();
     request.current = controller;
     dialog.current?.showModal();
+    setIsOpen(true);
     setLoading(true);
     setError("");
     try {
       const response = await fetch("/api/templates", {
         cache: "no-store",
         signal: controller.signal,
+        headers: { "x-staysuite-viewer": viewer },
       });
       const body: unknown = await response.json();
       if (!response.ok)
@@ -30,11 +59,13 @@ export function ComposeTemplatePicker({ dirty }: { dirty: boolean }) {
             : "Templates are unavailable.",
         );
       if (controller.signal.aborted) return;
-      setTemplates(
-        templateListSchema
-          .parse(body)
-          .templates.filter((item) => item.state === "ready"),
-      );
+      const data = templateListSchema.parse(body);
+      if (data.viewer_id !== viewer || currentViewer.current !== viewer)
+        throw new Error(
+          "Your account changed. Reopen Compose before selecting a template.",
+        );
+      setDataOwner(viewer);
+      setTemplates(data.templates.filter((item) => item.state === "ready"));
     } catch (error) {
       if (controller.signal.aborted) return;
       setTemplates([]);
@@ -49,22 +80,38 @@ export function ComposeTemplatePicker({ dirty }: { dirty: boolean }) {
     <>
       <button
         type="button"
-        className="reference-template-trigger"
+        className={
+          variant === "source"
+            ? "template-input-wrapper"
+            : "reference-template-trigger"
+        }
         aria-haspopup="dialog"
-        title="Fill from template"
+        aria-controls={dialogId}
+        aria-expanded={isOpen}
+        disabled={disabled || !viewer}
+        title={
+          variant === "source" ? "Post saved templates" : "Fill from template"
+        }
         onClick={() => void open()}
       >
         <FolderOpen size={15} aria-hidden="true" />
-        <span className="sr-only">Post saved templates</span>
+        <span>
+          {variant === "source" ? "Post saved templates" : "Fill from template"}
+        </span>
+        {variant === "source" && <ChevronDown size={13} aria-hidden="true" />}
       </button>
       <dialog
         ref={dialog}
         className="reference-dialog"
-        aria-labelledby="compose-templates-title"
-        onClose={() => request.current?.abort()}
+        id={dialogId}
+        aria-labelledby={titleId}
+        onClose={() => {
+          request.current?.abort();
+          setIsOpen(false);
+        }}
       >
         <header>
-          <h2 id="compose-templates-title">Post saved templates</h2>
+          <h2 id={titleId}>Post saved templates</h2>
           <button
             type="button"
             aria-label="Close templates"
@@ -84,7 +131,7 @@ export function ComposeTemplatePicker({ dirty }: { dirty: boolean }) {
         {loading && <p role="status">Loading templates…</p>}
         {error && <p role="alert">{error}</p>}
         <ul className="reference-template-options">
-          {templates
+          {(dataOwner === viewer ? templates : [])
             .filter((item) =>
               `${item.name} ${item.text}`
                 .toLowerCase()
@@ -102,9 +149,8 @@ export function ComposeTemplatePicker({ dirty }: { dirty: boolean }) {
                       )
                     )
                       return;
-                    window.location.assign(
-                      `/dashboard/compose?template=${encodeURIComponent(item.id)}`,
-                    );
+                    onSelect(item.id);
+                    dialog.current?.close();
                   }}
                 >
                   <strong>{item.name}</strong>

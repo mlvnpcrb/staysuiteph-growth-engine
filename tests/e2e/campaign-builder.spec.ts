@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { settleTheme } from "./helpers/settle-theme";
-test("campaign preparation validates attachments, binds approval and never publishes", async ({
+test("Compose preview validates attachments and never opens an unconnected publisher", async ({
   page,
 }, testInfo) => {
   let writes = 0;
@@ -41,8 +41,9 @@ test("campaign preparation validates attachments, binds approval and never publi
   });
   await page.goto("/dashboard/compose");
   await page.getByRole("button", { name: "Preview", exact: true }).click();
-  const approve = page.getByRole("button", {
-    name: "Approve plan (not publish)",
+  const approve = page.locator("dialog").getByRole("button", {
+    name: "Post Now",
+    exact: true,
     includeHidden: true,
   });
   await expect(approve).toBeDisabled();
@@ -57,15 +58,15 @@ test("campaign preparation validates attachments, binds approval and never publi
   await page
     .getByRole("button", { name: "Done selecting groups", exact: true })
     .click();
-  await page.getByRole("button", { name: "Post Now", exact: true }).click();
+  await page.getByRole("button", { name: "Preview", exact: true }).click();
   const consent = page.getByRole("checkbox", {
     name: /I reviewed this exact text/,
     includeHidden: true,
   });
   await consent.check();
-  await approve.click();
-  await expect(page.getByRole("status")).toContainText(
-    "No posts have been sent",
+  await expect(approve).toBeDisabled();
+  await expect(page.locator(".campaign-post-preview")).toContainText(
+    "Demo accommodation offer",
   );
   await page.getByRole("button", { name: "Close post review" }).click();
   await page
@@ -108,14 +109,13 @@ test("campaign preparation validates attachments, binds approval and never publi
     page.getByRole("img", { name: "Attachment 1: demo.png" }),
   ).toHaveCount(0);
   await expect(
-    page.getByRole("button", {
-      name: /Start bulk posting/,
+    page.locator("dialog").getByRole("button", {
+      name: "Post Now",
+      exact: true,
       includeHidden: true,
     }),
   ).toBeDisabled();
   await page.getByRole("button", { name: "Preview", exact: true }).click();
-  await page.getByText("Media help", { exact: true }).click();
-  await expect(page.getByText(/Files stay in this browser tab/)).toBeVisible();
   await page.getByRole("button", { name: "Close post review" }).click();
   for (const scheme of ["light", "dark"] as const) {
     if (scheme === "dark")
@@ -216,10 +216,11 @@ test("text tools, accessible help and reviewed variations work without enabling 
       exact: true,
       includeHidden: true,
     }),
-  ).toBeDisabled();
+  ).toHaveCount(0);
   await expect(
-    page.getByRole("button", {
-      name: /Start bulk posting/,
+    page.locator("dialog").getByRole("button", {
+      name: "Post Now",
+      exact: true,
       includeHidden: true,
     }),
   ).toBeDisabled();
