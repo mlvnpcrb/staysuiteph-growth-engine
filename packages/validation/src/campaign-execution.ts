@@ -205,6 +205,9 @@ export const campaignJobSchema = z.object({
       campaign_id: z.uuid(),
       position: z.number().int(),
       object_path: z.string(),
+      source_template_id: z.uuid().nullable().optional(),
+      source_asset_id: z.uuid().nullable().optional(),
+      source_object_path: z.string().nullable().optional(),
       manifest: campaignMediaSchema,
       uploaded: z.boolean(),
     }),
@@ -252,4 +255,3 @@ export const campaignRestoreSchema = z.object({
 });
 
 export const campaignActorIdSchema = actor.actor_id;
-

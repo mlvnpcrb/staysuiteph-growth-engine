@@ -1,5 +1,7 @@
 # Backend contract audit against the uploaded ZIP
 
+> Automation follow-up: `REFERENCE_AUTOMATION_FLOWS.md` adds Trigger/Post/Wait/Loop/Stop execution, immutable template-post compilation, an editor and extension handoff. Exact layout and several advanced Post modes remain incomplete.
+
 > Follow-up: `REFERENCE_RADAR_WORKSPACE.md` connects the Radar settings/inbox UI and extension profile handoff. Scanner, AI, replies and connections remain unavailable. The backend checkpoint details below retain their original scope.
 
 This is a source-based behavioral reconstruction checklist, not a claim that StaySuite contains the vendor's private server source or has reached 100% parity. The owner authorized recreating the backend while retaining StaySuite branding. AI remains unavailable by explicit owner choice.

@@ -18,6 +18,7 @@ import {
 } from "@staysuite/validation";
 import { CampaignBuilder } from "../campaigns/campaign-builder";
 import { ScheduleEditor } from "./schedule-editor";
+import { FlowWorkspace } from "./flow-workspace";
 import { manilaUtc, scheduleCommand } from "./schedule-api";
 type ScheduleData = ReturnType<typeof scheduleListSchema.parse>;
 const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -80,6 +81,9 @@ export function AutomationWorkspace() {
       });
     return () => controller.abort();
   }, [version]);
+  const standaloneSchedules = (data?.schedules ?? []).filter(
+    (schedule) => !schedule.automation_flow_id,
+  );
   const campaign = (id: string) =>
     campaigns?.campaigns.find((item) => item.id === id);
   function edit(id: string) {
@@ -124,7 +128,7 @@ export function AutomationWorkspace() {
     campaignId: string | null;
   }[] = [];
   const now = Date.now();
-  for (const schedule of data?.schedules ?? []) {
+  for (const schedule of standaloneSchedules) {
     if (schedule.state !== "enabled") continue;
     const dates =
       Date.parse(to) > now
@@ -206,7 +210,7 @@ export function AutomationWorkspace() {
           ))}
         </div>
         <span className="automation-count">
-          {data?.schedules.length ?? 0} automations
+          {standaloneSchedules.length} schedules
         </span>
         <div className="automation-header-actions">
           <button
@@ -254,7 +258,7 @@ export function AutomationWorkspace() {
       </div>
       {data &&
         view === "list" &&
-        (!data.schedules.length ? (
+        (!standaloneSchedules.length ? (
           <section className="automation-empty">
             <CalendarDays size={36} aria-hidden="true" />
             <h2>Nothing running yet</h2>
@@ -275,7 +279,7 @@ export function AutomationWorkspace() {
           </section>
         ) : (
           <div className="automation-list">
-            {data.schedules.map((schedule) => (
+            {standaloneSchedules.map((schedule) => (
               <article key={schedule.id}>
                 <div>
                   <h2>
@@ -438,6 +442,7 @@ export function AutomationWorkspace() {
           </p>
         </section>
       )}
+      <FlowWorkspace />
       <details className="automation-saved-campaigns">
         <summary>Saved campaigns</summary>
         <CampaignBuilder view="automations" showHeading={false} />

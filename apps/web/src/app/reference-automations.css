@@ -375,3 +375,179 @@
 .schedule-history li {
   padding: 4px 0;
 }
+.flow-workspace {
+  display: grid;
+  gap: 14px;
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+}
+.flow-workspace > header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.flow-workspace h2 {
+  font-size: 16px;
+  margin: 0;
+}
+.flow-workspace > header > span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.flow-workspace > header > .flow-actions {
+  margin-left: auto;
+}
+.flow-actions,
+.flow-step-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.flow-dialog {
+  width: min(780px, calc(100vw - 24px));
+  max-height: 90dvh;
+  overflow: auto;
+}
+.flow-editor,
+.flow-editor > fieldset,
+.flow-post-settings,
+.flow-trigger,
+.flow-post-fields,
+.flow-loop-fields,
+.flow-review {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.flow-editor fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.flow-editor label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+}
+.flow-editor label:has(> input[type="checkbox"]) {
+  display: flex;
+  align-items: center;
+}
+.flow-editor input:not([type="checkbox"]),
+.flow-editor select {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 9px;
+  width: 100%;
+  min-width: 0;
+  font-size: 13px;
+}
+.flow-editor p,
+.flow-workspace > p,
+.flow-workspace details > p {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.flow-editor button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.flow-editor details {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+}
+.flow-editor details[open] > summary {
+  margin-bottom: 12px;
+}
+.flow-steps {
+  display: grid;
+  gap: 12px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.flow-steps > li {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.flow-steps > li > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+}
+.flow-step-actions > button {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+}
+.flow-review > article {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.flow-review h4 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+.flow-review ul {
+  padding-left: 20px;
+  font-size: 12px;
+}
+.flow-review .flow-exact-text {
+  white-space: pre-wrap;
+  color: var(--text);
+}
+.flow-history {
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+}
+.flow-history li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.flow-review a {
+  color: var(--accent);
+  text-decoration: underline;
+}
+.flow-editor input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  padding: 0;
+  margin: 0;
+}
+.flow-dialog {
+  overscroll-behavior: contain;
+}
+.flow-dialog > header {
+  position: sticky;
+  top: -22px;
+  z-index: 2;
+  background: var(--surface);
+  margin: -22px -22px 14px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--line);
+}
+.flow-review h3 {
+  scroll-margin-top: 76px;
+}

@@ -37,3 +37,4 @@ export * from "./schedules";
 
 export * from "./library";
 export * from './radar';
+export * from './automation-flows';

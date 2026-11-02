@@ -7,6 +7,8 @@ const mocks = vi.hoisted(() => ({
   list: vi.fn(),
   command: vi.fn(),
   signed: vi.fn(),
+  bucket: vi.fn(),
+  download: vi.fn(),
 }));
 vi.mock("@/lib/env", () => ({ environment: mocks.env }));
 vi.mock("@/lib/supabase", () => ({ supabaseServer: mocks.client }));
@@ -29,13 +31,17 @@ beforeEach(() => {
   mocks.env.mockReturnValue({ configured: true });
   mocks.client.mockResolvedValue({
     auth: { getUser: mocks.getUser },
-    storage: { from: () => ({ createSignedUploadUrl: mocks.signed }) },
+    storage: { from: mocks.bucket },
   });
   mocks.getUser.mockResolvedValue({
     data: { user: { id: owner } },
     error: null,
   });
   mocks.repo.mockReturnValue({ list: mocks.list, command: mocks.command });
+  mocks.bucket.mockReturnValue({
+    createSignedUploadUrl: mocks.signed,
+    createSignedUrl: mocks.download,
+  });
 });
 it("denies unauthenticated and anonymous users before repository calls", async () => {
   for (const user of [null, { id: owner, is_anonymous: true }]) {
@@ -140,4 +146,41 @@ it("rejects malformed deletion payloads without touching storage", async () => {
   expect(response.status).toBe(400);
   expect(mocks.command).not.toHaveBeenCalled();
   expect((await DELETE(req({}, "https://foreign.test"))).status).toBe(403);
+});
+
+it("signs template source media only under the authenticated owner's exact template/asset path", async () => {
+  const assetId = "33333333-3333-4333-8333-333333333333";
+  const asset = {
+    id: assetId,
+    uploaded: true,
+    object_path: `${owner}/${id}/reserved`,
+    source_template_id: id,
+    source_asset_id: assetId,
+    source_object_path: `${owner}/${id}/${assetId}`,
+  };
+  mocks.command.mockResolvedValue({ id, media: [asset] });
+  mocks.download.mockResolvedValue({
+    data: { signedUrl: "https://fixture.example/signed" },
+    error: null,
+  });
+  const response = await GET(
+    new Request(`http://localhost/api/campaigns?id=${id}`),
+  );
+  expect(response.status).toBe(200);
+  expect(mocks.bucket).toHaveBeenCalledWith("template-media");
+  expect(mocks.download).toHaveBeenCalledWith(asset.source_object_path, 300);
+  mocks.bucket.mockClear();
+  mocks.download.mockClear();
+  for (const changed of [
+    { ...asset, source_template_id: null },
+    { ...asset, source_object_path: `${id}/${id}/${assetId}` },
+  ]) {
+    mocks.command.mockResolvedValue({ id, media: [changed] });
+    expect(
+      (await GET(new Request(`http://localhost/api/campaigns?id=${id}`)))
+        .status,
+    ).toBe(503);
+  }
+  expect(mocks.bucket).not.toHaveBeenCalled();
+  expect(mocks.download).not.toHaveBeenCalled();
 });

@@ -134,6 +134,7 @@ export function projectSchedule(
   return result;
 }
 export const scheduleSchema = z.object({
+  automation_flow_id: z.uuid().nullable().optional(),
   id: z.uuid(),
   user_id: z.uuid(),
   campaign_id: z.uuid(),
