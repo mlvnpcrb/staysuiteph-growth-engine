@@ -1,4 +1,5 @@
 "use client";
+import { suiteFetch } from "@staysuite/ui";
 import { useEffect, useState } from "react";
 import { Button } from "@staysuite/ui";
 import {
@@ -31,7 +32,10 @@ export function CampaignLibrary({
     [removing, setRemoving] = useState<string | null>(null);
   useEffect(() => {
     const abort = new AbortController();
-    void fetch("/api/campaigns", { cache: "no-store", signal: abort.signal })
+    void suiteFetch("/api/campaigns", {
+      cache: "no-store",
+      signal: abort.signal,
+    })
       .then(async (response) => {
         const body: unknown = await response.json();
         if (!response.ok)
@@ -56,7 +60,7 @@ export function CampaignLibrary({
     setBusy(true);
     setError("");
     try {
-      const response = await fetch(
+      const response = await suiteFetch(
         `/api/campaigns?id=${encodeURIComponent(id)}`,
         {
           cache: "no-store",
@@ -92,7 +96,7 @@ export function CampaignLibrary({
           )
         )
           throw new Error("Attachment destination invalid.");
-        const bytes = await fetch(url, {
+        const bytes = await suiteFetch(url, {
           credentials: "omit",
           redirect: "error",
           referrerPolicy: "no-referrer",
@@ -132,7 +136,7 @@ export function CampaignLibrary({
     setBusy(true);
     setError("");
     try {
-      const response = await fetch("/api/campaigns", {
+      const response = await suiteFetch("/api/campaigns", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

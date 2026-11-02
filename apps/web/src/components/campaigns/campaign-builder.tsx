@@ -1,12 +1,15 @@
 "use client";
+import { SuiteLink } from "@staysuite/ui";
+import { suiteFetch } from "@staysuite/ui";
 import { useEffect, useRef, useState } from "react";
+import { isNativeSuite } from "@staysuite/ui";
 import { ComposeSaveTemplate } from "./compose-save-template";
 import { useComposeEngine } from "./compose-engine";
 import { ComposeEngineProgress } from "./compose-engine-progress";
 import { ScheduleEditor } from "../automations/schedule-editor";
 import { readTemplate } from "../templates/template-api";
-import Image from "next/image";
-import Link from "next/link";
+import { SuiteImage as Image } from "@staysuite/ui";
+import { SuiteLink as Link } from "@staysuite/ui";
 import {
   UsersRound,
   UserRound,
@@ -109,7 +112,7 @@ export function CampaignBuilder({
   useEffect(() => {
     const controller = new AbortController();
     setStorageState("checking");
-    void fetch("/api/campaigns", {
+    void suiteFetch("/api/campaigns", {
       cache: "no-store",
       signal: controller.signal,
     })
@@ -119,6 +122,14 @@ export function CampaignBuilder({
         if (response.ok && campaignListSchema.safeParse(body).success) {
           setStorageState("ready");
           setStorageMessage("Private campaign saving is connected.");
+          if (isNativeSuite() && view === "compose") {
+            const list = campaignListSchema.parse(body);
+            const running = list.campaigns.find(
+              (job) => job.state === "running",
+            );
+            if (running)
+              setEngineRun({ id: running.id, viewer: list.viewer_id });
+          }
         } else {
           setStorageState("unavailable");
           setStorageMessage(
@@ -140,7 +151,7 @@ export function CampaignBuilder({
         }
       });
     return () => controller.abort();
-  }, [storageCheck]);
+  }, [storageCheck, view]);
   const [settings, setSettings] = useState<CampaignSettings>({
     method: "direct",
     pauseEvery: 1,
@@ -233,7 +244,7 @@ export function CampaignBuilder({
             !url.pathname.startsWith("/storage/v1/object/sign/template-media/")
           )
             throw new Error("Attachment destination was not accepted.");
-          const response = await fetch(url, {
+          const response = await suiteFetch(url, {
             signal: controller.signal,
             credentials: "omit",
             redirect: "error",
@@ -653,7 +664,7 @@ export function CampaignBuilder({
         const original = media[position];
         if (!original)
           throw new Error("Attachment changed. Review the campaign again.");
-        const bytes = await (await fetch(original.preview)).blob();
+        const bytes = await (await suiteFetch(original.preview)).blob();
         if (reserved.upload.path !== asset.object_path)
           throw new Error("Upload target changed. Reload before retrying.");
         await uploadCampaignMedia(reserved.upload.signedUrl, bytes);
@@ -688,7 +699,8 @@ export function CampaignBuilder({
   }
   async function openSchedule() {
     const version = liveDraft.current;
-    const saved = await saveCampaign();
+    const reviewedActor = engine.status?.actor_id;
+    let saved = await saveCampaign();
     if (!saved) {
       if (view === "compose")
         setEngineMessage(
@@ -703,6 +715,67 @@ export function CampaignBuilder({
         "Your earlier draft was saved. Review your latest changes before scheduling.",
       );
       return;
+    }
+    if (isNativeSuite()) {
+      const owner = liveOwner.current;
+      try {
+        const identity = await engine.refresh();
+        if (
+          !identity ||
+          identity.actor_id !== reviewedActor ||
+          !identity.publisher_ready ||
+          identity.viewer_id !== owner ||
+          settings.method !== "direct"
+        )
+          throw new Error(
+            "Connect and validate Direct posting for this Facebook profile before scheduling.",
+          );
+        if (version !== liveDraft.current || owner !== liveOwner.current)
+          throw new Error(
+            "Your content or account changed. Review before scheduling.",
+          );
+        if (saved.actor_id !== identity.actor_id) {
+          saved = (
+            await campaignCommand(
+              {
+                id: saved.id,
+                revision: saved.revision,
+                command: "bind_actor",
+                payload: {
+                  actor_id: identity.actor_id,
+                  actor_type: identity.actor_type,
+                },
+              },
+              owner,
+            )
+          ).job;
+        }
+        if (version !== liveDraft.current || owner !== liveOwner.current)
+          throw new Error(
+            "Your content or account changed. Review before scheduling.",
+          );
+        // The Schedule click binds the exact composed content; enabling the saved
+        // recurrence remains a separate explicit action in the schedule editor.
+        saved = (
+          await campaignCommand(
+            {
+              id: saved.id,
+              revision: saved.revision,
+              command: "approve",
+              payload: { digest: saved.digest },
+            },
+            owner,
+          )
+        ).job;
+        setSavedJob(saved);
+      } catch (error) {
+        setEngineMessage(
+          error instanceof Error
+            ? error.message
+            : "Schedule approval could not be confirmed.",
+        );
+        return;
+      }
     }
     setScheduling({ id: saved.id, revision: saved.revision });
     scheduleDialog.current?.showModal();
@@ -732,7 +805,7 @@ export function CampaignBuilder({
         throw new Error(
           "Facebook identity changed. Review the posting identity before posting.",
         );
-      if (!identity.publisher_ready)
+      if (!identity.publisher_ready && !isNativeSuite())
         throw new Error(
           "This Facebook profile needs Direct publisher validation in the extension workspace before posting. No posting tab was opened.",
         );
@@ -794,7 +867,9 @@ export function CampaignBuilder({
       reviewDialog.current?.close();
       setEngineMessage(
         identity.publisher_ready
-          ? "Posting started in the extension background. Follow the confirmed results below; keep StaySuite and your signed-in Facebook tab open."
+          ? isNativeSuite()
+            ? "Posting started in the extension background. Follow confirmed results here. Keep Chrome and your signed-in Facebook tab open."
+            : "Posting started in the extension background. Follow the confirmed results below; keep StaySuite and your signed-in Facebook tab open."
           : "Publisher validation is required in the extension workspace before posting.",
       );
     } catch (error) {
@@ -912,7 +987,7 @@ export function CampaignBuilder({
         <p className="panel">
           Edit saved campaigns here and manage their timing in Automations.
           Multi-step automation flows are not available yet.{" "}
-          <a href="/dashboard/compose">Compose a new post</a>
+          <SuiteLink href="/dashboard/compose">Compose a new post</SuiteLink>
         </p>
       ) : null}
       <div className="campaign-editor" hidden={!editorOpen}>
@@ -1717,10 +1792,9 @@ export function CampaignBuilder({
                 </button>
               </header>
               <p>
-                In Chrome, open StaySuite extension 0.5.4+ and choose the
-                campaign workspace. Click Connect StaySuite and Facebook with
-                this dashboard and Facebook open. This pairs the engine with
-                your account and posting identity.
+                {isNativeSuite()
+                  ? "Click Connect Facebook at the top of this extension. Keep Facebook signed in to this Chrome profile; no StaySuite dashboard tab is needed."
+                  : "In Chrome, open StaySuite extension 0.5.4+ and choose the campaign workspace. Click Connect StaySuite and Facebook with this dashboard and Facebook open. This pairs the engine with your account and posting identity."}
               </p>
               <button
                 type="button"

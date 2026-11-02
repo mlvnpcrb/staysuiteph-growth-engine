@@ -1,3 +1,4 @@
+import { suiteFetch } from "@staysuite/ui";
 import {
   campaignCommandReplySchema,
   type CampaignCommand,
@@ -11,7 +12,7 @@ export class CampaignApiError extends Error {
   }
 }
 export async function campaignCommand(input: CampaignCommand, viewer?: string) {
-  const response = await fetch("/api/campaigns", {
+  const response = await suiteFetch("/api/campaigns", {
     method: "POST",
     credentials: "same-origin",
     cache: "no-store",
@@ -56,7 +57,7 @@ export async function uploadCampaignMedia(signedUrl: string, bytes: Blob) {
   const form = new FormData();
   form.append("cacheControl", "3600");
   form.append("", bytes);
-  const response = await fetch(url, {
+  const response = await suiteFetch(url, {
     method: "PUT",
     body: form,
     headers: { "x-upsert": "false" },

@@ -1,4 +1,5 @@
 "use client";
+import { suiteFetch } from "@staysuite/ui";
 import { useEffect, useState } from "react";
 import { campaignRestoreSchema, type CampaignJob } from "@staysuite/validation";
 import { campaignCommand } from "./campaign-api";
@@ -22,11 +23,14 @@ export function ComposeEngineProgress({
     setJob(null);
     const read = async () => {
       try {
-        const response = await fetch(`/api/campaigns?id=${id}&view=progress`, {
-          cache: "no-store",
-          signal: controller.signal,
-          headers: { "x-staysuite-viewer": viewer },
-        });
+        const response = await suiteFetch(
+          `/api/campaigns?id=${id}&view=progress`,
+          {
+            cache: "no-store",
+            signal: controller.signal,
+            headers: { "x-staysuite-viewer": viewer },
+          },
+        );
         if (!response.ok)
           throw new Error(
             response.status === 409

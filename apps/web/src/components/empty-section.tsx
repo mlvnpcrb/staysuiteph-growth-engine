@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { SuiteLink as Link } from "@staysuite/ui";
 import { Compass, ShieldCheck, Settings } from "lucide-react";
 import { Button } from "@staysuite/ui";
 import type { Section } from "@staysuite/types";

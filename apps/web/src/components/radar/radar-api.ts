@@ -1,3 +1,4 @@
+import { suiteFetch } from "@staysuite/ui";
 import {
   radarPageSchema,
   radarReplySchema,
@@ -31,7 +32,7 @@ export async function readRadar(
 ) {
   const data = radarPageSchema.parse(
     await accepted(
-      await fetch(`/api/radar?${radarQueryString(query)}`, {
+      await suiteFetch(`/api/radar?${radarQueryString(query)}`, {
         cache: "no-store",
         signal,
         headers: { "x-staysuite-viewer": viewer },
@@ -45,7 +46,7 @@ export async function readRadar(
 export async function radarCommand(input: RadarCommand, viewer: string) {
   const data = radarReplySchema.parse(
     await accepted(
-      await fetch("/api/radar", {
+      await suiteFetch("/api/radar", {
         method: "POST",
         headers: {
           "content-type": "application/json",

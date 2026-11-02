@@ -1,4 +1,6 @@
 "use client";
+import { SuiteLink } from "@staysuite/ui";
+import { suiteFetch } from "@staysuite/ui";
 import { useEffect, useId, useRef, useState } from "react";
 import { FolderOpen, X, Link2, ChevronDown } from "lucide-react";
 import { templateListSchema, type PostTemplate } from "@staysuite/validation";
@@ -46,7 +48,7 @@ export function ComposeTemplatePicker({
     setLoading(true);
     setError("");
     try {
-      const response = await fetch("/api/templates", {
+      const response = await suiteFetch("/api/templates", {
         cache: "no-store",
         signal: controller.signal,
         headers: { "x-staysuite-viewer": viewer },
@@ -163,7 +165,7 @@ export function ComposeTemplatePicker({
         {!loading && !error && !templates.length && (
           <p>No saved templates yet. Create one in Templates.</p>
         )}
-        <a href="/dashboard/templates">Manage templates</a>
+        <SuiteLink href="/dashboard/templates">Manage templates</SuiteLink>
       </dialog>
     </>
   );

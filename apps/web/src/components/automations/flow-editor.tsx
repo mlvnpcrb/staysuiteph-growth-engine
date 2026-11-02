@@ -1,4 +1,5 @@
 "use client";
+import { suiteFetch } from "@staysuite/ui";
 import { useEffect, useRef, useState } from "react";
 import {
   automationDefinitionSchema,
@@ -28,7 +29,7 @@ const selected = (event: React.ChangeEvent<HTMLSelectElement>) =>
 const message = (error: unknown) =>
   error instanceof Error ? error.message : "Automation operation failed.";
 async function read(path: string, viewer: string, signal?: AbortSignal) {
-  const response = await fetch(path, {
+  const response = await suiteFetch(path, {
     cache: "no-store",
     signal: signal ?? null,
     headers: { "x-staysuite-viewer": viewer },

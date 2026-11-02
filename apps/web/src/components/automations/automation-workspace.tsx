@@ -1,4 +1,6 @@
 "use client";
+import { SuiteLink } from "@staysuite/ui";
+import { suiteFetch } from "@staysuite/ui";
 import { useEffect, useRef, useState } from "react";
 import {
   CalendarDays,
@@ -40,8 +42,14 @@ export function AutomationWorkspace() {
     setLoading(true);
     setError("");
     void Promise.all([
-      fetch("/api/schedules", { cache: "no-store", signal: controller.signal }),
-      fetch("/api/campaigns", { cache: "no-store", signal: controller.signal }),
+      suiteFetch("/api/schedules", {
+        cache: "no-store",
+        signal: controller.signal,
+      }),
+      suiteFetch("/api/campaigns", {
+        cache: "no-store",
+        signal: controller.signal,
+      }),
     ])
       .then(async (responses) => {
         const [s, c] = await Promise.all(
@@ -487,7 +495,7 @@ export function AutomationWorkspace() {
         ) : (
           <p>
             Save a post in Compose first, then choose it here.{" "}
-            <a href="/dashboard/compose">Open Compose</a>
+            <SuiteLink href="/dashboard/compose">Open Compose</SuiteLink>
           </p>
         )}
       </dialog>

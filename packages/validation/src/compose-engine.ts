@@ -6,7 +6,10 @@ export const COMPOSE_ENGINE_CONNECTION =
 export const COMPOSE_ENGINE_LAUNCH = "staysuite-compose-engine-launch-v1:";
 export const COMPOSE_ENGINE_RUN = "staysuite-compose-engine-run-v1:";
 export const composeEngineConnectionSchema = scheduleConnectionSchema
-  .extend({ connected_at: z.number().int().nonnegative() })
+  .extend({
+    connected_at: z.number().int().nonnegative(),
+    mode: z.literal("native").optional(),
+  })
   .strict();
 export const composeEngineOpenSchema = z
   .object({

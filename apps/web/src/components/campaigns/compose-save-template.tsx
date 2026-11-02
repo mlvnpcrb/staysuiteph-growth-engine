@@ -1,4 +1,5 @@
 "use client";
+import { suiteFetch } from "@staysuite/ui";
 import { useEffect, useRef, useState } from "react";
 import { Bookmark } from "lucide-react";
 import {
@@ -89,7 +90,7 @@ export function ComposeSaveTemplate({
           };
         }[] = [];
         for (const asset of media) {
-          const response = await fetch(asset.preview);
+          const response = await suiteFetch(asset.preview);
           if (!response.ok)
             throw new Error(
               "An attachment changed. Select the original file again.",

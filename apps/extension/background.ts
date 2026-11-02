@@ -1,3 +1,4 @@
+import "./lib/native-background";
 import "./lib/compose-engine-background";
 import "./lib/schedule-background";
 import { collectFacebookLibrary } from "./lib/facebook-collector";
@@ -113,7 +114,7 @@ async function runFacebookJob(job: FacebookJob, controller: AbortController) {
 }
 chrome.runtime.onMessage.addListener((message: unknown,sender,reply) => {
   const url=sender.url??"";
-  if(sender.id !== chrome.runtime.id || (sender.frameId !== undefined && sender.frameId !== 0) || ![chrome.runtime.getURL("tabs/groups.html"),chrome.runtime.getURL("popup.html")].includes(url.split("?")[0]??""))return false;
+  if(sender.id !== chrome.runtime.id || (sender.frameId !== undefined && sender.frameId !== 0) || ![chrome.runtime.getURL("tabs/groups.html"),chrome.runtime.getURL("popup.html"),chrome.runtime.getURL("tabs/suite.html")].includes(url.split(/[?#]/)[0]??""))return false;
   if(!message || typeof message !== "object" || !("type" in message) || !["FACEBOOK_STATE","FACEBOOK_IDENTITY","FACEBOOK_START","FACEBOOK_STOP","FACEBOOK_FORGET"].includes(String(message.type)))return false;
   void serialized(async()=>{
     if(message.type === "FACEBOOK_IDENTITY")return {actorId:await facebookIdentity()};

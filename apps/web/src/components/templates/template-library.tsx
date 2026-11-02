@@ -1,6 +1,7 @@
 "use client";
+import { suiteFetch } from "@staysuite/ui";
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { SuiteLink as Link } from "@staysuite/ui";
 import {
   Plus,
   Download,
@@ -53,7 +54,7 @@ export function TemplateLibrary() {
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
-    void fetch("/api/templates", {
+    void suiteFetch("/api/templates", {
       cache: "no-store",
       signal: controller.signal,
     })

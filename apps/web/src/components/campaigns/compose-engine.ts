@@ -1,4 +1,5 @@
 "use client";
+import { nativeEngineRequest } from "@staysuite/ui";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   COMPOSE_ENGINE_CHANNEL,
@@ -11,6 +12,8 @@ function engineRequest(
   operation: "status" | "open",
   input?: ComposeEngineOpen,
 ): Promise<unknown> {
+  const native = nativeEngineRequest(operation, input);
+  if (native) return native;
   const request_id = crypto.randomUUID();
   return new Promise((resolve, reject) => {
     const finish = () => {

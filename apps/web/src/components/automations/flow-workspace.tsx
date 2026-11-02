@@ -1,10 +1,8 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, lazy, Suspense } from "react";
 import type { AutomationFlow } from "@staysuite/validation";
-import dynamic from "next/dynamic";
-const FlowEditor = dynamic(
-  () => import("./flow-editor").then((module) => module.FlowEditor),
-  { loading: () => <p role="status">Loading flow editor…</p> },
+const FlowEditor = lazy(() =>
+  import("./flow-editor").then((module) => ({ default: module.FlowEditor })),
 );
 import { flowCommand, readFlows } from "./flow-api";
 const when = (value: string | null) =>
@@ -263,14 +261,16 @@ export function FlowWorkspace() {
           </button>
         </header>
         {open && viewer && (
-          <FlowEditor
-            key={selected?.id ?? "new"}
-            initial={selected}
-            viewer={viewer}
-            onSaved={saved}
-            onDirtyChange={setEditorDirty}
-            onBusyChange={setEditorBusy}
-          />
+          <Suspense fallback={<p role="status">Loading flow editor…</p>}>
+            <FlowEditor
+              key={selected?.id ?? "new"}
+              initial={selected}
+              viewer={viewer}
+              onSaved={saved}
+              onDirtyChange={setEditorDirty}
+              onBusyChange={setEditorBusy}
+            />
+          </Suspense>
         )}
       </dialog>
     </section>

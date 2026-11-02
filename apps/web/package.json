@@ -20,7 +20,8 @@
     "@staysuite/ui": "workspace:*",
     "@staysuite/types": "workspace:*",
     "@staysuite/validation": "workspace:*",
-    "@staysuite/database": "workspace:*"
+    "@staysuite/database": "workspace:*",
+    "@staysuite/backend": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "19.2.10",

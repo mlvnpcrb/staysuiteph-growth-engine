@@ -1,4 +1,5 @@
 "use client";
+import { suiteFetch } from "@staysuite/ui";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   librarySnapshotSchema,
@@ -20,7 +21,7 @@ export function useLibrary(viewer: string) {
     setError("");
     if (!viewer) return;
     const controller = new AbortController();
-    void fetch("/api/library", {
+    void suiteFetch("/api/library", {
       cache: "no-store",
       signal: controller.signal,
       headers: { "x-staysuite-viewer": viewer },
@@ -45,7 +46,7 @@ export function useLibrary(viewer: string) {
         token = generation.current;
       if (!owner || current.current !== owner)
         throw new Error("Reload your account before saving.");
-      const response = await fetch("/api/library", {
+      const response = await suiteFetch("/api/library", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

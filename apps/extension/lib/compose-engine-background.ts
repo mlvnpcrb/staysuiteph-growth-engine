@@ -18,9 +18,11 @@ import {
   tickComposeRun,
   COMPOSE_RUN_ALARM,
 } from "./compose-engine-runner";
+import { nativeCampaignContext } from "./native-context";
 let operations: Promise<unknown> = Promise.resolve();
 const enginePage = () => chrome.runtime.getURL("tabs/campaigns.html");
 async function current(connection: ComposeEngineConnection) {
+  if (connection.mode === "native") return nativeCampaignContext(connection);
   if (
     Date.now() - connection.connected_at > 8 * 3600000 ||
     campaignDashboardOrigin(connection.origin) !== connection.origin
