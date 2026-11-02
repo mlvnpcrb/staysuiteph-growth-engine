@@ -134,6 +134,7 @@ export type Database = {
       };
       campaign_schedules: {
         Row: {
+          automation_flow_id: string | null;
           id: string;
           user_id: string;
           campaign_id: string;
@@ -233,6 +234,20 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      automation_prepare_template: { Args: { p_payload: Json }; Returns: Json };
+      automation_flow_command: {
+        Args: {
+          p_id: string;
+          p_revision: number;
+          p_operation: string;
+          p_payload: Json;
+        };
+        Returns: Json;
+      };
+      automation_flow_snapshot: {
+        Args: { p_id: string | null; p_history: boolean };
+        Returns: Json;
+      };
       radar_command: {
         Args: {
           p_scope: string;

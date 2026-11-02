@@ -84,9 +84,18 @@ async function handle(request: Request, mutation: boolean, removal = false) {
         job.media
           .filter((asset) => asset.uploaded)
           .map(async (asset) => {
+            const source = asset.source_object_path;
+            if (
+              source &&
+              (!asset.source_template_id ||
+                !asset.source_asset_id ||
+                source !==
+                  `${user.id}/${asset.source_template_id}/${asset.source_asset_id}`)
+            )
+              throw new Error("Saved template attachment is unavailable.");
             const signed = await client.storage
-              .from("campaign-media")
-              .createSignedUrl(asset.object_path, 300);
+              .from(source ? "template-media" : "campaign-media")
+              .createSignedUrl(source || asset.object_path, 300);
             if (signed.error) throw signed.error;
             return { id: asset.id, url: signed.data.signedUrl };
           }),

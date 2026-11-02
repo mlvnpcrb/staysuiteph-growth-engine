@@ -24,7 +24,11 @@ export const campaignMediaSchema = z
 export const campaignPlanSchema = z
   .object({
     version: z.literal(1),
-    text: z.string().trim().min(1).max(10000),
+    text: z
+      .string()
+      .min(1)
+      .max(10000)
+      .refine((text) => text.trim().length > 0, "Add post text."),
     intervalMinutes: z.number().int().min(1).max(1440),
     groupIds: z.array(z.uuid()).min(1).max(50),
     media: z.array(campaignMediaSchema).max(10),

@@ -236,7 +236,8 @@ export default function CampaignWorkspace() {
     setValidationReviewed(false);
     setReceiptReviewed(false);
   }
-  async function openRadar() {
+  async function openWorkspace(section: "lead-radar" | "automations") {
+    const label = section === "lead-radar" ? "Lead Radar" : "Automations";
     if (!connection || !actor || !bridge) return;
     setBusy(true);
     try {
@@ -246,7 +247,7 @@ export default function CampaignWorkspace() {
         fresh.actor_type !== actor.actor_type
       )
         throw new Error(
-          "Facebook profile changed. Reconnect before opening Lead Radar.",
+          `Facebook profile changed. Reconnect before opening ${label}.`,
         );
       await bridge.list();
       const query = new URLSearchParams({
@@ -254,14 +255,14 @@ export default function CampaignWorkspace() {
         viewer: connection.viewer,
       });
       await chrome.tabs.create({
-        url: `${connection.origin}/dashboard/lead-radar?${query.toString()}`,
+        url: `${connection.origin}/dashboard/${section}?${query.toString()}`,
         active: true,
       });
     } catch (error) {
       setNotice(
         error instanceof Error
           ? error.message
-          : "Lead Radar could not be opened.",
+          : `${label} could not be opened.`,
       );
     } finally {
       setBusy(false);
@@ -1040,8 +1041,19 @@ export default function CampaignWorkspace() {
         </button>
         {actor && <p>Facebook personal profile: {actor.actor_id}</p>}
         {actor && connection && (
-          <button disabled={busy || running} onClick={() => void openRadar()}>
+          <button
+            disabled={busy || running}
+            onClick={() => void openWorkspace("lead-radar")}
+          >
             Open Lead Radar
+          </button>
+        )}
+        {actor && connection && (
+          <button
+            disabled={busy || running}
+            onClick={() => void openWorkspace("automations")}
+          >
+            Open Automations
           </button>
         )}
         <p role="status" aria-live="polite">

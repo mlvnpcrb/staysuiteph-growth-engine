@@ -466,6 +466,17 @@ test("campaign workspace connects the scoped dashboard but never starts an unval
   ).toEqual([
     "http://localhost:3000/dashboard/lead-radar?scope=personal%3A12345&viewer=11111111-1111-4111-8111-111111111111",
   ]);
+  await page
+    .getByRole("button", { name: "Open Automations", exact: true })
+    .click();
+  expect(
+    await page.evaluate(() =>
+      JSON.parse(localStorage.getItem("fixture-radar-tabs") ?? "[]"),
+    ),
+  ).toEqual([
+    "http://localhost:3000/dashboard/lead-radar?scope=personal%3A12345&viewer=11111111-1111-4111-8111-111111111111",
+    "http://localhost:3000/dashboard/automations?scope=personal%3A12345&viewer=11111111-1111-4111-8111-111111111111",
+  ]);
   await page.evaluate(() =>
     localStorage.setItem("fixture-actor-override", "54321"),
   );
@@ -480,7 +491,19 @@ test("campaign workspace connects the scoped dashboard but never starts an unval
       () =>
         JSON.parse(localStorage.getItem("fixture-radar-tabs") ?? "[]").length,
     ),
-  ).toBe(1);
+  ).toBe(2);
+  await page
+    .getByRole("button", { name: "Open Automations", exact: true })
+    .click();
+  await expect(page.getByRole("status")).toContainText(
+    "Facebook profile changed",
+  );
+  expect(
+    await page.evaluate(
+      () =>
+        JSON.parse(localStorage.getItem("fixture-radar-tabs") ?? "[]").length,
+    ),
+  ).toBe(2);
   await page.evaluate(() => localStorage.removeItem("fixture-actor-override"));
   await page
     .getByRole("button", { name: "Review campaign", exact: true })
