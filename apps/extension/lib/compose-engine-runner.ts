@@ -162,14 +162,15 @@ export async function startComposeRun(
   }
 }
 
-async function publish(
+export async function publishComposeTarget(
   run: ComposeEngineRun,
   verify: Verify,
   job: CampaignJob,
   target: CampaignJob["targets"][number],
+  validationOnly = false,
 ) {
   let context = await verify(run.connection);
-  await ready(context, run.connection);
+  if (!validationOnly) await ready(context, run.connection);
   const loaded = await context.bridge.restore(job.id);
   if (
     loaded.viewer_id !== run.connection.viewer ||
@@ -215,7 +216,7 @@ async function publish(
   if (media.length !== job.plan.media.length)
     throw new Error("Attachment manifest incomplete.");
   context = await verify(run.connection);
-  await ready(context, run.connection);
+  if (!validationOnly) await ready(context, run.connection);
   const groups = groupResponseSchema.parse(
     await context.bridge.read("/api/groups"),
   );
@@ -321,7 +322,8 @@ export async function tickComposeRun(id: string, verify: Verify) {
       {
         command: context.bridge.command,
         actor: async () => (await verify(pinned.connection)).actor,
-        publish: (current, target) => publish(pinned, verify, current, target),
+        publish: (current, target) =>
+          publishComposeTarget(pinned, verify, current, target),
       },
       job.id,
     );

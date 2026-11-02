@@ -1,4 +1,5 @@
 "use client";
+import { SuiteLink } from "@staysuite/ui";
 import { useEffect, useRef, useState } from "react";
 import { groupRequest } from "./use-groups";
 import { ExternalLink } from "lucide-react";
@@ -213,9 +214,9 @@ export function CollectionImport({
         </a>
       </div>
       <p className="muted">
-        Use Sync groups in the StaySuite extension workspace to scan your visible
-        Facebook directory and save new groups here automatically. File imports
-        below remain available for review.
+        Use Sync groups in the StaySuite extension workspace to scan your
+        visible Facebook directory and save new groups here automatically. File
+        imports below remain available for review.
       </p>
       <details>
         <summary>Setup &amp; connection help</summary>
@@ -390,7 +391,9 @@ export function CollectionImport({
             <p role="status" className="group-success">
               {imported} imported · {duplicates} already saved · {failed.length}{" "}
               failed.{" "}
-              <a href="/dashboard/my-groups#saved-groups">View My Groups</a>
+              <SuiteLink href="/dashboard/my-groups#saved-groups">
+                View My Groups
+              </SuiteLink>
             </p>
           )}
           <p className="muted text-sm">

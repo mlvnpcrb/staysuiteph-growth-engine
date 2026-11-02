@@ -1,11 +1,12 @@
 "use client";
+import { isNativeSuite, suiteFetch } from "@staysuite/ui";
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
+import { SuiteLink as Link } from "@staysuite/ui";
 import { Button } from "@staysuite/ui";
 import type { CampaignJob, CampaignCommand } from "@staysuite/validation";
 import { campaignListSchema, type CampaignList } from "@staysuite/validation";
 import { ScheduleHistory } from "../automations/schedule-history";
-import { activityCsv } from "@/lib/activity-export";
+import { activityCsv } from "../../lib/activity-export";
 import { campaignCommand } from "./campaign-api";
 export function PostingQueue() {
   const [activityView, setActivityView] = useState<"upcoming" | "history">(
@@ -23,7 +24,9 @@ export function PostingQueue() {
   const load = useCallback(async () => {
     setError("");
     try {
-      const response = await fetch("/api/campaigns", { cache: "no-store" });
+      const response = await suiteFetch("/api/campaigns", {
+        cache: "no-store",
+      });
       const body: unknown = await response.json();
       if (!response.ok)
         throw new Error(
@@ -159,9 +162,9 @@ export function PostingQueue() {
       </section>
       <section className="panel">
         <p className="muted">
-          Run and pause campaigns from your connected Chrome extension. A
-          single-post validation and your explicit result confirmation are
-          required before bulk publishing. Nothing starts from this queue page.
+          {isNativeSuite()
+            ? "Inspect saved results here. You can pause or cancel a running queue; a submission already in flight may still finish."
+            : "Run and pause campaigns from your connected Chrome extension. A single-post validation and your explicit result confirmation are required before bulk publishing. Nothing starts from this queue page."}
         </p>
         <Button variant="outline" disabled={busy} onClick={() => void load()}>
           Refresh queue
@@ -223,6 +226,24 @@ export function PostingQueue() {
           </p>
           {job.stop_reason && <p>{job.stop_reason}</p>}
           <p>{job.media.length} media attachment(s)</p>
+          {isNativeSuite() && job.state === "running" && (
+            <div className="row">
+              <Button
+                variant="outline"
+                disabled={busy}
+                onClick={() => void command("pause")}
+              >
+                Pause posting
+              </Button>
+              <Button
+                variant="outline"
+                disabled={busy}
+                onClick={() => void command("cancel")}
+              >
+                Cancel queue
+              </Button>
+            </div>
+          )}
           <ol>
             {job.targets.map((t) => (
               <li key={t.id}>

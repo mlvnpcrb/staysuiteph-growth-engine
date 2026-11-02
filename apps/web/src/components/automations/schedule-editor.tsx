@@ -1,4 +1,5 @@
 "use client";
+import { suiteFetch } from "@staysuite/ui";
 import { useEffect, useState } from "react";
 import {
   cadenceSchema,
@@ -41,10 +42,13 @@ export function ScheduleEditor({
     setError("");
     setStored(null);
     setReviewed(false);
-    void fetch(`/api/schedules?campaign_id=${encodeURIComponent(campaignId)}`, {
-      cache: "no-store",
-      signal: controller.signal,
-    })
+    void suiteFetch(
+      `/api/schedules?campaign_id=${encodeURIComponent(campaignId)}`,
+      {
+        cache: "no-store",
+        signal: controller.signal,
+      },
+    )
       .then(async (response) => {
         const body: unknown = await response.json();
         if (!response.ok)

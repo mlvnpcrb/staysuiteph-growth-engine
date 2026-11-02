@@ -1,3 +1,4 @@
+import { suiteFetch } from "@staysuite/ui";
 import {
   automationSnapshotSchema,
   automationReplySchema,
@@ -11,7 +12,7 @@ async function request(
   body?: unknown,
   signal?: AbortSignal,
 ) {
-  const response = await fetch(`/api/automation-flows${path}`, {
+  const response = await suiteFetch(`/api/automation-flows${path}`, {
     method: body ? "POST" : "GET",
     cache: "no-store",
     credentials: "same-origin",

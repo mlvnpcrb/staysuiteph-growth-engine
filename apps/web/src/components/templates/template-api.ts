@@ -1,10 +1,11 @@
+import { suiteFetch } from "@staysuite/ui";
 import { templateReplySchema } from "@staysuite/validation";
 export async function templateRequest(
   body: unknown,
   viewer: string,
   method = "POST",
 ) {
-  const response = await fetch("/api/templates", {
+  const response = await suiteFetch("/api/templates", {
     method,
     headers: {
       "Content-Type": "application/json",
@@ -26,10 +27,13 @@ export async function templateRequest(
   return templateReplySchema.parse(data);
 }
 export async function readTemplate(id: string, signal?: AbortSignal) {
-  const response = await fetch(`/api/templates?id=${encodeURIComponent(id)}`, {
-    cache: "no-store",
-    signal: signal ?? null,
-  });
+  const response = await suiteFetch(
+    `/api/templates?id=${encodeURIComponent(id)}`,
+    {
+      cache: "no-store",
+      signal: signal ?? null,
+    },
+  );
   const body: unknown = await response.json();
   if (!response.ok)
     throw new Error(
@@ -49,7 +53,7 @@ export async function uploadTemplateAsset(signedUrl: string, file: File) {
   const data = new FormData();
   data.append("cacheControl", "3600");
   data.append("", file);
-  const result = await fetch(url, {
+  const result = await suiteFetch(url, {
     method: "PUT",
     body: data,
     headers: { "x-upsert": "false" },

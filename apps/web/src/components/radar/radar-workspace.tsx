@@ -1,6 +1,7 @@
 "use client";
+import { nativeEngineRequest, isNativeSuite, suiteFetch } from "@staysuite/ui";
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { SuiteLink as Link } from "@staysuite/ui";
 import {
   radarScopeSchema,
   type RadarLead,
@@ -45,6 +46,47 @@ export function RadarWorkspace() {
     setFilter({ search: "", status: "all" });
     setSearch("");
     if (!viewer) return;
+    if (isNativeSuite()) {
+      let active = true;
+      void nativeEngineRequest("status")
+        ?.then((result: unknown) => {
+          if (
+            !active ||
+            !result ||
+            typeof result !== "object" ||
+            !("status" in result)
+          )
+            return;
+          const status = result.status;
+          if (
+            !status ||
+            typeof status !== "object" ||
+            !("viewer_id" in status) ||
+            status.viewer_id !== viewer ||
+            !("actor_id" in status) ||
+            typeof status.actor_id !== "string"
+          )
+            return;
+          const parsed = radarScopeSchema.safeParse(
+            `personal:${status.actor_id}`,
+          );
+          if (parsed.success) {
+            setScopeOwner(viewer);
+            setScope(parsed.data);
+          }
+        })
+        .catch((error) => {
+          if (active)
+            setError(
+              error instanceof Error
+                ? error.message
+                : "Connect Facebook first.",
+            );
+        });
+      return () => {
+        active = false;
+      };
+    }
     const params = new URLSearchParams(location.search);
     const pinned = params.get("viewer");
     if (pinned && pinned !== viewer) {
@@ -190,7 +232,7 @@ export function RadarWorkspace() {
     setError("");
     try {
       const query = { scope, ...filter, cursor: undefined };
-      const response = await fetch(
+      const response = await suiteFetch(
         `/api/radar/export?${radarQueryString(query)}`,
         { cache: "no-store", headers: { "x-staysuite-viewer": viewer } },
       );

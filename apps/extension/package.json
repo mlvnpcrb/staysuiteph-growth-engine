@@ -1,25 +1,30 @@
 {
   "name": "@staysuite/extension",
-  "version": "0.5.4",
+  "version": "0.6.0",
   "private": true,
   "displayName": "StaySuite Growth Engine",
   "description": "Account-scoped group library, approved Direct campaigns, and owner-enabled scheduled runs with background wakeups.",
   "author": "StaySuite",
   "scripts": {
-    "dev": "plasmo dev --target=chrome-mv3 --serve-host localhost --hmr-host localhost",
-    "build": "plasmo build --target=chrome-mv3",
+    "dev": "node ../../scripts/build-extension-style.mjs && plasmo dev --target=chrome-mv3 --serve-host localhost --hmr-host localhost",
+    "build": "node ../../scripts/build-extension-style.mjs && plasmo build --target=chrome-mv3",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@staysuite/types": "workspace:*",
     "@staysuite/validation": "workspace:*",
-    "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "@staysuite/backend": "workspace:*",
+    "@supabase/supabase-js": "2.95.3",
+    "@staysuite/database": "workspace:*",
+    "@staysuite/ui": "workspace:*",
+    "lucide-react": "0.563.0"
   },
   "devDependencies": {
     "@types/chrome": "0.0.287",
-    "@types/react": "18.3.27",
-    "@types/react-dom": "18.3.7",
+    "@types/react": "19.2.10",
+    "@types/react-dom": "19.2.3",
     "plasmo": "0.90.5"
   },
   "manifest": {
@@ -36,11 +41,13 @@
       "https://www.facebook.com/*",
       "https://*.vercel.app/*",
       "http://localhost/*",
-      "http://127.0.0.1/*"
+      "http://127.0.0.1/*",
+      "https://kqjqcahysbmsaxlaipub.supabase.co/*"
     ],
     "optional_permissions": [
       "cookies",
       "tabs"
-    ]
+    ],
+    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3W1uRNLvXISas/upTSYUw3O+l8U78mnCO1hZnDWqtGsrRXSdN047QsB502CVrY5VH5yCnlnQCsB5NWS+BCvtztrcONflPVjOKiBltxOsT0LP1+JrA7PmMrRvQ9LINWd+K0W8JEWMIY8cLwKrfa04ITW86kP3UY4LQ65zd9Dno3+rjIIFrIjmY4mw/Lthl2q9YnPPDKOUUvrBSYXEaaH/rzGB2aIWIXrMHSVvpdIpTKYSdc4nYalEDgJNt8cEC5VXurOLx+QkLVeJzN9jSRGHstrAJk7zGjuNLi6DruniwGFj3UmFMQJZe6UTvDxrCsStFBLrQippp6wfMLVMP0ekwIDAQAB"
   }
 }

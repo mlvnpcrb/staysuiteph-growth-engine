@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { ExternalLink } from "lucide-react";
+import { isNativeSuite } from "@staysuite/ui";
 import { Button } from "@staysuite/ui";
 import type { SavedGroup } from "@staysuite/types";
 import {
@@ -241,7 +242,7 @@ export function MyGroups() {
           <p className="muted">Your Facebook group library.</p>
         </div>
       </div>
-      <CollectionImport onImported={reload} />
+      {!isNativeSuite() && <CollectionImport onImported={reload} />}
       <div className="panel reference-group-filters">
         <label>
           Search groups

@@ -1,11 +1,13 @@
 "use client";
+import { SuiteLink } from "@staysuite/ui";
+import { suiteFetch } from "@staysuite/ui";
 import { useEffect, useState } from "react";
 import {
   groupResponseSchema,
   type SavedGroupCollection,
 } from "@staysuite/validation";
 import type { useLibrary } from "./use-library";
-import { csvCell } from "@/lib/activity-export";
+import { csvCell } from "../../lib/activity-export";
 type Group = { id: string; title: string; url: string };
 export function CollectionLibrary({
   library,
@@ -28,7 +30,7 @@ export function CollectionLibrary({
     setError("");
     if (!viewer) return;
     const controller = new AbortController();
-    void fetch("/api/groups", {
+    void suiteFetch("/api/groups", {
       cache: "no-store",
       signal: controller.signal,
       headers: { "x-staysuite-viewer": viewer },
@@ -209,9 +211,9 @@ export function CollectionLibrary({
             onChange={(event) => setSearch(event.target.value)}
           />
           <div className="gpp-tpl-actions-row">
-            <a className="gpp-secondary" href="/dashboard/groups">
+            <SuiteLink className="gpp-secondary" href="/dashboard/my-groups">
               Add a new link
-            </a>
+            </SuiteLink>
             <button
               type="button"
               disabled={busy || !editing}

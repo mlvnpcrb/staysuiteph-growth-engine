@@ -1,3 +1,4 @@
+import { suiteFetch } from "@staysuite/ui";
 import { scheduleSchema, type CampaignSchedule } from "@staysuite/validation";
 export function manilaLocal(value: string) {
   return new Date(Date.parse(value) + 8 * 3600000).toISOString().slice(0, 16);
@@ -17,7 +18,7 @@ export async function scheduleCommand(
   body: unknown,
   viewer: string,
 ): Promise<CampaignSchedule | null> {
-  const response = await fetch("/api/schedules", {
+  const response = await suiteFetch("/api/schedules", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

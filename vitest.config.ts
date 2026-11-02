@@ -3,6 +3,12 @@ import { fileURLToPath } from "node:url";
 export default defineConfig({
   resolve: {
     alias: {
+      "@staysuite/backend": fileURLToPath(
+        new URL("./packages/backend/src/index.ts", import.meta.url),
+      ),
+      "@staysuite/ui": fileURLToPath(
+        new URL("./packages/ui/src/index.ts", import.meta.url),
+      ),
       "@": fileURLToPath(new URL("./apps/web/src", import.meta.url)),
       "@staysuite/database": fileURLToPath(
         new URL("./packages/database/src/index.ts", import.meta.url),

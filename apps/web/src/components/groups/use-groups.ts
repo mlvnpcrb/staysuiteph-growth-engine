@@ -1,9 +1,10 @@
 "use client";
+import { suiteFetch } from "@staysuite/ui";
 import { useCallback, useEffect, useState } from "react";
 import { groupResponseSchema } from "@staysuite/validation";
 import type { SavedGroup } from "@staysuite/types";
 export async function groupRequest(method: string, body?: unknown) {
-  const response = await fetch("/api/groups", {
+  const response = await suiteFetch("/api/groups", {
     method,
     ...(body
       ? {

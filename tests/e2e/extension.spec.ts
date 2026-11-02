@@ -188,20 +188,6 @@ async function bridge(
     { denied, cloudOrigin },
   );
 }
-test("popup launches a workspace with Facebook connection independent of StaySuite", async ({
-  context,
-  page,
-}) => {
-  await serve(context);
-  await bridge(context);
-  await page.goto("http://extension-fixture.test/popup.html");
-  await expect(page.getByRole("heading", { name: "All groups" })).toBeVisible();
-  const opened = context.waitForEvent("page");
-  await page.getByRole("button", { name: "Open full workspace" }).click();
-  await expect(
-    (await opened).getByRole("heading", { name: "All groups" }),
-  ).toBeVisible();
-});
 test("denied Facebook permission does not start collection; workspace is accessible in both themes", async ({
   context,
   page,

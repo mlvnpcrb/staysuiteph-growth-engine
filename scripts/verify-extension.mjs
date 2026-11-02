@@ -17,6 +17,7 @@ assert.deepEqual(manifest.optional_host_permissions, [
   "https://*.vercel.app/*",
   "http://localhost/*",
   "http://127.0.0.1/*",
+  "https://kqjqcahysbmsaxlaipub.supabase.co/*",
 ]);
 assert.equal(manifest.externally_connectable, undefined);
 assert.ok(manifest.background.service_worker);
@@ -28,7 +29,7 @@ assert.equal(
 assert.ok(existsSync(`${directory}/${manifest.action.default_popup}`));
 assert.ok(existsSync(`${directory}/tabs/groups.html`));
 assert.ok(existsSync(`${directory}/tabs/campaigns.html`));
+assert.ok(existsSync(`${directory}/tabs/suite.html`));
 console.log(
   "PASS: built Chrome MV3 manifest, popup, and account-scoped library and bounded background collector; zero permanent host/content-script permissions; optional cookies and scoped site grants",
 );
-

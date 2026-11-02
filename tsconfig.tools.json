@@ -7,7 +7,9 @@
       "@staysuite/validation": ["./packages/validation/src/index.ts"],
       "@staysuite/types": ["./packages/types/src/index.ts"],
       "@/*": ["./apps/web/src/*"],
-      "@staysuite/database": ["./packages/database/src/index.ts"]
+      "@staysuite/database": ["./packages/database/src/index.ts"],
+      "@staysuite/backend": ["./packages/backend/src/index.ts"],
+      "@staysuite/ui": ["./packages/ui/src/index.ts"]
     }
   }
 }

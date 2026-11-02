@@ -1,7 +1,8 @@
 "use client";
+import { suiteFetch } from "@staysuite/ui";
 import { useEffect, useState } from "react";
 import { scheduleListSchema, campaignJobSchema } from "@staysuite/validation";
-import { csvCell } from "@/lib/activity-export";
+import { csvCell } from "../../lib/activity-export";
 type Runs = ReturnType<typeof scheduleListSchema.parse>["runs"];
 function outcomes(run: Runs[number]) {
   return run.outcomes.flatMap((value) => {
@@ -14,7 +15,7 @@ export function ScheduleHistory({ search }: { search: string }) {
     [error, setError] = useState("");
   useEffect(() => {
     const controller = new AbortController();
-    void fetch("/api/schedules", {
+    void suiteFetch("/api/schedules", {
       cache: "no-store",
       signal: controller.signal,
     })
