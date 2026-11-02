@@ -80,6 +80,16 @@ async function handle(request: Request, mutation: boolean, removal = false) {
         command: "inspect",
         payload: {},
       });
+      const view = new URL(request.url).searchParams.get("view");
+      if (view !== null && view !== "progress")
+        return reply({ error: "Choose a valid campaign view." }, 400);
+      if (view === "progress")
+        return reply({
+          job,
+          assets: [],
+          viewer_id: user.id,
+          publishing_available: false,
+        });
       const assets = await Promise.all(
         job.media
           .filter((asset) => asset.uploaded)

@@ -10,7 +10,6 @@ import {
   Smile,
   Shuffle,
   Undo2,
-  Sparkles,
 } from "lucide-react";
 import { Button } from "@staysuite/ui";
 import {
@@ -135,15 +134,6 @@ export function CampaignTextEditor({
           buttons[next]?.focus();
         }}
       >
-        <button
-          type="button"
-          className="reference-ai-door"
-          disabled
-          title="AI writing is not implemented yet"
-        >
-          <Sparkles size={12} aria-hidden="true" />
-          Write with AI
-        </button>
         <div className="campaign-text-tools">
           <Tool
             label="Bold lettering"
@@ -222,14 +212,6 @@ export function CampaignTextEditor({
         {actions}
         <button
           type="button"
-          className="reference-score"
-          disabled
-          title="Post scoring is not implemented yet"
-        >
-          Score: --
-        </button>
-        <button
-          type="button"
           className="campaign-variation-toggle"
           aria-expanded={variationsOpen}
           aria-controls="campaign-variations"
@@ -282,7 +264,9 @@ export function CampaignTextEditor({
           ))}
         </div>
       )}
-      <label htmlFor="campaign-text">Post text</label>
+      <label htmlFor="campaign-text" className="sr-only">
+        Post text
+      </label>
       <textarea
         ref={editor}
         id="campaign-text"
@@ -302,10 +286,7 @@ export function CampaignTextEditor({
         }}
         placeholder="Write your post here..."
       />
-      <div className="campaign-editor-meta">
-        <span>{value.length.toLocaleString()}/10,000 characters</span>
-        <span>Nothing is posted automatically</span>
-      </div>
+
       {notice && (
         <p className="campaign-text-notice" aria-live="polite">
           {notice}

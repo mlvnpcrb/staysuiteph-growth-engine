@@ -1,8 +1,10 @@
+import { extensionCryptoFixture } from "./helpers/extension-crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { test, expect, type BrowserContext } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { extname, resolve } from "node:path";
 async function serve(context: BrowserContext) {
+  await context.addInitScript(extensionCryptoFixture);
   const directory = resolve("apps/extension/build/chrome-mv3-prod");
   await context.route("http://extension-fixture.test/**", async (route) => {
     const path = new URL(route.request().url()).pathname;
@@ -370,6 +372,7 @@ test("campaign workspace connects the scoped dashboard but never starts an unval
       chrome: {
         runtime: {
           getURL: (path: string) => `http://extension-fixture.test/${path}`,
+          sendMessage: async () => ({ ok: true }),
         },
         permissions: { request: async () => true },
         tabs: {
